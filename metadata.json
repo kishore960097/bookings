@@ -1,0 +1,6 @@
+{
+  "name": "QGo - Salon & Barber Booking + Live Queue",
+  "description": "Salon and barber shop appointment booking, walk-in queue management, QR tickets, real-time wait tracking, and owner analytics.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

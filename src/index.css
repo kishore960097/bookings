@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+/* ─── QGo Design Tokens ─── */
+:root {
+  --qp-bg:           #080C14;
+  --qp-surface:      #0F1623;
+  --qp-surface-el:   #161D2E;
+  --qp-border:       #1E2A40;
+  --qp-border-soft:  #1a2438;
+  --qp-primary:      #2563EB;
+  --qp-primary-hover:#1D4ED8;
+  --qp-primary-soft: #1E3A5F;
+  --qp-accent:       #06B6D4;
+  --qp-accent-soft:  #0C3D4A;
+  --qp-text:         #F1F5F9;
+  --qp-text-sec:     #94A3B8;
+  --qp-text-muted:   #475569;
+  --qp-success:      #10B981;
+  --qp-success-soft: #064E3B;
+  --qp-warning:      #F59E0B;
+  --qp-warning-soft: #451A03;
+  --qp-error:        #EF4444;
+  --qp-error-soft:   #450A0A;
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--qp-bg);
+    color: var(--qp-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    width: 100%;
+    min-height: 100dvh;
+    touch-action: manipulation;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Prevent mobile Safari rubberband bouncing horizontal overflow */
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+    min-height: 100dvh;
+  }
+
+  /* Mobile interactive button touch-action */
+  button, a, input, select, textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--qp-surface);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--qp-border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--qp-text-muted);
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ─── Animations ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-14px) rotate(1deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  50%       { box-shadow: 0 0 24px 4px rgba(37, 99, 235, 0.25); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ping-slow {
+  0%    { transform: scale(1); opacity: 0.8; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes gradient-move {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+  to   { width: 72%; }
+}
+
+/* ─── Utility Classes ─── */
+.animate-float       { animation: float 4s ease-in-out infinite; }
+.animate-float-slow  { animation: float-slow 6s ease-in-out infinite; }
+.animate-float-delay { animation: float 5s ease-in-out 1.5s infinite; }
+.animate-pulse-glow  { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-shimmer     {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  background-size: 200% auto;
+  animation: shimmer 2.5s linear infinite;
+}
+.animate-slide-up    { animation: slide-in-up 0.6s ease-out forwards; }
+.animate-fade-in     { animation: fade-in 0.5s ease-out forwards; }
+.animate-ping-slow   { animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.animate-gradient    {
+  background-size: 200% 200%;
+  animation: gradient-move 8s ease infinite;
+}
+.animate-progress    { animation: progress-fill 1.8s ease-out 0.5s both; }
+
+/* ─── Glass Surface ─── */
+.glass {
+  background: rgba(15, 22, 35, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--qp-border);
+}
+
+.glass-elevated {
+  background: rgba(22, 29, 46, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+/* ─── QGo Button Styles ─── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--qp-primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-primary:hover {
+  background: var(--qp-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: transparent;
+  color: var(--qp-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  border-radius: 12px;
+  border: 1px solid var(--qp-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-secondary:hover {
+  background: var(--qp-surface-el);
+  border-color: var(--qp-primary);
+  color: var(--qp-text);
+}
+
+/* ─── Input Styles ─── */
+.qp-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--qp-surface);
+  border: 1px solid var(--qp-border);
+  border-radius: 10px;
+  color: var(--qp-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.qp-input::placeholder { color: var(--qp-text-muted); }
+.qp-input:focus {
+  border-color: var(--qp-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* ─── Section Headings ─── */
+.section-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: var(--qp-primary-soft);
+  color: var(--qp-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  margin-bottom: 16px;
+}
+
+/* ─── QR Pattern Grid ─── */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(17, 1fr);
+  gap: 1.5px;
+}
+.qr-cell {
+  aspect-ratio: 1;
+  border-radius: 1px;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-slow,
+  .animate-float-delay,
+  .animate-pulse-glow,
+  .animate-shimmer,
+  .animate-ping-slow,
+  .animate-gradient { animation: none; }
+}
+
+/* Hide number input spinners globally */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type='number'] {
+    -moz-appearance: textfield;
+}

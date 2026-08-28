@@ -1,0 +1,487 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Eye, EyeOff, ArrowRight, ArrowLeft, MapPin, Clock,
+  Users, CheckCircle2, Smartphone, KeyRound, Sparkles,
+  User, Building2, ChevronRight, X,
+} from 'lucide-react';
+import { QGoLogo } from './QGoLogo';
+import { useAuth } from '../../context/AuthContext';
+import { GoogleAuthButton } from '../auth/GoogleAuthButton';
+import { api } from '../../services/api';
+
+/* ─── Google SVG Logo ─── */
+const GoogleIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
+
+/* ─── Left Panel — QGo Visual ─── */
+const LeftPanel: React.FC = () => {
+  const [tick, setTick] = useState(36);
+  useEffect(() => {
+    const t = setInterval(() => setTick(v => v < 38 ? v + 1 : 36), 3000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div
+      className="relative flex flex-col justify-between p-10 lg:p-12 overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #0a1628 0%, #080C14 50%, #050810 100%)' }}
+    >
+      {/* Background radial */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 30% 30%, rgba(37,99,235,0.18) 0%, transparent 70%)' }}
+      />
+      {/* Grid */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: 'linear-gradient(var(--qp-border) 1px, transparent 1px), linear-gradient(90deg, var(--qp-border) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+
+      {/* Top: Logo + Tagline */}
+      <div className="relative">
+        <QGoLogo size="md" />
+        <p className="mt-4 text-sm font-medium" style={{ color: 'var(--qp-text-muted)' }}>
+          Book Before You Go. Know Before You Wait.
+        </p>
+      </div>
+
+      {/* Center: Live Ticket Card */}
+      <div className="relative flex justify-center py-10">
+        <div className="animate-float-slow" style={{ animationDuration: '5s' }}>
+          {/* Main ticket */}
+          <div
+            className="rounded-3xl overflow-hidden shadow-2xl animate-pulse-glow"
+            style={{ width: 280, background: 'var(--qp-surface-el)', border: '1px solid rgba(37,99,235,0.35)' }}
+          >
+            <div className="p-5" style={{ background: 'linear-gradient(135deg, #2563EB 0%, #1e40af 100%)' }}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold"
+                  style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  LIVE QUEUE
+                </div>
+                <div className="text-white/60 text-xs font-mono">QGo</div>
+              </div>
+              <div className="text-white">
+                <div className="text-xs font-medium opacity-70 mb-1">Apex Diagnostic Lab</div>
+                <div className="text-4xl font-black tracking-tight">#A042</div>
+                <div className="text-xs opacity-60 mt-1">Your token number</div>
+              </div>
+            </div>
+
+            {/* Perforation */}
+            <div className="flex items-center" style={{ marginLeft: -6, marginRight: -6 }}>
+              <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--qp-bg)' }} />
+              <div className="flex-1 border-t border-dashed" style={{ borderColor: 'var(--qp-border)' }} />
+              <div className="w-6 h-6 rounded-full shrink-0" style={{ background: 'var(--qp-bg)' }} />
+            </div>
+
+            <div className="p-5">
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Serving</div>
+                  <div className="text-lg font-black transition-all" style={{ color: 'var(--qp-success)' }}>#{tick}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Ahead</div>
+                  <div className="text-lg font-black" style={{ color: 'var(--qp-text)' }}>{42 - tick}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Wait</div>
+                  <div className="text-lg font-black" style={{ color: 'var(--qp-warning)' }}>
+                    {Math.max((42 - tick) * 5, 0)}m
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress */}
+              <div className="rounded-full overflow-hidden" style={{ height: 6, background: 'var(--qp-border)' }}>
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${Math.min(((tick - 30) / 12) * 100, 100)}%`,
+                    background: 'linear-gradient(90deg, var(--qp-primary), var(--qp-accent))',
+                  }}
+                />
+              </div>
+              <div className="text-[10px] text-right mt-1" style={{ color: 'var(--qp-text-muted)' }}>
+                {Math.round(((tick - 30) / 12) * 100)}% through queue
+              </div>
+            </div>
+          </div>
+
+          {/* Floating mini chips */}
+          <div
+            className="absolute -top-6 -right-8 rounded-2xl p-3 shadow-xl animate-float"
+            style={{ width: 140, background: 'var(--qp-surface-el)', border: '1px solid rgba(16,185,129,0.3)', animationDelay: '0.5s' }}
+          >
+            <div className="flex items-center gap-1.5 mb-1">
+              <CheckCircle2 size={11} color="var(--qp-success)" />
+              <span className="text-[10px] font-semibold" style={{ color: 'var(--qp-success)' }}>Confirmed</span>
+            </div>
+            <div className="text-xs font-bold" style={{ color: 'var(--qp-text)' }}>Blood Test</div>
+            <div className="text-[10px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>10:30 AM · Today</div>
+          </div>
+
+          <div
+            className="absolute -bottom-6 -left-8 rounded-2xl p-3 shadow-xl animate-float-delay"
+            style={{ width: 148, background: 'var(--qp-surface-el)', border: '1px solid rgba(37,99,235,0.3)' }}
+          >
+            <div className="flex items-center gap-1.5 mb-1">
+              <MapPin size={11} color="var(--qp-accent)" />
+              <span className="text-[10px] font-semibold" style={{ color: 'var(--qp-accent)' }}>1.4 km away</span>
+            </div>
+            <div className="text-xs font-bold" style={{ color: 'var(--qp-text)' }}>City Dental Clinic</div>
+            <div className="text-[10px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>0 waiting · 0m</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom: Features */}
+      <div className="relative space-y-3">
+        {[
+          { Icon: Users, text: 'See live queue in real-time' },
+          { Icon: Clock, text: 'Know exactly when to arrive' },
+          { Icon: MapPin, text: 'Find businesses near you' },
+        ].map(({ Icon, text }) => (
+          <div key={text} className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--qp-primary-soft)' }}>
+              <Icon size={14} color="var(--qp-accent)" />
+            </div>
+            <span className="text-sm font-medium" style={{ color: 'var(--qp-text-sec)' }}>{text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Auth View Types ─── */
+interface LoginPageProps {
+  defaultView?: 'login' | 'register';
+  onClose?: () => void;
+  onSuccess?: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onClose, onSuccess }) => {
+  const { loginWithGoogle, loginWithOtp, loginAsDemo, switchRole } = useAuth();
+
+  const [role, setRole] = useState<'consumer' | 'owner'>('consumer');
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; code?: string } | null>(null);
+  const [otpPhone, setOtpPhone] = useState('');
+  const [otpName, setOtpName] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [devOtp, setDevOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  const handleGoogleSuccess = async (tokenResponse: any) => {
+    setGoogleLoading(true);
+    setError(null);
+    try {
+      const token = tokenResponse.access_token || tokenResponse.credential;
+      if (!token) {
+        setError({ message: 'Google did not return a verifiable credential. Please try again.' });
+        return;
+      }
+      const res = await loginWithGoogle(token, role, tokenResponse.access_token);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError({
+          message: res.error || 'Authentication failed. Please try again.',
+          code: res.code,
+        });
+      }
+    } catch (e: any) {
+      setError({
+        message: e?.message || 'Network error. Please check your connection and try again.',
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleSwitchToCustomer = () => {
+    setRole('consumer');
+    setError(null);
+  };
+
+  const handleRequestOtp = async () => {
+    if (!otpPhone.trim()) {
+      setError({ message: 'Enter a phone number to request OTP.' });
+      return;
+    }
+
+    setOtpLoading(true);
+    setError(null);
+    setDevOtp('');
+    try {
+      const res = await api.requestOtp(otpPhone.trim());
+      if (!res.success) {
+        setError({ message: res.error || 'Could not send OTP.' });
+        return;
+      }
+      if (res.devOtp) {
+        setDevOtp(res.devOtp);
+        setOtpCode(res.devOtp);
+      }
+    } catch (e: any) {
+      setError({ message: e?.message || 'Could not request OTP.' });
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleOtpLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpPhone.trim() || !otpCode.trim()) {
+      setError({ message: 'Phone and OTP are required.' });
+      return;
+    }
+
+    setOtpLoading(true);
+    setError(null);
+    try {
+      const res = await loginWithOtp(otpPhone.trim(), otpCode.trim(), otpName.trim() || undefined);
+      if (res.success) {
+        if (role === 'owner') {
+          await switchRole('owner');
+        }
+        onSuccess?.();
+      } else {
+        setError({ message: res.error || 'OTP verification failed.' });
+      }
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen grid lg:grid-cols-2" style={{ background: 'var(--qp-bg)' }}>
+      {/* Left Panel — visual hero */}
+      <div className="hidden lg:block">
+        <LeftPanel />
+      </div>
+
+      {/* Right Panel — Auth Form */}
+      <div
+        className="flex flex-col justify-center min-h-screen relative"
+        style={{ background: 'var(--qp-bg)', borderLeft: '1px solid var(--qp-border)' }}
+      >
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+            title="Back to home"
+          >
+            <X size={20} />
+          </button>
+        )}
+
+        {/* Mobile header */}
+        <div className="lg:hidden px-6 pt-8 pb-4">
+          <QGoLogo size="md" />
+        </div>
+
+        <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-12 xl:px-16 py-12">
+          <div className="max-w-md mx-auto w-full">
+            {/* Header */}
+            <div className="mb-8 text-center">
+              <div className="hidden lg:flex justify-center mb-5">
+                <QGoLogo size="sm" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--qp-text)' }}>
+                {defaultView === 'register' ? 'Get Started with QGo' : 'Welcome to QGo'}
+              </h1>
+              <p className="mt-2 text-sm" style={{ color: 'var(--qp-text-muted)' }}>
+                Book Before You Go. Know Before You Wait.
+              </p>
+            </div>
+
+            {/* Error Banner with Role Mismatch Resolution */}
+            {error && (
+              <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex items-start gap-2.5">
+                  <X size={18} className="mt-0.5 shrink-0 text-red-400" />
+                  <span className="font-medium text-red-200">{error.message}</span>
+                </div>
+                {(error.code === 'OWNER_ACCESS_DENIED' || error.code === 'STAFF_ACCESS_DENIED' || error.message.includes('access')) && (
+                  <div className="flex items-center gap-2 pt-2 border-t border-red-500/20">
+                    <button
+                      onClick={() => setError(null)}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors"
+                    >
+                      Try Again
+                    </button>
+                    <button
+                      onClick={handleSwitchToCustomer}
+                      className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white transition-colors flex items-center gap-1"
+                    >
+                      <User size={13} />
+                      <span>Use Customer Login</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── ROLE SELECTOR (Customer | Owner) ── */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Select your role
+                </label>
+                <span className="text-[11px] text-slate-500">
+                  Role is locked after login
+                </span>
+              </div>
+
+              {/* Segmented Control with 2 roles */}
+              <div
+                role="radiogroup"
+                aria-label="User role selection"
+                className="p-1 rounded-xl bg-slate-800/80 border border-slate-700/60 grid grid-cols-2 gap-1 shadow-inner"
+              >
+                {([
+                  { id: 'consumer', label: 'Customer', icon: User },
+                  { id: 'owner', label: 'Owner', icon: Building2 },
+                ] as const).map(({ id, label, icon: Icon }) => {
+                  const isSelected = role === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        setRole(id);
+                        setError(null);
+                      }}
+                      className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all duration-150 ${
+                        isSelected
+                          ? 'bg-white text-slate-900 shadow-md shadow-black/20 ring-1 ring-slate-200/50'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40'
+                      }`}
+                    >
+                      <Icon
+                        size={15}
+                        className={isSelected ? 'text-blue-600' : 'text-slate-400'}
+                      />
+                      <span>{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── GOOGLE AUTH BUTTON ── */}
+            <div className="space-y-4">
+              <GoogleAuthButton
+                role={role}
+                loading={googleLoading}
+                onSuccess={handleGoogleSuccess}
+                onError={(err) => setError({ message: err.message })}
+              />
+
+              <div className="text-center">
+                <p className="text-[11px] text-slate-500">
+                  Secured with Google OAuth 2.0 & OpenID Connect
+                </p>
+              </div>
+
+
+            </div>
+
+            {/* Local development OTP login */}
+            <form onSubmit={handleOtpLogin} className="mt-6 pt-6 border-t border-slate-800/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Local OTP Preview
+                </label>
+                <span className="text-[10px] text-slate-500">Development only</span>
+              </div>
+
+              <input
+                type="text"
+                value={otpName}
+                onChange={(e) => setOtpName(e.target.value)}
+                placeholder="Your name"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  value={otpPhone}
+                  onChange={(e) => setOtpPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <button
+                  type="button"
+                  onClick={handleRequestOtp}
+                  disabled={otpLoading}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5"
+                >
+                  <Smartphone size={14} />
+                  <span>OTP</span>
+                </button>
+              </div>
+
+              {devOtp && (
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-xs text-emerald-200">
+                  Dev OTP: <strong className="font-mono text-white">{devOtp}</strong>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value)}
+                  placeholder="Enter OTP"
+                  inputMode="numeric"
+                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                />
+                <button
+                  type="submit"
+                  disabled={otpLoading}
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5"
+                >
+                  <KeyRound size={14} />
+                  <span>Enter</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Footer */}
+            <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
+              <p className="text-[11px] text-slate-500">
+                By continuing, you agree to our{' '}
+                <a href="#" className="text-slate-400 hover:text-white underline">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="#" className="text-slate-400 hover:text-white underline">
+                  Privacy Policy
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
