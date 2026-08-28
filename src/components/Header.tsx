@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useQueue } from '../context/QueueContext';
 import { QGoLogo } from './landing/QGoLogo';
+import { RoleSwitcher } from './RoleSwitcher';
 import {
   Bell,
   Ticket,
@@ -118,6 +119,9 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
           )}
+
+          {/* Notifications */}
+          <RoleSwitcher />
 
           {/* Notifications */}
           <button

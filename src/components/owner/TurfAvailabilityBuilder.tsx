@@ -34,6 +34,12 @@ import {
 
 import { NumberInput } from '../common/NumberInput';
 import { TimeInput } from '../common/TimeInput';
+import {
+  format12Hour,
+  isMinuteInInterval,
+  minutesToTime,
+  timeToMinutes,
+} from '../../../packages/shared/src/time';
 
 interface TurfAvailabilityBuilderProps {
   resources?: TurfResource[];
@@ -52,44 +58,6 @@ const DURATION_PRESETS = [
   { label: '2 hours (120 min)', value: 120 },
   { label: 'Custom', value: -1 },
 ];
-
-function timeToMinutes(t: string): number {
-  if (!t) return 0;
-  const [h, m] = t.split(':').map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
-
-function minutesToTime(m: number): string {
-  const hh = String(Math.floor(m / 60)).padStart(2, '0');
-  const mm = String(m % 60).padStart(2, '0');
-  return `${hh}:${mm}`;
-}
-
-function format12Hour(timeStr: string): string {
-  if (!timeStr) return '';
-  const [h, m] = timeStr.split(':').map(Number);
-  const period = h >= 12 ? 'PM' : 'AM';
-  const rawH = h % 12 === 0 ? 12 : h % 12;
-  const displayH = String(rawH).padStart(2, '0');
-  const displayM = String(m).padStart(2, '0');
-  return `${displayH}:${displayM} ${period}`;
-}
-
-// Tests if a minute falls inside an interval (handles overnight / crossing midnight)
-export function isMinuteInInterval(minuteOfDay: number, startTimeStr: string, endTimeStr: string): boolean {
-  const startM = timeToMinutes(startTimeStr);
-  const endM = timeToMinutes(endTimeStr);
-
-  if (startM === endM) {
-    return true; // 24 hours
-  }
-
-  if (endM > startM) {
-    return minuteOfDay >= startM && minuteOfDay < endM;
-  } else {
-    return minuteOfDay >= startM || minuteOfDay < endM;
-  }
-}
 
 // Generate automatic slot items for a day given Day & Night pricing
 function generateDayNightSlots(

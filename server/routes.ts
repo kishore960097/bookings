@@ -20,6 +20,7 @@ import {
 } from '../src/types';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
+import { format12Hour, minutesToTime, timeToMinutes } from '../packages/shared/src/time';
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
 const googleClient = new OAuth2Client(googleClientId);
@@ -1224,28 +1225,6 @@ apiRouter.patch('/staff/:id/status', requireAuth, requireRole('owner'), (req: Au
 // ----------------------------------------------------
 // 4. AVAILABILITY ENGINE & TIME SLOTS (SALONS & TURFS)
 // ----------------------------------------------------
-
-function timeToMinutes(t: string): number {
-  if (!t) return 0;
-  const [h, m] = t.split(':').map(Number);
-  return (h || 0) * 60 + (m || 0);
-}
-
-function minutesToTime(m: number): string {
-  const hh = String(Math.floor(m / 60)).padStart(2, '0');
-  const mm = String(m % 60).padStart(2, '0');
-  return `${hh}:${mm}`;
-}
-
-function format12Hour(timeStr: string): string {
-  if (!timeStr) return '';
-  const [h, m] = timeStr.split(':').map(Number);
-  const period = (h || 0) >= 12 ? 'PM' : 'AM';
-  const rawH = (h || 0) % 12 === 0 ? 12 : (h || 0) % 12;
-  const displayH = String(rawH).padStart(2, '0');
-  const displayM = String(m || 0).padStart(2, '0');
-  return `${displayH}:${displayM} ${period}`;
-}
 
 function calculateTurfSlotsForDate(
   salon: Salon,

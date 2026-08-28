@@ -1,4 +1,5 @@
-export type UserRole = 'consumer' | 'owner';
+export type { UserRole } from '../packages/shared/src/roles';
+import type { UserRole } from '../packages/shared/src/roles';
 
 export interface User {
   id: string;
