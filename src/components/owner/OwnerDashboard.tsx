@@ -14,6 +14,7 @@ import { SalonSettings } from './SalonSettings';
 import { QrScannerModal } from './QrScannerModal';
 import { BusinessSetupWizard } from './BusinessSetupWizard';
 import { BusinessStatusBanner, StatusBadge } from './BusinessStatusBanner';
+import { OwnerProfileView } from './OwnerProfileView';
 import {
   Home,
   Calendar,
@@ -33,6 +34,7 @@ import {
   CheckCircle2,
   Lock,
   Unlock,
+  User,
 } from 'lucide-react';
 
 interface OwnerDashboardProps {
@@ -46,7 +48,8 @@ export type OwnerNavTab =
   | 'customers'
   | 'earnings'
   | 'settings'
-  | 'notifications';
+  | 'notifications'
+  | 'profile';
 
 export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) => {
   const { user } = useAuth();
@@ -416,6 +419,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
         {navItem('earnings', 'Earnings', TrendingUp)}
         {navItem('settings', 'Business Settings', Settings)}
         {navItem('notifications', 'Notifications', Bell, unreadNotifsCount)}
+        {navItem('profile', 'Profile', User)}
       </div>
 
       {/* ── ACTIVE TAB VIEW CONTENT ── */}
@@ -452,6 +456,10 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
           notifications={notifications}
           onMarkAllRead={markAllNotificationsRead}
         />
+      )}
+
+      {activeTab === 'profile' && (
+        <OwnerProfileView />
       )}
 
       {/* ── QR Scanner Modal ── */}

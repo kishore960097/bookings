@@ -82,7 +82,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
   // Step 1 — Business Basics
   const [name, setName] = useState(existingSalon?.name || '');
-  const [category, setCategory] = useState(existingSalon?.category || 'Sports Arena & Turf Booking');
+  const [category, setCategory] = useState(existingSalon?.category || 'Barber Shop');
   const [phone, setPhone] = useState(existingSalon?.phone || user?.phone || '');
   const [email, setEmail] = useState(existingSalon?.email || '');
   const [description, setDescription] = useState(existingSalon?.description || '');
@@ -427,25 +427,25 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
     nextLabel = 'Save & Continue',
     canNext = true
   ) => (
-    <div className="flex items-center justify-between pt-5 border-t border-slate-100 mt-6">
+    <div className="flex items-center justify-between pt-6 mt-8 border-t border-slate-100 gap-4">
       {onBackBtn ? (
         <button
           type="button"
           onClick={onBackBtn}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors w-full sm:w-auto"
         >
           <ChevronLeft className="w-4 h-4" />
           Back
         </button>
       ) : (
-        <div />
+        <div className="hidden sm:block" />
       )}
       {onNextBtn && (
         <button
           type="button"
           onClick={onNextBtn}
           disabled={saving || !canNext}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-[14px] bg-[#00a870] hover:bg-[#009665] text-white font-bold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <>
@@ -584,7 +584,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <button
               type="submit"
               disabled={saving || !name.trim() || !phone.trim()}
-              className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-md mt-4"
+              className="w-full py-3.5 mt-6 rounded-[14px] bg-[#00a870] hover:bg-[#009665] text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-sm"
             >
               {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               Save &amp; Continue
@@ -613,11 +613,11 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               required
             />
 
-            <div className="pt-4 flex items-center justify-between">
+            <div className="pt-6 mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-slate-100">
               <button
                 type="button"
                 onClick={goBack}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50"
+                className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 w-full sm:w-auto"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -626,7 +626,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               <button
                 type="submit"
                 disabled={saving || !address.trim()}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
+                className="flex-1 sm:flex-none px-8 py-3.5 rounded-[14px] bg-[#00a870] hover:bg-[#009665] text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
               >
                 Save &amp; Continue
                 <ChevronRight className="w-4 h-4" />
@@ -646,21 +646,45 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {formInput(
               'Logo Image (optional)',
               false,
-              <div className="space-y-2">
-                <input
-                  id="logo-upload"
-                  type="file"
-                  accept="image/*, image/jpeg, image/png, image/webp, image/gif, .jpg, .jpeg, .png, .webp, .gif, .svg"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => setLogoUrl(reader.result as string);
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className={inputCls}
-                />
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                    <input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => setLogoUrl(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <Image className="w-5 h-5 mx-auto text-slate-400 mb-1" />
+                    <span className="text-xs font-bold text-slate-600">Upload Gallery</span>
+                  </label>
+                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => setLogoUrl(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <Sparkles className="w-5 h-5 mx-auto text-slate-400 mb-1" />
+                    <span className="text-xs font-bold text-slate-600">Take Photo</span>
+                  </label>
+                </div>
                 {logoUrl && (
                   <div className="flex items-start gap-4 mt-2">
                     <img src={logoUrl} alt="Logo preview" className="h-16 rounded-md object-contain border border-slate-200" />
@@ -684,32 +708,66 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {formInput(
               'Venue Photos (optional)',
               false,
-              <div className="space-y-2">
-                <input
-                  id="photos-upload"
-                  type="file"
-                  accept="image/*, image/jpeg, image/png, image/webp, image/gif, .jpg, .jpeg, .png, .webp, .gif, .svg"
-                  multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    if (files.length > 0) {
-                      const newPhotos: string[] = [];
-                      let loaded = 0;
-                      files.forEach((file: File) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          newPhotos.push(reader.result as string);
-                          loaded++;
-                          if (loaded === files.length) {
-                            setPhotos(prev => [...prev, ...newPhotos]);
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      });
-                    }
-                  }}
-                  className={inputCls}
-                />
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                    <input
+                      id="photos-upload"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) {
+                          const newPhotos: string[] = [];
+                          let loaded = 0;
+                          files.forEach((file: File) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              newPhotos.push(reader.result as string);
+                              loaded++;
+                              if (loaded === files.length) {
+                                setPhotos(prev => [...prev, ...newPhotos]);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <Image className="w-5 h-5 mx-auto text-slate-400 mb-1" />
+                    <span className="text-xs font-bold text-slate-600">Upload Gallery</span>
+                  </label>
+                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) {
+                          const newPhotos: string[] = [];
+                          let loaded = 0;
+                          files.forEach((file: File) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              newPhotos.push(reader.result as string);
+                              loaded++;
+                              if (loaded === files.length) {
+                                setPhotos(prev => [...prev, ...newPhotos]);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          });
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <Sparkles className="w-5 h-5 mx-auto text-slate-400 mb-1" />
+                    <span className="text-xs font-bold text-slate-600">Take Photo</span>
+                  </label>
+                </div>
                 {photos.length > 0 && (
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     {photos.map((photo, idx) => (

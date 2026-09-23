@@ -8,65 +8,11 @@ export interface CategoryGroup {
 
 export const DEFAULT_BUSINESS_CATEGORIES: CategoryGroup[] = [
   {
-    group: '💈 Salon, Barber & Beauty',
+    group: 'Business Categories',
     items: [
       'Barber Shop',
-      'Unisex Salon',
-      'Beauty Parlour',
-      'Spa & Salon',
-      'Nail & Lash Studio',
-      'Tattoo & Piercing Studio',
-      'Bridal & Makeup Studio',
-    ],
-  },
-  {
-    group: '🏥 Healthcare & Medical',
-    items: [
-      'Doctor Clinic / OPD',
-      'Hospital & Consultation',
-      'Diagnostic & Blood Test Lab',
-      'Dental Care Clinic',
-      'Physiotherapy & Rehab',
-      'Eye Care & Opticals',
-      'Pharmacy & Medicals',
-    ],
-  },
-  {
-    group: '🍽️ Food, Cafe & Hospitality',
-    items: [
-      'Restaurant & Dine-In Queue',
-      'Cafe & Bakery',
-      'Hotel & Resort (Check-in)',
-      'Food Court Token Counter',
-    ],
-  },
-  {
-    group: '🚗 Auto, Bike & Service Centers',
-    items: [
-      'Car Service & Repair Garage',
-      'Car Wash & Detailing Lounge',
-      'Bike / EV Service Station',
-      'Tire & Wheel Alignment',
-    ],
-  },
-  {
-    group: '🏋️ Fitness, Sports & Wellness',
-    items: [
-      'Gym & Fitness Center',
-      'Yoga & Meditation Studio',
-      'Sports Arena & Turf Booking',
-      'Swimming & Aqua Club',
-    ],
-  },
-  {
-    group: '💼 Professional & Citizen Services',
-    items: [
-      'Legal & CA Consultation Office',
-      'Govt & Citizen Helpdesk (e-Seva/RTO)',
-      'Bank & Financial Advisory',
-      'Photography & Video Studio',
-      'Pet Clinic & Animal Grooming',
-      'Tailoring & Fashion Boutique',
+      'Turf',
+      'Swimming Pool',
     ],
   },
 ];

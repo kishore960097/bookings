@@ -1,0 +1,12 @@
+{
+	"appId": "com.qgo.app",
+	"appName": "QGo",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"hostname": "qgo.app"
+	},
+	"android": {
+		"allowMixedContent": true
+	}
+}

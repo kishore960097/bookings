@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { QueueProvider, useQueue } from './context/QueueContext';
-import { Header } from './components/Header';
 import { NotificationCenter } from './components/NotificationCenter';
 import { AuthModal } from './components/auth/AuthModal';
 import { LandingPage } from './components/landing/LandingPage';
 import { LoginPage } from './components/landing/LoginPage';
 import { QGoLogo } from './components/landing/QGoLogo';
 
-// Consumer components
-import { SalonList } from './components/consumer/SalonList';
-import { SalonDetail } from './components/consumer/SalonDetail';
-import { BookAppointmentModal } from './components/consumer/BookAppointmentModal';
-import { JoinQueueModal } from './components/consumer/JoinQueueModal';
-import { TicketView } from './components/consumer/TicketView';
-import { BookingHistory } from './components/consumer/BookingHistory';
-import { ReviewModal } from './components/consumer/ReviewModal';
+// Consumer — redesigned green/white theme
+import { CustomerPage } from './features/customer/CustomerPage';
 
 // Owner components
 import { OwnerDashboard } from './components/owner/OwnerDashboard';
@@ -123,75 +116,21 @@ function AppContent() {
 
   // ─── Main App (Authenticated) ───
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={{ background: '#F1F5F9', color: '#1E293B' }}>
-      {/* Universal Navigation Header */}
-      <Header
-        activeTab={currentView}
-        onNavigate={(tab) => {
-          if (tab === 'home' || tab === 'bookings') {
-            setCurrentView(tab);
-          }
-        }}
-        onOpenNotifications={() => setIsNotificationOpen(true)}
-        onOpenActiveTicket={() => handleViewTicket()}
-      />
+    <>
+      {currentRole === 'consumer' && (
+        <CustomerPage
+          onOpenNotifications={() => setIsNotificationOpen(true)}
+          onLogout={logout}
+        />
+      )}
 
-      {/* Main Content Area */}
-      <main className="flex-1">
-        {currentRole === 'consumer' && (
-          <>
-            {currentView === 'home' && (
-              <SalonList
-                onSelectSalon={handleSelectSalon}
-                onOpenActiveTicket={() => handleViewTicket()}
-              />
-            )}
-
-            {currentView === 'salon_detail' && selectedSalon && (
-              <SalonDetail
-                salonId={selectedSalon.id}
-                onBack={() => setCurrentView('home')}
-                onBookAppointment={(salon, srv) => handleOpenBookAppointment(salon, srv)}
-                onJoinQueue={(salon, srv) => handleOpenJoinQueue(salon, srv)}
-                onWriteReview={(salon) => {
-                  setSelectedSalon(salon);
-                  setIsReviewModalOpen(true);
-                }}
-              />
-            )}
-
-            {currentView === 'ticket' && selectedBookingId && (
-              <TicketView
-                bookingId={selectedBookingId}
-                onBack={() => setCurrentView('home')}
-              />
-            )}
-
-            {currentView === 'bookings' && (
-              <BookingHistory
-                onSelectBooking={(id) => handleViewTicket(id)}
-                onBookAgain={(_salonId) => {
-                  setCurrentView('home');
-                }}
-                onRate={(booking) => handleRateBooking(booking)}
-              />
-            )}
-          </>
-        )}
-
-        {currentRole === 'owner' && <OwnerDashboard />}
-      </main>
-
-      {/* Footer */}
-      <footer className="h-10 bg-slate-900 text-slate-400 text-[10px] sm:text-[11px] px-4 sm:px-8 flex items-center justify-between border-t border-slate-800 uppercase tracking-wider font-bold shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>System Up: 99.98% • v2.0.0</span>
+      {currentRole === 'owner' && (
+        <div className="min-h-screen flex flex-col font-sans" style={{ background: '#F1F5F9', color: '#1E293B' }}>
+          <main className="flex-1">
+            <OwnerDashboard />
+          </main>
         </div>
-        <div className="text-slate-500 font-medium normal-case tracking-normal">
-          © {new Date().getFullYear()} QGo Technologies • All Rights Reserved
-        </div>
-      </footer>
+      )}
 
       {/* Global Modals & Drawers */}
       <AuthModal />
@@ -199,41 +138,12 @@ function AppContent() {
       <NotificationCenter
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
-        onSelectBooking={(id) => handleViewTicket(id)}
+        onSelectBooking={(id) => {
+          setSelectedBookingId(id);
+          setCurrentView('ticket');
+        }}
       />
-
-      {isBookModalOpen && selectedSalon && (
-        <BookAppointmentModal
-          salon={selectedSalon}
-          preselectedService={preselectedService}
-          onClose={() => setIsBookModalOpen(false)}
-          onBookingSuccess={handleBookingCreated}
-        />
-      )}
-
-      {isQueueModalOpen && selectedSalon && (
-        <JoinQueueModal
-          salon={selectedSalon}
-          preselectedService={preselectedService}
-          onClose={() => setIsQueueModalOpen(false)}
-          onQueueSuccess={handleBookingCreated}
-        />
-      )}
-
-      {isReviewModalOpen && (
-        <ReviewModal
-          salon={selectedSalon || undefined}
-          booking={reviewBooking}
-          onClose={() => {
-            setIsReviewModalOpen(false);
-            setReviewBooking(undefined);
-          }}
-          onSuccess={() => {
-            // refresh
-          }}
-        />
-      )}
-    </div>
+    </>
   );
 }
 
