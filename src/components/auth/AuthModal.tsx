@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { X, Sparkles, User as UserIcon, Building2, Users } from 'lucide-react';
+import { X, User as UserIcon, Building2, Users } from 'lucide-react';
 import { QGoLogo } from '../landing/QGoLogo';
 import { GoogleAuthButton } from './GoogleAuthButton';
 

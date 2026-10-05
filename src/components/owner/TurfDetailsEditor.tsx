@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TurfResource } from '../../types';
-import { Plus, Trash2, Shield, Info, Check, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Shield, Info, Check } from 'lucide-react';
 import { NumberInput } from '../common/NumberInput';
 
 interface TurfDetailsEditorProps {

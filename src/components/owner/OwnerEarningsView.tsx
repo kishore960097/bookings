@@ -66,8 +66,8 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
           <p className="text-xs text-slate-500 mt-0.5">Real-time accounting of bookings, refunds, and net payout</p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+          <div className="bg-slate-100 p-1 rounded-xl flex flex-wrap items-center gap-1">
             {(
               [
                 { id: 'today', label: 'Today' },

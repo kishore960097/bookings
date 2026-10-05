@@ -9,11 +9,9 @@ import {
   Clock,
   Download,
   Calendar,
-  Sparkles,
   BarChart3,
   Star,
-  CheckCircle2,
-} from 'lucide-react';
+  CheckCircle2} from 'lucide-react';
 
 interface AnalyticsViewProps {
   salon: Salon;

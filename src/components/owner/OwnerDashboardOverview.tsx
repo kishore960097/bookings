@@ -13,11 +13,9 @@ import {
   Star,
   ChevronRight,
   ShieldCheck,
-  Sparkles,
   Layers,
   AlertCircle,
-  Eye,
-} from 'lucide-react';
+  Eye} from 'lucide-react';
 
 interface OwnerDashboardOverviewProps {
   salon: Salon;
@@ -209,7 +207,8 @@ export const OwnerDashboardOverview: React.FC<OwnerDashboardOverviewProps> = ({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            {/* Desktop Table Layout */}
+            <table className="w-full text-left text-xs hidden md:table">
               <thead>
                 <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50/50">
                   <th className="py-3 px-3.5">Time Range</th>
@@ -298,6 +297,74 @@ export const OwnerDashboardOverview: React.FC<OwnerDashboardOverviewProps> = ({
                 })}
               </tbody>
             </table>
+
+            {/* Mobile Card Layout */}
+            <div className="md:hidden grid grid-cols-2 gap-2">
+              {overview.todaySlots.map((slot) => {
+                const isBooked = slot.isBooked;
+                const isBlocked = slot.isBlocked;
+
+                return (
+                  <div
+                    key={slot.id}
+                    onClick={() => onSelectSlot(slot)}
+                    className="p-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-slate-300 transition-colors cursor-pointer flex flex-col gap-1.5 overflow-hidden justify-between h-full"
+                  >
+                    {/* Top Row: Time & Price */}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 font-bold text-slate-900 font-mono text-[10px]">
+                          <span className={slot.periodType === 'day' ? 'text-amber-600' : 'text-indigo-600'}>
+                            {slot.periodType === 'day' ? '☀️' : '🌙'}
+                          </span>
+                          <span className="truncate">{fmt12(slot.startTime)}</span>
+                        </div>
+                        <div className="font-black text-slate-900 font-mono text-[10px] shrink-0">
+                          ₹{slot.price}
+                        </div>
+                      </div>
+                      <span className="text-[9px] text-slate-500 font-bold ml-4">
+                        to {fmt12(slot.endTime)}
+                      </span>
+                    </div>
+                    
+                    {/* Middle Row: Arena & Customer */}
+                    <div className="flex items-center justify-between text-[9px] mt-auto pt-1.5 border-t border-slate-100">
+                      <span className="text-slate-500 font-semibold uppercase tracking-wide truncate max-w-[50px]">
+                        {slot.resourceName || 'Main Pitch'}
+                      </span>
+                      {slot.customerName && (
+                        <span className="font-bold text-slate-800 truncate max-w-[60px]">{slot.customerName}</span>
+                      )}
+                    </div>
+
+                    {/* Bottom Row: Status & Action */}
+                    <div className="flex items-center justify-between">
+                      {isBooked ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200 truncate">
+                          BOOKED
+                        </span>
+                      ) : isBlocked ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 truncate">
+                          BLOCKED
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 truncate">
+                          AVAILABLE
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="px-1.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[9px] font-black inline-flex items-center gap-0.5 shrink-0"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>View</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

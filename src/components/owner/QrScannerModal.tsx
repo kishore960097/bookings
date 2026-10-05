@@ -3,18 +3,17 @@ import { Salon, Booking } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import confetti from 'canvas-confetti';
+import jsQR from 'jsqr';
 import {
   X,
   QrCode,
   Camera,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
   Search,
   Check,
   UserCheck,
-  RefreshCw,
-} from 'lucide-react';
+  RefreshCw} from 'lucide-react';
 
 interface QrScannerModalProps {
   salon: Salon;
@@ -40,6 +39,8 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const scanLoopRef = useRef<number | null>(null);
 
   // Fetch active bookings for quick test simulation
   useEffect(() => {
@@ -68,7 +69,9 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute("playsinline", "true");
         videoRef.current.play();
+        scanLoopRef.current = requestAnimationFrame(tick);
       }
       setCameraActive(true);
     } catch (e) {
@@ -82,7 +85,65 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = null;
+    }
     setCameraActive(false);
+  };
+
+  const tick = () => {
+    if (!videoRef.current || videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
+      if (cameraActive) scanLoopRef.current = requestAnimationFrame(tick);
+      return;
+    }
+
+    if (!canvasRef.current) {
+      canvasRef.current = document.createElement('canvas');
+    }
+
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    
+    // Scale down for faster QR processing
+    const maxDimension = 400;
+    const scale = Math.min(1, maxDimension / Math.max(video.videoWidth, video.videoHeight));
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
+    
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert",
+      });
+
+      if (code && code.data) {
+        try {
+          const payload = JSON.parse(code.data);
+          
+          if (payload.salonId && payload.salonId !== salon.id) {
+            setResult({
+              status: 'error',
+              message: 'Invalid Ticket! This ticket belongs to a different shop.',
+            });
+            setTimeout(() => {
+              if (cameraActive) scanLoopRef.current = requestAnimationFrame(tick);
+            }, 3000);
+            return;
+          }
+
+          stopCamera();
+          handleVerifyPayload(payload);
+          return;
+        } catch (e) {
+          console.warn("Invalid QR code format.");
+        }
+      }
+    }
+
+    if (cameraActive) scanLoopRef.current = requestAnimationFrame(tick);
   };
 
   useEffect(() => {
@@ -103,10 +164,10 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
         } catch (e) {}
         setResult({
           status: 'success',
-          message: res.message || 'Check-in Verified!',
+          message: res.message || 'Ticket Validated! Please collect payment and accept.',
           booking: res.booking,
         });
-        onCheckInSuccess(res.booking);
+        // Wait for explicit accept via UI
       } else {
         setResult({
           status: res.reason === 'ALREADY_CHECKED_IN' ? 'already_checked_in' : 'error',
@@ -139,10 +200,10 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
         } catch (e) {}
         setResult({
           status: 'success',
-          message: res.message || 'Customer Checked In!',
+          message: res.message || 'Ticket Validated! Please collect payment and accept.',
           booking: res.booking,
         });
-        onCheckInSuccess(res.booking);
+        // Wait for explicit accept via UI
       } else {
         setResult({
           status: 'error',
@@ -159,11 +220,40 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
     }
   };
 
+  const handleAcceptAndComplete = async (booking: Booking, markAsPaid: boolean) => {
+    setScanning(true);
+    try {
+      const res = await api.acceptQrCheckIn(booking.id, salon.id, markAsPaid);
+      if (res.valid) {
+        setResult({
+          status: 'success',
+          message: 'Payment Recorded & Check-in Complete!',
+          booking: { ...booking, paymentStatus: markAsPaid ? 'paid' : booking.paymentStatus }
+        });
+        onCheckInSuccess(booking);
+      } else {
+        setResult({
+          status: 'error',
+          message: res.message || 'Failed to accept check-in',
+          booking,
+        });
+      }
+    } catch (err: any) {
+      setResult({
+        status: 'error',
+        message: err.message || 'Accept request failed',
+        booking,
+      });
+    } finally {
+      setScanning(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-xs" onClick={onClose} />
 
-      <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl z-10 border border-neutral-200 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl z-10 border border-neutral-200 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto scrollbar-none">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-full text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100"
@@ -175,7 +265,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-2">
             <QrCode className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-extrabold text-neutral-900">{t.scanQrTitle}</h2>
+          <h2 className="text-xl font-extrabold text-neutral-900">QR Scanner</h2>
           <p className="text-xs text-neutral-500 mt-0.5">{salon.name} Reception Check-in Desk</p>
         </div>
 
@@ -197,12 +287,63 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
             ) : (
               <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             )}
-            <div>
+            <div className="w-full">
               <span className="block text-sm">{result.message}</span>
               {result.booking && (
-                <span className="text-xs font-normal block mt-1">
-                  Token: <strong>{result.booking.tokenNumber}</strong> • {result.booking.serviceName}
-                </span>
+                <div className="mt-2 space-y-3">
+                  <span className="text-xs font-normal block">
+                    Token: <strong>{result.booking.tokenNumber}</strong> • {result.booking.serviceName}
+                  </span>
+                  
+                  {result.status === 'success' && (
+                    <div className="bg-white/60 rounded-xl p-3 border border-emerald-200/60 shadow-xs space-y-1.5 w-full">
+                      <div className="flex justify-between items-center text-emerald-800">
+                        <span>Total Amount:</span>
+                        <span className="font-bold">₹{result.booking.amount}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-emerald-800">
+                        <span>Status:</span>
+                        <span className="font-bold uppercase tracking-wide text-[10px]">{result.booking.paymentStatus === 'paid' ? 'Paid Online' : 'Pay at Venue'}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-1.5 border-t border-emerald-200/60 text-emerald-950 font-black text-sm">
+                        <span>Balance to Collect:</span>
+                        <span>₹{result.booking.paymentStatus === 'paid' ? '0' : result.booking.amount}</span>
+                      </div>
+
+                      <div className="pt-2 flex flex-col gap-2">
+                        {result.booking.paymentStatus !== 'paid' ? (
+                          <>
+                            <button
+                              type="button"
+                              disabled={scanning}
+                              onClick={() => handleAcceptAndComplete(result.booking!, true)}
+                              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                            >
+                              Collect ₹{result.booking.amount} & Accept
+                            </button>
+                            <button
+                              type="button"
+                              disabled={scanning}
+                              onClick={() => handleAcceptAndComplete(result.booking!, false)}
+                              className="w-full py-2 bg-transparent hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-bold transition-colors"
+                            >
+                              Accept without Payment
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={scanning}
+                            onClick={() => handleAcceptAndComplete(result.booking!, true)}
+                            className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                          >
+                            Accept & Check-in
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -212,7 +353,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
         <div className="relative bg-neutral-950 rounded-3xl overflow-hidden aspect-4/3 flex flex-col items-center justify-center border-2 border-neutral-800 shadow-inner mb-5">
           {cameraActive ? (
             <>
-              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
               {/* Scanning Target Crosshairs */}
               <div className="absolute inset-8 border-2 border-emerald-400/80 rounded-2xl pointer-events-none animate-pulse flex items-center justify-center">
                 <span className="text-[10px] text-white bg-black/60 px-2 py-0.5 rounded">
@@ -250,7 +391,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
         {/* 1-Click QR Simulator: Instant test with currently waiting customer tickets */}
         <div className="mb-5 p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200">
           <span className="text-xs font-bold text-neutral-800 block mb-1 flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            
             Quick Test Simulator (Click any waiting customer):
           </span>
 
@@ -285,7 +426,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
 
         {/* Manual Code Input Form */}
         <form onSubmit={handleManualSubmit} className="space-y-3">
-          <label className="block text-xs font-bold text-neutral-700">{t.manualCodeInput}</label>
+          <label className="block text-xs font-bold text-neutral-700">Or enter 6-digit code</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -299,7 +440,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
               disabled={scanning || !manualCode}
               className="px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-300 text-white text-xs font-bold transition-colors shrink-0"
             >
-              {scanning ? 'Checking...' : t.verifyCode}
+              {scanning ? 'Checking...' : 'Verify'}
             </button>
           </div>
         </form>

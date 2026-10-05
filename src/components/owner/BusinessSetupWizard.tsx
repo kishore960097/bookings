@@ -30,12 +30,10 @@ import {
   Trash2,
   X,
   ArrowRight,
-  Sparkles,
   ToggleLeft,
   ToggleRight,
   Layers,
-  Pencil,
-} from 'lucide-react';
+  Pencil} from 'lucide-react';
 
 interface BusinessSetupWizardProps {
   existingSalon?: Salon | null;
@@ -681,7 +679,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       }}
                       className="hidden"
                     />
-                    <Sparkles className="w-5 h-5 mx-auto text-slate-400 mb-1" />
+                    
                     <span className="text-xs font-bold text-slate-600">Take Photo</span>
                   </label>
                 </div>
@@ -764,7 +762,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       }}
                       className="hidden"
                     />
-                    <Sparkles className="w-5 h-5 mx-auto text-slate-400 mb-1" />
+                    
                     <span className="text-xs font-bold text-slate-600">Take Photo</span>
                   </label>
                 </div>
@@ -1063,10 +1061,8 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               disabled={saving}
               className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base flex items-center justify-center gap-2 transition-all shadow-xl active:scale-98"
             >
-              {saving ? (
+              {saving && (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Sparkles className="w-5 h-5" />
               )}
               <span>Launch Turf on QGo</span>
               <ArrowRight className="w-5 h-5" />
@@ -1293,7 +1289,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               disabled={saving}
               className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl"
             >
-              <Sparkles className="w-4 h-4" />
+              
               Submit for Verification
               <ArrowRight className="w-4 h-4" />
             </button>

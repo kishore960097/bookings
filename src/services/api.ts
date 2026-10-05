@@ -231,6 +231,15 @@ export const api = {
     return await res.json();
   },
 
+  async unblockDate(salonId: string, data: { dates: string[] }): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/salons/${salonId}/unblock-date`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await res.json();
+  },
+
   async markBusinessLive(id: string): Promise<{ success: boolean; salon: Salon }> {
     return this.approveSalon(id);
   },
@@ -494,11 +503,11 @@ export const api = {
     return await res.json();
   },
 
-  async acceptQrCheckIn(bookingId: string, salonId: string) {
+  async acceptQrCheckIn(bookingId: string, salonId: string, markAsPaid?: boolean) {
     const res = await fetch(`${API_BASE}/checkin/accept`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ bookingId, salonId }),
+      body: JSON.stringify({ bookingId, salonId, markAsPaid }),
     });
     return await res.json();
   },

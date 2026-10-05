@@ -11,26 +11,94 @@ import {
   AuthAccount,
   UserRoleMap,
 } from '../src/types';
+import { DatabaseSync } from 'node:sqlite';
+import fs from 'fs';
+import path from 'path';
 
-// In-Memory Production-Grade Database with transactional consistency & atomic locks
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), '.data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Single database connection
+const dbFile = path.join(dataDir, 'qgo.db');
+const sqlite = new DatabaseSync(dbFile);
+
+// Create table if not exists for a given namespace
+function ensureTable(tableName: string) {
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS ${tableName} (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `);
+}
+
+// Write-through cache map that persists to SQLite synchronously
+class PersistentMap<K extends string, V> extends Map<K, V> {
+  private tableName: string;
+  private insertStmt: any;
+  private deleteStmt: any;
+
+  constructor(tableName: string) {
+    super();
+    this.tableName = tableName;
+    ensureTable(tableName);
+    
+    // Load initial data
+    const rows = sqlite.prepare(`SELECT key, value FROM ${tableName}`).all() as { key: string, value: string }[];
+    for (const row of rows) {
+      super.set(row.key as K, JSON.parse(row.value));
+    }
+    
+    this.insertStmt = sqlite.prepare(`INSERT OR REPLACE INTO ${tableName} (key, value) VALUES (?, ?)`);
+    this.deleteStmt = sqlite.prepare(`DELETE FROM ${tableName} WHERE key = ?`);
+  }
+
+  set(key: K, value: V): this {
+    super.set(key, value);
+    this.insertStmt.run(key, JSON.stringify(value));
+    return this;
+  }
+
+  delete(key: K): boolean {
+    const existed = super.delete(key);
+    if (existed) {
+      this.deleteStmt.run(key);
+    }
+    return existed;
+  }
+
+  clear(): void {
+    super.clear();
+    sqlite.exec(`DELETE FROM ${this.tableName}`);
+  }
+}
+
+// In-Memory Production-Grade Database with transactional consistency & atomic locks backed by SQLite
 class QGoDatabase {
-  public users: Map<string, User> = new Map();
-  public salons: Map<string, Salon> = new Map();
-  public services: Map<string, Service> = new Map();
-  public staff: Map<string, Staff> = new Map();
-  public bookings: Map<string, Booking> = new Map();
-  public queueEntries: Map<string, QueueEntry> = new Map();
-  public reviews: Map<string, Review> = new Map();
-  public notifications: Map<string, NotificationItem[]> = new Map(); // userId -> notifications
-  public otpStore: Map<string, { otp: string; expiresAt: number; attempts: number }> = new Map();
-  public authAccounts: Map<string, AuthAccount> = new Map();
-  public userRoles: Map<string, UserRoleMap> = new Map();
+  public users: Map<string, User> = new PersistentMap('users');
+  public salons: Map<string, Salon> = new PersistentMap('salons');
+  public services: Map<string, Service> = new PersistentMap('services');
+  public staff: Map<string, Staff> = new PersistentMap('staff');
+  public bookings: Map<string, Booking> = new PersistentMap('bookings');
+  public queueEntries: Map<string, QueueEntry> = new PersistentMap('queueEntries');
+  public reviews: Map<string, Review> = new PersistentMap('reviews');
+  public notifications: Map<string, NotificationItem[]> = new PersistentMap('notifications'); // userId -> notifications
+  public otpStore: Map<string, { otp: string; expiresAt: number; attempts: number }> = new PersistentMap('otpStore');
+  public authAccounts: Map<string, AuthAccount> = new PersistentMap('authAccounts');
+  public userRoles: Map<string, UserRoleMap> = new PersistentMap('userRoles');
+  public supportTickets: Map<string, any> = new PersistentMap('supportTickets');
+  public featureRequests: Map<string, any> = new PersistentMap('featureRequests');
+  public featureRequestVotes: Map<string, any> = new PersistentMap('featureRequestVotes');
+  public adminAuditLogs: Map<string, any> = new PersistentMap('adminAuditLogs');
 
   // Concurrency Slot Lock Map (key: `${salonId}:${staffId}:${date}:${time}`)
-  private slotLocks: Map<string, string> = new Map(); // key -> bookingId
+  private slotLocks: Map<string, string> = new Map(); // Ephemeral, memory only
 
   // Queue sequence tracker (key: `${salonId}:${date}` -> counter)
-  private queueSequences: Map<string, number> = new Map();
+  private queueSequences: Map<string, number> = new PersistentMap('queueSequences');
 
   constructor() {
     this.seedDefaultData();
@@ -281,19 +349,34 @@ class QGoDatabase {
     );
     const activeStaffCount = Math.max(1, activeStaff.length);
 
+    const staffQueues: Record<string, { duration: number; count: number }> = {};
+    activeStaff.forEach((s) => {
+      staffQueues[s.id] = { duration: 0, count: 0 };
+    });
+
     let totalDuration = 0;
     waitingEntries.forEach((entry, index) => {
       totalDuration += entry.serviceDuration || 30;
       entry.position = index + 1;
 
+      let staffWait = 0;
+      let staffPosition = 0;
+      if (entry.staffId && staffQueues[entry.staffId]) {
+        staffWait = staffQueues[entry.staffId].duration;
+        staffPosition = staffQueues[entry.staffId].count;
+        
+        staffQueues[entry.staffId].duration += entry.serviceDuration || 30;
+        staffQueues[entry.staffId].count += 1;
+      } else {
+        staffWait = Math.round(totalDuration / activeStaffCount);
+        staffPosition = index;
+      }
+
       const booking = this.bookings.get(entry.bookingId);
       if (booking) {
-        booking.queuePosition = index + 1;
-        booking.peopleAhead = index;
-        booking.estimatedWaitMinutes = Math.max(
-          0,
-          Math.round(totalDuration / activeStaffCount)
-        );
+        booking.queuePosition = entry.staffId ? staffPosition + 1 : index + 1;
+        booking.peopleAhead = entry.staffId ? staffPosition : index;
+        booking.estimatedWaitMinutes = Math.max(0, staffWait);
       }
     });
 

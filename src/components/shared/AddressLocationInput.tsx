@@ -113,11 +113,15 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
             setQuery(res.address);
             onChange(res.address, lat, lon, res.city || undefined);
           } else {
-            setLocationError('Unable to reverse geocode your location. Please enter manually.');
+            const fallbackAddr = `Location (Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)})`;
+            setQuery(fallbackAddr);
+            onChange(fallbackAddr, lat, lon, undefined);
           }
         } catch (err) {
           console.error('Reverse geocoding failed:', err);
-          setLocationError('Failed to fetch address for current location.');
+          const fallbackAddr = `Location (Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)})`;
+          setQuery(fallbackAddr);
+          onChange(fallbackAddr, lat, lon, undefined);
         } finally {
           setIsLocating(false);
         }

@@ -9,12 +9,10 @@ import {
   Ticket,
   Users,
   Clock,
-  Sparkles,
   ArrowRight,
   AlertCircle,
   Scissors,
-  Check,
-} from 'lucide-react';
+  Check} from 'lucide-react';
 
 interface JoinQueueModalProps {
   salon: Salon;

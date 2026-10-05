@@ -10,9 +10,7 @@ import {
   TrendingUp,
   XCircle,
   Phone,
-  Clock,
-  Sparkles,
-} from 'lucide-react';
+  Clock} from 'lucide-react';
 
 interface OwnerCustomersViewProps {
   salon: Salon;

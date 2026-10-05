@@ -2,19 +2,19 @@
 
 /* ─── QGo Design Tokens ─── */
 :root {
-  --qp-bg:           #080C14;
-  --qp-surface:      #0F1623;
-  --qp-surface-el:   #161D2E;
-  --qp-border:       #1E2A40;
-  --qp-border-soft:  #1a2438;
-  --qp-primary:      #2563EB;
-  --qp-primary-hover:#1D4ED8;
-  --qp-primary-soft: #1E3A5F;
-  --qp-accent:       #06B6D4;
-  --qp-accent-soft:  #0C3D4A;
-  --qp-text:         #F1F5F9;
-  --qp-text-sec:     #94A3B8;
-  --qp-text-muted:   #475569;
+  --qp-bg:           #FFF8F3;
+  --qp-surface:      #FFFFFF;
+  --qp-surface-el:   #FFFFFF;
+  --qp-border:       #F1E4DA;
+  --qp-border-soft:  #F6EAE0;
+  --qp-primary:      #FF6701;
+  --qp-primary-hover:#E65C00;
+  --qp-primary-soft: #FFE4CC;
+  --qp-accent:       #FF6701;
+  --qp-accent-soft:  #FFF1E6;
+  --qp-text:         #0F172A;
+  --qp-text-sec:     #64748B;
+  --qp-text-muted:   #94A3B8;
   --qp-success:      #10B981;
   --qp-success-soft: #064E3B;
   --qp-warning:      #F59E0B;
@@ -98,8 +98,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-  50%       { box-shadow: 0 0 24px 4px rgba(37, 99, 235, 0.25); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 103, 1, 0); }
+  50%       { box-shadow: 0 0 24px 4px rgba(255, 103, 1, 0.25); }
 }
 
 @keyframes shimmer {
@@ -169,7 +169,39 @@
   background: rgba(22, 29, 46, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(255, 103, 1, 0.2);
+}
+
+/* ─── Apple Liquid Glass Utilities ─── */
+.ap-glass-nav {
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  /* Hairline divider beneath */
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.ap-glass-card {
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border-radius: 20px;
+  /* Faint inner top highlight, hairline refraction edge, ambient soft shadow */
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.ap-glass-panel {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
+  border-radius: 24px;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 16px 40px rgba(0, 0, 0, 0.06);
 }
 
 /* ─── QGo Button Styles ─── */
@@ -193,7 +225,7 @@
 .btn-primary:hover {
   background: var(--qp-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 8px 24px rgba(255, 103, 1, 0.35);
 }
 .btn-primary:active { transform: translateY(0); }
 
@@ -236,7 +268,7 @@
 .qp-input::placeholder { color: var(--qp-text-muted); }
 .qp-input:focus {
   border-color: var(--qp-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 103, 1, 0.15);
 }
 
 /* ─── Section Headings ─── */
@@ -250,7 +282,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border-radius: 20px;
-  border: 1px solid rgba(37, 99, 235, 0.3);
+  border: 1px solid rgba(255, 103, 1, 0.3);
   margin-bottom: 16px;
 }
 
@@ -280,8 +312,10 @@
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
 }
 input[type='number'] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }

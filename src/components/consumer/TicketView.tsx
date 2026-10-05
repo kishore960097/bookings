@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
   MapPin,
-  Sparkles,
   RefreshCw,
   QrCode,
   ArrowLeft,
@@ -20,8 +19,7 @@ import {
   Check,
   Share2,
   Calendar,
-  AlertTriangle,
-} from 'lucide-react';
+  AlertTriangle} from 'lucide-react';
 
 interface TicketViewProps {
   bookingId: string;

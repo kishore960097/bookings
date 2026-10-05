@@ -14,11 +14,9 @@ import {
   Clock,
   Scissors,
   Phone,
-  Sparkles,
   AlertTriangle,
   ArrowRight,
-  User,
-} from 'lucide-react';
+  User} from 'lucide-react';
 
 interface QueueManagerProps {
   salon: Salon;

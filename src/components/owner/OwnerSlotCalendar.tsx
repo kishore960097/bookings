@@ -13,20 +13,19 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Layers,
   Filter,
   DollarSign,
   User,
-  Phone,
-} from 'lucide-react';
+  Phone} from 'lucide-react';
 
 interface OwnerSlotCalendarProps {
   salon: Salon;
   onOpenSettings: () => void;
+  onOpenSchedules?: () => void;
 }
 
-export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onOpenSettings }) => {
+export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onOpenSettings, onOpenSchedules }) => {
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [weekSlotsMap, setWeekSlotsMap] = useState<Record<string, GeneratedTurfSlot[]>>({});
@@ -40,10 +39,20 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
   // Block date modal state
   const [showBlockDateModal, setShowBlockDateModal] = useState(false);
-  const [blockDateStr, setBlockDateStr] = useState(selectedDate);
+  const [blockDates, setBlockDates] = useState<string[]>([]);
   const [blockDateReason, setBlockDateReason] = useState('Personal Holiday / Private Event');
   const [blockDateConflicts, setBlockDateConflicts] = useState<Booking[] | null>(null);
   const [blockDateLoading, setBlockDateLoading] = useState(false);
+
+  const isSlotPast = (dateStr: string, startTime: string) => {
+    const now = new Date();
+    const currentMinutesToday = now.getHours() * 60 + now.getMinutes();
+    const todayStr = now.toISOString().split('T')[0];
+    if (dateStr < todayStr) return true;
+    if (dateStr > todayStr) return false;
+    const startM = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+    return currentMinutesToday >= startM + 10;
+  };
 
   // Calculate current week days (Sun-Sat)
   const getWeekDates = (dateStr: string) => {
@@ -166,10 +175,11 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
   };
 
   const handleBlockDateSubmit = async (forceCancel = false) => {
+    if (blockDates.length === 0) return;
     setBlockDateLoading(true);
     try {
       const res = await api.blockDate(salon.id, {
-        date: blockDateStr,
+        dates: blockDates,
         reason: blockDateReason,
         forceCancelBookings: forceCancel,
       });
@@ -194,16 +204,22 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
       {/* ── TOP CONTROL BAR ── */}
       <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
         {/* Navigation buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handlePrev}
             className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-black text-xs text-slate-800">
+          <div className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-black text-xs text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer">
             <CalendarIcon className="w-4 h-4 text-slate-500" />
             <span>{selectedDate}</span>
+            <input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => { if (e.target.value) setSelectedDate(e.target.value); }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0"
+            />
           </div>
           <button
             onClick={handleNext}
@@ -220,8 +236,8 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
         </div>
 
         {/* View mode toggle & Actions */}
-        <div className="flex items-center gap-2">
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+          <div className="bg-slate-100 p-1 rounded-xl flex flex-wrap items-center gap-1">
             {(['day', 'week', 'month'] as const).map((m) => (
               <button
                 key={m}
@@ -237,7 +253,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
           <button
             onClick={() => {
-              setBlockDateStr(selectedDate);
+              setBlockDates([selectedDate]);
               setBlockDateConflicts(null);
               setShowBlockDateModal(true);
             }}
@@ -248,12 +264,40 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
           </button>
 
           <button
-            onClick={onOpenSettings}
-            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+            onClick={async () => {
+              if (window.confirm(`Are you sure you want to unblock ${selectedDate}?`)) {
+                try {
+                  setLoading(true);
+                  await api.unblockDate(salonId, { dates: [selectedDate] });
+                  await fetchSlots();
+                } catch (e) {
+                  alert('Failed to unblock date');
+                } finally {
+                  setLoading(false);
+                }
+              }
+            }}
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs flex items-center gap-1.5 transition-colors"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Edit Recurring Schedule</span>
+            <Unlock className="w-3.5 h-3.5" />
+            <span>Unblock Date</span>
           </button>
+
+          <button
+            onClick={onOpenSettings}
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors"
+          >
+            <span>Edit Base Schedule</span>
+          </button>
+          
+          {onOpenSchedules && (
+            <button
+              onClick={onOpenSchedules}
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+            >
+              <span>Open Slots</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -275,7 +319,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                 <div
                   key={dateStr}
                   onClick={() => setSelectedDate(dateStr)}
-                  className={`p-2.5 rounded-2xl cursor-pointer transition-all ${
+                  className={`w-11 h-11 sm:w-14 sm:h-14 mx-auto rounded-full flex flex-col items-center justify-center cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-indigo-600 text-white shadow-md'
                       : isToday
@@ -283,8 +327,8 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                       : 'hover:bg-slate-50 text-slate-700'
                   }`}
                 >
-                  <p className="text-[10px] font-black uppercase tracking-wider">{dayNames[d.getUTCDay()]}</p>
-                  <p className="text-base font-black mt-0.5">{d.getUTCDate()}</p>
+                  <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider leading-none mb-1">{dayNames[d.getUTCDay()]}</p>
+                  <p className="text-sm sm:text-base font-black leading-none">{d.getUTCDate()}</p>
                 </div>
               );
             })}
@@ -295,7 +339,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
             {weekDates.map((dateStr) => {
               const slots = weekSlotsMap[dateStr] || [];
               return (
-                <div key={dateStr} className="space-y-2 min-h-[300px] bg-slate-50/50 p-2 rounded-2xl border border-slate-100">
+                <div key={dateStr} className={`space-y-2 min-h-[300px] bg-slate-50/50 p-2 rounded-2xl border border-slate-100 ${dateStr === selectedDate ? 'block' : 'hidden sm:block'}`}>
                   <div className="text-[11px] font-black text-slate-600 text-center pb-1 border-b border-slate-200/60">
                     {slots.length} Slots
                   </div>
@@ -305,51 +349,56 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                       Closed / No Slots
                     </div>
                   ) : (
-                    slots.map((slot) => {
-                      const isBooked = slot.isBooked;
-                      const isBlocked = slot.isBlocked;
+                    <div className="grid grid-cols-3 sm:grid-cols-1 gap-2">
+                      {slots.map((slot) => {
+                        const isBooked = slot.isBooked;
+                        const isBlocked = slot.isBlocked;
+                        const isPast = isSlotPast(dateStr, slot.startTime);
 
-                      return (
-                        <div
-                          key={slot.id}
-                          onClick={() => {
-                            setSelectedDate(dateStr);
-                            setSelectedSlot(slot);
-                          }}
-                          className={`p-2.5 rounded-xl border text-xs cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${
-                            isBooked
-                              ? 'bg-rose-50 border-rose-200 text-rose-900'
-                              : isBlocked
-                              ? 'bg-slate-200 border-slate-300 text-slate-600 opacity-60'
-                              : 'bg-white border-slate-200 hover:border-emerald-400 text-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between font-mono font-bold">
-                            <span className="text-[11px]">{formatTime12Hour(slot.startTime)}</span>
-                            <span className="text-[10px] font-black text-slate-500">₹{slot.price}</span>
-                          </div>
+                        return (
+                          <div
+                            key={slot.id}
+                            onClick={() => {
+                              setSelectedDate(dateStr);
+                              setSelectedSlot(slot);
+                            }}
+                            className={`p-1.5 sm:p-2.5 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] shadow-2xs flex flex-col justify-between overflow-hidden ${
+                              isBooked
+                                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                                : isBlocked
+                                ? 'bg-slate-200 border-slate-300 text-slate-600 opacity-60'
+                                : 'bg-white border-slate-200 hover:border-emerald-400 text-slate-800'
+                            }`}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between font-mono font-bold mb-1 sm:mb-0 gap-0.5">
+                              <span className="text-[9px] sm:text-[11px] whitespace-nowrap overflow-hidden text-ellipsis">{formatTime12Hour(slot.startTime)}</span>
+                              <span className="text-[9px] sm:text-[10px] font-black text-slate-500">₹{slot.price}</span>
+                            </div>
 
-                          <div className="mt-1 flex items-center justify-between">
-                            <span
-                              className={`text-[9px] font-black uppercase px-1.5 py-0.2 rounded ${
-                                isBooked
-                                  ? 'bg-rose-200 text-rose-900'
-                                  : isBlocked
-                                  ? 'bg-slate-300 text-slate-700'
-                                  : 'bg-emerald-100 text-emerald-800'
-                              }`}
-                            >
-                              {isBooked ? 'Booked' : isBlocked ? 'Blocked' : 'Available'}
-                            </span>
-                            {slot.customerName && (
-                              <span className="text-[10px] font-bold text-slate-700 truncate max-w-[55px]">
-                                {slot.customerName}
+                            <div className="mt-1 flex items-center justify-between">
+                              <span
+                                className={`text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded truncate ${
+                                  isPast && isBooked
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : isBooked
+                                    ? 'bg-rose-200 text-rose-900'
+                                    : isBlocked || !slot.available
+                                    ? 'bg-slate-300 text-slate-700'
+                                    : 'bg-emerald-100 text-emerald-800'
+                                }`}
+                              >
+                                {isPast && isBooked ? 'COMPLETED' : isBooked ? 'BOOKED' : isBlocked ? 'BLOCKED' : !slot.available ? 'CLOSED' : 'AVAILABLE'}
                               </span>
-                            )}
+                              {slot.customerName && (
+                                <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 truncate max-w-[40px] ml-1">
+                                  {slot.customerName}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               );
@@ -364,16 +413,17 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
             <span className="text-xs font-bold text-slate-500">{daySlots.length} Total Slots</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {daySlots.map((slot) => {
               const isBooked = slot.isBooked;
               const isBlocked = slot.isBlocked;
+              const isPast = isSlotPast(selectedDate, slot.startTime);
 
               return (
                 <div
                   key={slot.id}
                   onClick={() => setSelectedSlot(slot)}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all hover:scale-[1.01] ${
+                  className={`p-2.5 sm:p-4 rounded-2xl border cursor-pointer transition-all hover:scale-[1.01] flex flex-col gap-1.5 overflow-hidden justify-between h-full ${
                     isBooked
                       ? 'bg-rose-50 border-rose-200'
                       : isBlocked
@@ -381,29 +431,36 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                       : 'bg-white border-slate-200 hover:border-emerald-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-black text-sm text-slate-900">
-                      {formatTime12Hour(slot.startTime)} – {formatTime12Hour(slot.endTime)}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-[10px] sm:text-sm text-slate-900 truncate">
+                        {formatTime12Hour(slot.startTime)}
+                      </span>
+                      <span className="font-black text-[10px] sm:text-sm text-slate-900 font-mono shrink-0">₹{slot.price}</span>
+                    </div>
+                    <span className="text-[9px] sm:text-xs text-slate-500 font-bold">
+                      to {formatTime12Hour(slot.endTime)}
                     </span>
-                    <span className="font-black text-sm text-slate-900 font-mono">₹{slot.price}</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-xs pt-1.5 sm:pt-2 border-t border-slate-100 mt-auto">
                     <span
-                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
-                        isBooked
+                      className={`text-[8px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md truncate ${
+                        isPast && isBooked
+                          ? 'bg-blue-100 text-blue-800'
+                          : isBooked
                           ? 'bg-rose-200 text-rose-900'
                           : isBlocked || !slot.available
                           ? 'bg-slate-300 text-slate-700'
                           : 'bg-emerald-100 text-emerald-800'
                       }`}
                     >
-                      {isBooked ? 'BOOKED' : isBlocked ? 'BLOCKED' : !slot.available ? 'CLOSED' : 'AVAILABLE'}
+                      {isPast && isBooked ? 'COMPLETED' : isBooked ? 'BOOKED' : isBlocked ? 'BLOCKED' : !slot.available ? 'CLOSED' : 'AVAILABLE'}
                     </span>
                     {slot.customerName ? (
-                      <span className="font-bold text-slate-800">{slot.customerName}</span>
+                      <span className="font-bold text-slate-800 text-[9px] sm:text-xs truncate max-w-[60px] sm:max-w-[100px] ml-1">{slot.customerName}</span>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-slate-400 text-[9px] sm:text-xs">—</span>
                     )}
                   </div>
                 </div>
@@ -547,12 +604,28 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
-                  Select Date to Block
+                  Select Dates to Block
                 </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {blockDates.map(d => (
+                    <span key={d} className="px-2 py-1 bg-rose-100 text-rose-800 text-[10px] rounded flex items-center gap-1 font-bold">
+                      {d} 
+                      <XCircle 
+                        className="w-3 h-3 cursor-pointer hover:text-rose-950" 
+                        onClick={() => setBlockDates(blockDates.filter(bd => bd !== d))} 
+                      />
+                    </span>
+                  ))}
+                </div>
                 <input
                   type="date"
-                  value={blockDateStr}
-                  onChange={(e) => setBlockDateStr(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val && !blockDates.includes(val)) {
+                      setBlockDates([...blockDates, val]);
+                    }
+                    e.target.value = '';
+                  }}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold"
                 />
               </div>

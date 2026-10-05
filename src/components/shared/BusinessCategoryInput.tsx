@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Plus, Check, ChevronDown, Edit3 } from 'lucide-react';
+import { Plus, Check, ChevronDown, Edit3 } from 'lucide-react';
 
 export interface CategoryGroup {
   group: string;
@@ -198,7 +198,7 @@ export const BusinessCategoryInput: React.FC<BusinessCategoryInputProps> = ({
             </div>
           </div>
           <p className="text-[11px] text-slate-500 flex items-center gap-1">
-            <Sparkles size={12} className="text-amber-500 shrink-0" />
+            
             <span>Type any custom business or service category. Customers can search and filter by it.</span>
           </p>
         </div>

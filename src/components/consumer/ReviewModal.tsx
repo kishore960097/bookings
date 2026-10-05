@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Salon, Booking } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { X, Star, Sparkles, CheckCircle2, MessageSquare } from 'lucide-react';
+import { X, Star, CheckCircle2, MessageSquare } from 'lucide-react';
 
 interface ReviewModalProps {
   salon?: Salon;

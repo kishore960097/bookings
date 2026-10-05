@@ -1,10 +1,11 @@
-export type UserRole = 'consumer' | 'owner';
+export type UserRole = 'consumer' | 'owner' | 'admin';
 
 export const DEFAULT_ROLE: UserRole = 'consumer';
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   consumer: 'Client',
   owner: 'Owner',
+  admin: 'Admin',
 };
 
 export function normalizeUserRole(role: unknown): UserRole | null {
@@ -13,6 +14,9 @@ export function normalizeUserRole(role: unknown): UserRole | null {
   }
   if (role === 'owner') {
     return 'owner';
+  }
+  if (role === 'admin') {
+    return 'admin';
   }
   return null;
 }

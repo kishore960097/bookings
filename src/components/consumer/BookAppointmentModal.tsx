@@ -13,15 +13,13 @@ import {
   Scissors,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   Sun,
   Moon,
   ChevronRight,
   Layers,
-  Zap,
-} from 'lucide-react';
+  Zap} from 'lucide-react';
 
 interface BookAppointmentModalProps {
   salon: Salon;

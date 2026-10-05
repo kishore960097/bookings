@@ -6,10 +6,8 @@ import {
   Calendar,
   XCircle,
   Clock,
-  Sparkles,
   DollarSign,
-  AlertCircle,
-} from 'lucide-react';
+  AlertCircle} from 'lucide-react';
 
 interface OwnerNotificationsViewProps {
   notifications: NotificationItem[];
@@ -23,7 +21,7 @@ export const OwnerNotificationsView: React.FC<OwnerNotificationsViewProps> = ({
   const getIcon = (type: string) => {
     switch (type) {
       case 'business_approved':
-        return <Sparkles className="w-5 h-5 text-emerald-600" />;
+        return ;
       case 'new_booking':
       case 'booking_confirmed':
         return <Calendar className="w-5 h-5 text-indigo-600" />;

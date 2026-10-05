@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQueue } from '../../context/QueueContext';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, X, CheckCheck, Clock, Sparkles, AlertCircle } from 'lucide-react';
+import { Bell, X, CheckCheck, Clock, AlertCircle } from 'lucide-react';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -35,9 +35,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               <AlertCircle className="w-5 h-5" />
             ) : toastMessage.type === 'success' ? (
               <CheckCheck className="w-5 h-5" />
-            ) : (
-              <Sparkles className="w-5 h-5" />
-            )}
+            ) : null}
           </div>
           <div className="flex-1">
             <h4 className="font-bold text-sm text-white">{toastMessage.title}</h4>

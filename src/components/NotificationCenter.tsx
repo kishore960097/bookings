@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQueue } from '../context/QueueContext';
 import { useAuth } from '../context/AuthContext';
-import { Bell, X, CheckCheck, Clock, Sparkles, AlertCircle } from 'lucide-react';
+import { Bell, X, CheckCheck, Clock, AlertCircle } from 'lucide-react';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     <>
       {/* Real-time Toast Banner (Floating Pop) */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-slate-900 text-white rounded-xl p-4 shadow-2xl border border-slate-800 flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full ap-glass-panel p-4 flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-300">
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
               toastMessage.type === 'alert'
@@ -35,17 +35,15 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
               <AlertCircle className="w-5 h-5" />
             ) : toastMessage.type === 'success' ? (
               <CheckCheck className="w-5 h-5" />
-            ) : (
-              <Sparkles className="w-5 h-5" />
-            )}
+            ) : null}
           </div>
           <div className="flex-1">
-            <h4 className="font-bold text-sm text-white">{toastMessage.title}</h4>
-            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{toastMessage.message}</p>
+            <h4 className="font-semibold text-sm text-[var(--qp-text)] tracking-tight">{toastMessage.title}</h4>
+            <p className="text-xs text-[var(--qp-text-sec)] mt-0.5 leading-relaxed">{toastMessage.message}</p>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-slate-500 hover:text-white p-1"
+            className="text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] p-1 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -62,30 +60,30 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200 border-l border-slate-200">
+          <div className="relative w-full max-w-md ap-glass-panel rounded-l-[24px] rounded-r-none h-full flex flex-col z-10 animate-in slide-in-from-right duration-200">
             {/* Header */}
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <div className="p-5 border-b border-[var(--qp-border)] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-primary)] shadow-sm">
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-slate-900">{t.notifications}</h3>
-                  <span className="text-xs text-slate-500">Live queue alerts & updates</span>
+                  <h3 className="font-semibold tracking-tight text-lg text-[var(--qp-text)]">{t.notifications}</h3>
+                  <span className="text-xs text-[var(--qp-text-sec)]">Live queue alerts & updates</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {notifications.length > 0 && (
                   <button
                     onClick={markAllNotificationsRead}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 font-bold uppercase tracking-wider px-2 py-1 rounded hover:bg-indigo-50"
+                    className="text-[11px] text-[var(--qp-primary)] hover:opacity-80 font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full bg-[var(--qp-surface)] border border-[var(--qp-border)] shadow-sm transition-all"
                   >
                     Mark read
                   </button>
                 )}
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                  className="p-2 rounded-full text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] hover:bg-[var(--qp-surface)] transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -95,10 +93,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             {/* List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {notifications.length === 0 ? (
-                <div className="py-16 text-center text-slate-400">
-                  <Bell className="w-10 h-10 mx-auto stroke-1 text-slate-300 mb-2" />
-                  <p className="text-sm font-bold text-slate-700">No notifications yet</p>
-                  <p className="text-xs text-slate-400 mt-1">
+                <div className="py-16 text-center text-[var(--qp-text-sec)]">
+                  <Bell className="w-12 h-12 mx-auto stroke-1 opacity-50 mb-3" />
+                  <p className="text-sm font-semibold tracking-tight text-[var(--qp-text)]">No notifications yet</p>
+                  <p className="text-xs mt-1">
                     You will receive live token updates and turn alerts here.
                   </p>
                 </div>
@@ -112,20 +110,20 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                         onClose();
                       }
                     }}
-                    className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-4 rounded-[20px] transition-all cursor-pointer ${
                       notif.read
-                        ? 'bg-slate-50 border-slate-200 opacity-80'
-                        : 'bg-indigo-50/50 border-indigo-200 shadow-xs'
+                        ? 'bg-[var(--qp-surface)] border border-[var(--qp-border)] opacity-80'
+                        : 'ap-glass-card border border-[var(--qp-primary)]/20'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-sm font-bold text-slate-900">{notif.title}</h4>
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1 shrink-0 font-mono">
+                    <div className="flex items-start justify-between gap-3">
+                      <h4 className={`text-sm font-semibold tracking-tight ${notif.read ? 'text-[var(--qp-text)]' : 'text-[var(--qp-primary)]'}`}>{notif.title}</h4>
+                      <span className="text-[10px] text-[var(--qp-text-sec)] flex items-center gap-1 shrink-0 font-medium">
                         <Clock className="w-3 h-3" />
                         {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{notif.message}</p>
+                    <p className="text-xs text-[var(--qp-text-sec)] mt-1.5 leading-relaxed">{notif.message}</p>
                   </div>
                 ))
               )}

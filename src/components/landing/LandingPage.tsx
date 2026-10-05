@@ -5,8 +5,7 @@ import {
   Hotel, UtensilsCrossed, Scissors, FlaskConical, Car,
   Dumbbell, Scale, Ticket, Star, TrendingUp, Lock,
   Bell, BarChart3, Menu, X, Scan, Building2, Activity,
-  User, Sparkles,
-} from 'lucide-react';
+  User} from 'lucide-react';
 import { QGoLogo } from './QGoLogo';
 import { useAuth } from '../../context/AuthContext';
 
@@ -466,7 +465,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               {/* 1-Click Instant Demo Launch Bar */}
               <div className="mt-6 p-4 rounded-2xl bg-slate-900/90 border border-blue-500/30 backdrop-blur-md">
                 <div className="flex items-center gap-1.5 mb-2.5 text-xs font-black text-blue-400 uppercase tracking-wider">
-                  <Sparkles size={14} className="text-amber-400" />
+                  
                   <span>Explore App Directly (Instant Demo Mode):</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">

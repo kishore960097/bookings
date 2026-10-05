@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Eye, EyeOff, ArrowRight, ArrowLeft, MapPin, Clock,
-  Users, CheckCircle2, Smartphone, KeyRound, Sparkles,
-  User, Building2, ChevronRight, X,
-} from 'lucide-react';
+  Users, CheckCircle2, Smartphone, KeyRound,
+  User, Building2, ChevronRight, X} from 'lucide-react';
 import { QGoLogo } from './QGoLogo';
 import { useAuth } from '../../context/AuthContext';
 import { GoogleAuthButton } from '../auth/GoogleAuthButton';

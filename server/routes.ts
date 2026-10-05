@@ -53,6 +53,10 @@ type AuthenticatedRequest = Request & {
   };
 };
 
+const PLATFORM_ADMIN_EMAIL = 'cjkishore35@gmail.com';
+const normalizeEmail = (email?: string) => email?.trim().normalize('NFKC').toLowerCase() || '';
+const isPlatformAdmin = (user: User) => normalizeEmail(user.email) === PLATFORM_ADMIN_EMAIL;
+
 function base64Url(input: string | Buffer) {
   return Buffer.from(input).toString('base64url');
 }
@@ -93,7 +97,7 @@ function verifySessionToken(rawToken: string): SessionPayload | null {
   if (!payload.uid || !payload.role || !payload.exp || Date.now() > payload.exp) {
     return null;
   }
-  if (!['consumer', 'owner'].includes(payload.role)) {
+  if (!['consumer', 'owner', 'admin'].includes(payload.role)) {
     return null;
   }
   return payload;
@@ -110,6 +114,7 @@ function getBearerToken(req: Request) {
 function normalizeRequestedRole(role: unknown): UserRole | null {
   if (role === undefined || role === null || role === 'consumer' || role === 'customer') return 'consumer';
   if (role === 'owner') return 'owner';
+  if (role === 'admin') return 'admin';
   return null;
 }
 
@@ -121,6 +126,9 @@ function getAuthorizedRoles(user: User): UserRole[] {
 
   if (Array.from(db.salons.values()).some((s) => s.ownerId === user.id)) {
     roles.add('owner');
+  }
+  if (isPlatformAdmin(user)) {
+    roles.add('admin');
   }
   return Array.from(roles);
 }
@@ -188,7 +196,7 @@ function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunctio
   next();
 }
 
-function requireRole(...roles: Array<'consumer' | 'owner'>) {
+function requireRole(...roles: Array<'consumer' | 'owner' | 'admin'>) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.auth || !roles.includes(req.auth.role)) {
       return res.status(403).json({ error: 'Forbidden' });
@@ -198,6 +206,11 @@ function requireRole(...roles: Array<'consumer' | 'owner'>) {
 }
 
 const requireOwner = requireRole('owner');
+function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.auth) return res.status(401).json({ success: false, error: { code: 'AUTH_REQUIRED', message: 'Authentication is required.' } });
+  if (req.auth.role !== 'admin' || !isPlatformAdmin(req.auth.user)) return res.status(403).json({ success: false, error: { code: 'ADMIN_ACCESS_DENIED', message: 'Admin access is restricted to the authorized QGo administrator.' } });
+  next();
+}
 
 function canManageSalon(auth: AuthenticatedRequest['auth'], salonId: string) {
   if (!auth) return false;
@@ -555,11 +568,12 @@ apiRouter.post('/auth/otp/verify', (req: Request, res: Response) => {
   }
   ensureConsumerRole(user.id);
 
-  const token = issueSessionToken(user.id, 'consumer');
+  const activeRole: UserRole = 'consumer';
+  const token = issueSessionToken(user.id, activeRole);
 
   return res.json({
     success: true,
-    user: buildAuthenticatedUser(user, 'consumer'),
+    user: buildAuthenticatedUser(user, activeRole),
     token,
   });
 });
@@ -641,7 +655,7 @@ apiRouter.post('/auth/google', async (req: Request, res: Response) => {
     }
 
     const authorizedRoles = getAuthorizedRoles(user);
-    const activeRole = normalizedRole;
+    const activeRole: UserRole = isPlatformAdmin(user) ? 'admin' : normalizedRole;
     user.role = activeRole;
     user.activeRole = activeRole;
     user.authorizedRoles = authorizedRoles;
@@ -714,6 +728,106 @@ apiRouter.post('/auth/demo', (_req: Request, res: Response) => {
     success: false,
     error: 'Demo access is not available. Please sign in with Google or OTP.',
   });
+});
+
+// ----------------------------------------------------
+// ADMIN DASHBOARD
+// ----------------------------------------------------
+const adminDate = () => new Date().toISOString();
+const adminProfile = (user: User) => ({ id: user.id, name: user.name, email: user.email || '', phone: user.phone || '', role: user.role, createdAt: user.createdAt });
+const adminTicket = (ticket: any) => ({ ...ticket, user: db.users.get(ticket.userId) ? adminProfile(db.users.get(ticket.userId)!) : null });
+const adminRequest = (request: any) => ({ ...request, requester: db.users.get(request.requesterId) ? adminProfile(db.users.get(request.requesterId)!) : null });
+const auditAdmin = (req: AuthenticatedRequest, action: string, entityType: string, entityId = '', metadata: Record<string, unknown> = {}) => {
+  const id = crypto.randomUUID();
+  db.adminAuditLogs.set(id, { id, adminUserId: req.auth!.userId, adminEmail: req.auth!.user.email, action, entityType, entityId, metadata, timestamp: adminDate(), ipAddress: req.ip, requestId: req.headers['x-request-id'] || id });
+};
+const adminPage = <T>(items: T[], req: Request) => { const page = Math.max(1, Number(req.query.page) || 1); const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25)); return { items: items.slice((page - 1) * limit, page * limit), pagination: { page, limit, total: items.length, totalPages: Math.max(1, Math.ceil(items.length / limit)) } }; };
+const adminMatches = (value: unknown, search?: unknown) => !search || JSON.stringify(value).toLowerCase().includes(String(search).trim().toLowerCase());
+
+apiRouter.get('/admin/me', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { auditAdmin(req, 'ADMIN_LOGIN', 'session'); return res.json({ success: true, admin: adminProfile(req.auth!.user) }); });
+
+apiRouter.get('/admin/dashboard', requireAuth, requireAdmin, (_req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const bookings = Array.from(db.bookings.values());
+  const customers = Array.from(db.users.values()).filter((user) => !Array.from(db.salons.values()).some((salon) => salon.ownerId === user.id) && !isPlatformAdmin(user));
+  const owners = Array.from(db.users.values()).filter((user) => Array.from(db.salons.values()).some((salon) => salon.ownerId === user.id));
+  return res.json({ success: true, counters: {
+    activeUsers: Array.from(db.users.values()).filter((user) => user.createdAt?.slice(0, 10) === today).length,
+    newBookings: Array.from(db.bookings.values()).filter((booking) => booking.createdAt?.slice(0, 10) === today).length,
+    pendingApprovals: Array.from(db.salons.values()).filter((salon) => salon.status === 'under_review').length,
+    openTickets: Array.from(db.supportTickets.values()).filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length,
+  }, data: { activeUsersToday: Array.from(db.users.values()).filter((user) => user.createdAt?.slice(0, 10) === today).length, newBookingsToday: bookings.filter((booking) => booking.createdAt?.slice(0, 10) === today).length, pendingBusinessApprovals: Array.from(db.salons.values()).filter((salon) => salon.status === 'under_review').length, openTickets: Array.from(db.supportTickets.values()).filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length, totalCustomers: customers.length, totalOwners: owners.length, totalBusinesses: db.salons.size, totalBookings: bookings.length, todayRevenue: bookings.filter((booking) => booking.createdAt?.slice(0, 10) === today && booking.paymentStatus === 'paid').reduce((sum, booking) => sum + (booking.amount || 0), 0), pendingPayments: bookings.filter((booking) => booking.paymentStatus === 'pending').length, pendingRefunds: bookings.filter((booking: any) => booking.refundStatus === 'pending').length } });
+});
+
+apiRouter.get('/admin/customers', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const ownerIds = new Set(Array.from(db.salons.values()).map((salon) => salon.ownerId)); const rows = Array.from(db.users.values()).filter((user) => !ownerIds.has(user.id) && !isPlatformAdmin(user)).filter((user) => adminMatches(user, req.query.search)).map((user) => { const bookings = Array.from(db.bookings.values()).filter((booking) => booking.customerId === user.id); return { ...adminProfile(user), status: 'active', bookingCount: bookings.length, lastBooking: bookings.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))[0]?.createdAt || null, totalSpent: bookings.filter((booking) => booking.paymentStatus === 'paid').reduce((sum, booking) => sum + (booking.amount || 0), 0) }; }); auditAdmin(req, 'CUSTOMERS_VIEWED', 'customer'); const page = adminPage(rows, req); return res.json({ success: true, customers: page.items, pagination: page.pagination }); });
+apiRouter.get('/admin/owners', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const rows = Array.from(db.users.values()).filter((user) => Array.from(db.salons.values()).some((salon) => salon.ownerId === user.id)).filter((user) => adminMatches(user, req.query.search)).map((user) => ({ ...adminProfile(user), status: 'active', businessCount: Array.from(db.salons.values()).filter((salon) => salon.ownerId === user.id).length })); auditAdmin(req, 'OWNERS_VIEWED', 'owner'); const page = adminPage(rows, req); return res.json({ success: true, owners: page.items, pagination: page.pagination }); });
+apiRouter.get('/admin/businesses', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const rows = Array.from(db.salons.values()).filter((salon) => adminMatches(salon, req.query.search)).filter((salon) => !req.query.status || salon.status === req.query.status).filter((salon) => !req.query.category || salon.category === req.query.category).map((salon) => ({ ...salon, owner: db.users.get(salon.ownerId) ? adminProfile(db.users.get(salon.ownerId)!) : null })); const page = adminPage(rows, req); return res.json({ success: true, businesses: page.items, pagination: page.pagination }); });
+const changeBusinessStatus = (status: 'approved' | 'rejected' | 'suspended', action: string) => (req: AuthenticatedRequest, res: Response) => { const salon = db.salons.get(req.params.id); if (!salon) return res.status(404).json({ success: false, error: { code: 'BUSINESS_NOT_FOUND', message: 'Business not found.' } }); salon.status = status; salon.verified = status === 'approved'; salon.isPublished = status === 'approved'; db.salons.set(salon.id, salon); auditAdmin(req, action, 'business', salon.id, { reason: typeof req.body?.reason === 'string' ? req.body.reason.slice(0, 500) : '' }); return res.json({ success: true, business: salon }); };
+apiRouter.post('/admin/businesses/:id/approve', requireAuth, requireAdmin, changeBusinessStatus('approved', 'BUSINESS_APPROVED'));
+apiRouter.post('/admin/businesses/:id/reject', requireAuth, requireAdmin, changeBusinessStatus('rejected', 'BUSINESS_REJECTED'));
+apiRouter.post('/admin/businesses/:id/suspend', requireAuth, requireAdmin, changeBusinessStatus('suspended', 'BUSINESS_SUSPENDED'));
+apiRouter.get('/admin/bookings', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const rows = Array.from(db.bookings.values()).filter((booking) => adminMatches(booking, req.query.search)).filter((booking) => !req.query.status || booking.status === req.query.status).filter((booking) => !req.query.paymentStatus || booking.paymentStatus === req.query.paymentStatus).map((booking) => ({ ...booking, business: db.salons.get(booking.salonId)?.name || '', owner: db.users.get(db.salons.get(booking.salonId)?.ownerId || '')?.name || '' })); auditAdmin(req, 'BOOKINGS_VIEWED', 'booking'); const page = adminPage(rows, req); return res.json({ success: true, bookings: page.items, pagination: page.pagination }); });
+apiRouter.get('/admin/payments', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const rows = Array.from(db.bookings.values()).filter((booking) => booking.paymentStatus === 'paid' || booking.paymentStatus === 'pending').map((booking) => ({ paymentId: booking.id, bookingId: booking.id, customer: booking.customerName, amount: booking.amount, provider: 'QGo', status: booking.paymentStatus, createdAt: booking.createdAt })); auditAdmin(req, 'PAYMENTS_VIEWED', 'payment'); const page = adminPage(rows, req); return res.json({ success: true, payments: page.items, pagination: page.pagination }); });
+apiRouter.get('/admin/refunds', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const rows = Array.from(db.bookings.values()).filter((booking: any) => booking.refundAmount || booking.refundStatus).map((booking: any) => ({ refundId: booking.id, bookingId: booking.id, customer: booking.customerName, amount: booking.refundAmount || 0, status: booking.refundStatus || 'not_requested', createdAt: booking.updatedAt || booking.createdAt })); auditAdmin(req, 'REFUNDS_VIEWED', 'refund'); const page = adminPage(rows, req); return res.json({ success: true, refunds: page.items, pagination: page.pagination }); });
+apiRouter.get('/admin/reviews', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const rows = Array.from(db.reviews.values()).map((review) => ({ ...review, business: db.salons.get(review.salonId)?.name || '', status: 'published' })); const page = adminPage(rows, req); return res.json({ success: true, reviews: page.items, pagination: page.pagination }); });
+apiRouter.get('/admin/audit-logs', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => { const page = adminPage(Array.from(db.adminAuditLogs.values()).sort((a, b) => (b.timestamp || "").localeCompare(a.timestamp || "")), req); return res.json({ success: true, auditLogs: page.items, pagination: page.pagination }); });
+const exportCsv = (rows: Record<string, unknown>[]) => { const safe = (value: unknown) => { const text = String(value ?? '').replaceAll('"', '""'); return `"${/^[=+\-@]/.test(text) ? `'${text}` : text}"`; }; const columns = Array.from(new Set(rows.flatMap((row) => Object.keys(row).filter((key) => typeof row[key] !== 'object')))); return [columns.join(','), ...rows.map((row) => columns.map((column) => safe(row[column])).join(','))].join('\n'); };
+const adminExport = (name: string, records: () => Record<string, unknown>[]) => (req: AuthenticatedRequest, res: Response) => { const limit = Math.min(10000, Math.max(1, Number(req.query.limit) || 1000)); const data = records().slice(0, limit); auditAdmin(req, 'DATA_EXPORTED', name, '', { count: data.length }); res.setHeader('Content-Type', 'text/csv; charset=utf-8'); res.setHeader('Content-Disposition', `attachment; filename="qgo-${name}.csv"`); return res.send(exportCsv(data)); };
+apiRouter.get('/admin/export/customers', requireAuth, requireAdmin, adminExport('customers', () => Array.from(db.users.values()).filter((user) => !isPlatformAdmin(user)).map(adminProfile)));
+apiRouter.get('/admin/export/businesses', requireAuth, requireAdmin, adminExport('businesses', () => Array.from(db.salons.values()).map((salon) => ({ id: salon.id, name: salon.name, category: salon.category, city: salon.city, status: salon.status, ownerId: salon.ownerId, createdAt: salon.createdAt }))));
+apiRouter.get('/admin/export/bookings', requireAuth, requireAdmin, adminExport('bookings', () => Array.from(db.bookings.values()).map((booking) => ({ id: booking.id, customer: booking.customerName, salonId: booking.salonId, service: booking.serviceName, amount: booking.amount, paymentStatus: booking.paymentStatus, bookingStatus: booking.status, createdAt: booking.createdAt }))));
+
+apiRouter.get('/admin/users', requireAuth, requireAdmin, (_req, res) => {
+  const bookings = Array.from(db.bookings.values()); const queueEntries = Array.from(db.queueEntries.values());
+  return res.json({ success: true, users: Array.from(db.users.values()).map((user) => ({ ...adminProfile(user), bookings: bookings.filter((item) => item.customerId === user.id), queueEntries: queueEntries.filter((item) => db.bookings.get(item.bookingId)?.customerId === user.id) })) });
+});
+apiRouter.get('/admin/salons', requireAuth, requireAdmin, (_req, res) => res.json({ success: true, salons: Array.from(db.salons.values()).map((salon) => ({ ...salon, owner: db.users.get(salon.ownerId) ? adminProfile(db.users.get(salon.ownerId)!) : null })) }));
+apiRouter.patch('/admin/salons/:id/status', requireAuth, requireAdmin, (req: AuthenticatedRequest, res) => {
+  const salon = db.salons.get(req.params.id); const status = req.body?.status;
+  if (!salon) return res.status(404).json({ error: 'Salon not found' });
+  if (!['draft', 'under_review', 'approved', 'live', 'rejected', 'suspended', 'closed'].includes(status)) return res.status(400).json({ error: 'Invalid business status' });
+  salon.status = status; salon.verified = ['approved', 'live'].includes(status); salon.isPublished = ['approved', 'live'].includes(status); db.salons.set(salon.id, salon); auditAdmin(req, `BUSINESS_${String(status).toUpperCase()}`, 'business', salon.id);
+  return res.json({ success: true, salon });
+});
+apiRouter.get('/admin/analytics', requireAuth, requireAdmin, (_req, res) => {
+  const bookings = Array.from(db.bookings.values()); const queueEntries = Array.from(db.queueEntries.values()); const byDay = new Map<string, any>();
+  bookings.forEach((item) => { const date = item.createdAt?.slice(0, 10); const row = byDay.get(date) || { date, bookings: 0, queueEntries: 0 }; row.bookings++; byDay.set(date, row); });
+  queueEntries.forEach((item: any) => { const date = item.createdAt?.slice(0, 10); const row = byDay.get(date) || { date, bookings: 0, queueEntries: 0 }; row.queueEntries++; byDay.set(date, row); });
+  return res.json({ success: true, totals: { bookings: bookings.length, queueEntries: queueEntries.length }, byDay: Array.from(byDay.values()).sort((a: any, b: any) => String(a.date || '').localeCompare(String(b.date || ''))).slice(-30), byShop: Array.from(db.salons.values()).map((salon) => ({ name: salon.name, bookings: bookings.filter((item) => item.salonId === salon.id).length, queueEntries: queueEntries.filter((item) => item.salonId === salon.id).length })) });
+});
+apiRouter.get('/admin/tickets', requireAuth, requireAdmin, (_req, res) => res.json({ success: true, tickets: Array.from(db.supportTickets.values()).map(adminTicket) }));
+apiRouter.patch('/admin/tickets/:id', requireAuth, requireAdmin, (req, res) => {
+  const ticket = db.supportTickets.get(req.params.id); const { status, priority, internalNotes } = req.body || {};
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  if (status && !['open', 'in_progress', 'resolved', 'closed'].includes(status)) return res.status(400).json({ error: 'Invalid ticket status' });
+  if (priority && !['low', 'medium', 'high', 'urgent'].includes(priority)) return res.status(400).json({ error: 'Invalid ticket priority' });
+  Object.assign(ticket, { ...(status ? { status } : {}), ...(priority ? { priority } : {}), ...(typeof internalNotes === 'string' ? { internalNotes } : {}), updatedAt: adminDate() }); db.supportTickets.set(ticket.id, ticket); return res.json({ success: true, ticket: adminTicket(ticket) });
+});
+apiRouter.get('/admin/feature-requests', requireAuth, requireAdmin, (_req, res) => res.json({ success: true, requests: Array.from(db.featureRequests.values()).map(adminRequest) }));
+apiRouter.patch('/admin/feature-requests/:id', requireAuth, requireAdmin, (req, res) => {
+  const request = db.featureRequests.get(req.params.id); const status = req.body?.status;
+  if (!request) return res.status(404).json({ error: 'Feature request not found' });
+  if (!['submitted', 'under_review', 'approved', 'in_development', 'implemented', 'declined'].includes(status)) return res.status(400).json({ error: 'Invalid request status' });
+  request.status = status; request.updatedAt = adminDate(); db.featureRequests.set(request.id, request); return res.json({ success: true, request: adminRequest(request) });
+});
+
+apiRouter.post('/support-tickets', requireAuth, (req: AuthenticatedRequest, res) => {
+  const { category, description, attachmentUrl, priority = 'medium' } = req.body || {};
+  if (!category || !description || !['low', 'medium', 'high', 'urgent'].includes(priority)) return res.status(400).json({ error: 'A category, description, and valid priority are required' });
+  const ticket = { id: crypto.randomUUID(), userId: req.auth!.userId, category, description, attachmentUrl: attachmentUrl || null, priority, status: 'open', internalNotes: '', createdAt: adminDate(), updatedAt: adminDate() };
+  db.supportTickets.set(ticket.id, ticket); return res.status(201).json({ success: true, ticket });
+});
+apiRouter.get('/support-tickets/mine', requireAuth, (req: AuthenticatedRequest, res) => res.json({ success: true, tickets: Array.from(db.supportTickets.values()).filter((ticket) => ticket.userId === req.auth!.userId) }));
+apiRouter.post('/feature-requests', requireAuth, (req: AuthenticatedRequest, res) => {
+  const { title, description, category, urgency = 'medium' } = req.body || {};
+  if (!title || !description || !category || !['low', 'medium', 'high'].includes(urgency)) return res.status(400).json({ error: 'Title, description, category, and valid urgency are required' });
+  const request = { id: crypto.randomUUID(), requesterId: req.auth!.userId, title, description, category, urgency, votesCount: 0, status: 'submitted', createdAt: adminDate(), updatedAt: adminDate() };
+  db.featureRequests.set(request.id, request); return res.status(201).json({ success: true, request });
+});
+apiRouter.post('/feature-requests/:id/vote', requireAuth, (req: AuthenticatedRequest, res) => {
+  const request = db.featureRequests.get(req.params.id); if (!request) return res.status(404).json({ error: 'Feature request not found' });
+  const key = `${request.id}:${req.auth!.userId}`; if (db.featureRequestVotes.has(key)) return res.status(409).json({ error: 'You have already voted for this request' });
+  db.featureRequestVotes.set(key, { requestId: request.id, userId: req.auth!.userId, createdAt: adminDate() }); request.votesCount += 1; request.updatedAt = adminDate(); db.featureRequests.set(request.id, request); return res.json({ success: true, votesCount: request.votesCount });
 });
 
 // ----------------------------------------------------
@@ -1032,14 +1146,34 @@ apiRouter.patch('/salons/:id', requireAuth, requireRole('owner'), (req: Authenti
 
   Object.assign(salon, safeUpdates);
 
-  // Auto-approve when owner completes final onboarding step
+  // Move to pending review when owner completes final onboarding step
   const setupStep = Number(safeUpdates.setupStep);
   const totalSteps = salon.category && (salon.category.toLowerCase().includes('turf') || salon.category.toLowerCase().includes('football') || salon.category.toLowerCase().includes('cricket') || salon.category.toLowerCase().includes('sports')) ? 7 : 8;
-  if (setupStep >= totalSteps) {
-    salon.status = 'approved';
-    salon.isPublished = true;
-    salon.verified = true;
+  if (setupStep >= totalSteps && salon.status === 'draft') {
+    salon.status = 'under_review';
   }
+
+  return res.json({ success: true, salon });
+});
+
+// Admin approves business
+apiRouter.post('/admin/salons/:id/approve', requireAuth, requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const salon = db.salons.get(id);
+  if (!salon) {
+    return res.status(404).json({ error: 'Salon not found' });
+  }
+
+  salon.status = 'approved';
+  salon.isPublished = true;
+  salon.verified = true;
+
+  sendNotification(salon.ownerId, {
+    userId: salon.ownerId,
+    type: 'business_approved',
+    title: 'Business Approved!',
+    message: `Your business ${salon.name} has been approved and is now live.`,
+  });
 
   return res.json({ success: true, salon });
 });
@@ -1247,12 +1381,38 @@ function calculateTurfSlotsForDate(
 
   // 1. Find schedule configuration for this resource or default schedule
   const schedules = salon.turfSchedule || [];
-  const resourceSchedule =
-    schedules.find((s) => s.resourceId === activeResourceId) ||
-    schedules.find((s) => s.resourceId === 'default' || !s.resourceId) ||
-    schedules[0];
+  let resourceSchedule = schedules.find((s) => {
+    if (s.validFrom && queryDate < s.validFrom) return false;
+    if (s.validTo && queryDate > s.validTo) return false;
+    return s.resourceId === activeResourceId;
+  });
+
+  let isDefaultScheduleFallback = false;
+  if (!resourceSchedule) {
+    resourceSchedule =
+      schedules.find((s) => s.resourceId === activeResourceId && !s.validFrom && !s.validTo) ||
+      schedules.find((s) => (s.resourceId === 'default' || !s.resourceId) && !s.validFrom && !s.validTo) ||
+      schedules[0];
+    isDefaultScheduleFallback = true;
+  }
 
   const dateObj = new Date(queryDate + 'T00:00:00Z');
+  
+  // Future Month Lock: If fallback to default schedule, ensure it's not a future month
+  if (isDefaultScheduleFallback) {
+    const today = new Date();
+    const isFutureMonth = (dateObj.getUTCFullYear() > today.getFullYear()) || 
+                          (dateObj.getUTCFullYear() === today.getFullYear() && dateObj.getUTCMonth() > today.getMonth());
+    if (isFutureMonth) {
+      return {
+        isOpen: false,
+        message: 'Not Yet Open',
+        dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dateObj.getUTCDay()],
+        slots: [],
+        resources
+      };
+    }
+  }
   const dayOfWeek = dateObj.getUTCDay();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const dayName = dayNames[dayOfWeek];
@@ -1373,11 +1533,22 @@ function calculateTurfSlotsForDate(
         return startM === bStart;
       });
 
-      const isPast = isToday && (startM <= currentMinutesToday + minNoticeMinutes);
+      const GRACE_PERIOD = 10;
+      const isPast = isToday && ((startM + GRACE_PERIOD) <= currentMinutesToday + minNoticeMinutes);
       const isBooked = Boolean(matchingBooking) || db.isSlotLocked(salon.id, activeResourceId, queryDate, slotItem.startTime);
       const isBlocked = slotItem.status === 'blocked' || disabledSlots.includes(slotItem.startTime);
       const available = !isPast && !isBooked && !isBlocked;
-      const status = isBooked ? 'booked' : (isBlocked ? 'blocked' : (available ? 'available' : 'disabled'));
+      
+      let status = isBooked ? 'booked' : (isBlocked ? 'blocked' : (available ? 'available' : 'disabled'));
+      
+      const isPastDate = queryDate < new Date().toISOString().split('T')[0];
+      const isPastSlot = isPastDate || isPast;
+      
+      if (matchingBooking && (matchingBooking.status === 'completed' || isPastSlot)) {
+        status = 'completed';
+      } else if (isPastSlot && !isBooked) {
+        status = 'closed';
+      }
 
       generatedSlots.push({
         id: `${activeResourceId}_${slotItem.startTime}_${slotItem.endTime}`,
@@ -1494,7 +1665,8 @@ function calculateTurfSlotsForDate(
       }
 
       // Check past time if today
-      const isPast = isToday && (startM <= currentMinutesToday + minNoticeMinutes);
+      const GRACE_PERIOD = 10;
+      const isPast = isToday && ((startM + GRACE_PERIOD) <= currentMinutesToday + minNoticeMinutes);
 
       // Check if booked by an existing booking on this specific resource
       const matchingBooking = existingBookings.find((b) => {
@@ -1541,7 +1713,8 @@ function calculateTurfSlotsForDate(
       const cEnd = timeToMinutes(cs.endTime);
       const cDuration = cs.durationMinutes || (cEnd - cStart);
 
-      const isPast = isToday && (cStart <= currentMinutesToday + minNoticeMinutes);
+      const GRACE_PERIOD = 10;
+      const isPast = isToday && ((cStart + GRACE_PERIOD) <= currentMinutesToday + minNoticeMinutes);
       const matchingBooking = existingBookings.find((b) => {
         const bStart = timeToMinutes(b.scheduledTime || '00:00');
         const bEnd = b.slotEndTime ? timeToMinutes(b.slotEndTime) : bStart + (b.serviceDuration || cDuration);
@@ -1907,12 +2080,30 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
     }
   } else {
     const availableStaff = Array.from(db.staff.values()).filter(
-      (st) => st.salonId === salonId && st.isActive && st.status !== 'off'
+      (st) => st.salonId === salonId && st.isActive && st.status !== 'off' && (st.serviceIds.length === 0 || st.serviceIds.includes(serviceId))
     );
     if (availableStaff.length === 0) {
-      return res.status(400).json({ error: 'No staff available at this salon' });
+      return res.status(400).json({ error: 'No staff available for this service at this salon' });
     }
-    assignedStaff = availableStaff[0];
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayBookings = Array.from(db.bookings.values()).filter(
+      (b) => b.salonId === salonId && b.scheduledDate === todayStr && b.status !== 'cancelled' && b.status !== 'no_show'
+    );
+    const todayQueue = Array.from(db.queueEntries.values()).filter(
+      (q) => q.salonId === salonId && q.status !== 'cancelled' && q.status !== 'served' && q.status !== 'no_show'
+    );
+
+    assignedStaff = availableStaff.reduce((leastBusy, current) => {
+      const leastBusyLoad = 
+        todayBookings.filter(b => b.staffId === leastBusy.id).length + 
+        todayQueue.filter(q => q.staffId === leastBusy.id).length;
+      const currentLoad = 
+        todayBookings.filter(b => b.staffId === current.id).length + 
+        todayQueue.filter(q => q.staffId === current.id).length;
+        
+      return currentLoad < leastBusyLoad ? current : leastBusy;
+    });
   }
 
   const bookingId = `bk_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -1986,12 +2177,23 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
   let peopleAhead = 0;
 
   if (mode === 'token') {
+    // Single process assumption: lacks atomic lock for queue assignment.
+    // Will silently double-assign queue positions if horizontally scaled.
     const currentQueue = Array.from(db.queueEntries.values()).filter(
       (q) => q.salonId === salonId && (q.status === 'waiting' || q.status === 'calling')
     );
-    queuePosition = currentQueue.length + 1;
-    peopleAhead = currentQueue.length;
-    estimatedWaitMinutes = Math.max(5, currentQueue.length * 15 + 5);
+    
+    if (assignedStaff) {
+      const staffQueue = currentQueue.filter(q => q.staffId === assignedStaff!.id);
+      queuePosition = staffQueue.length + 1;
+      peopleAhead = staffQueue.length;
+      const staffWait = staffQueue.reduce((acc, q) => acc + (q.serviceDuration || 30), 0);
+      estimatedWaitMinutes = Math.max(5, staffWait);
+    } else {
+      queuePosition = currentQueue.length + 1;
+      peopleAhead = currentQueue.length;
+      estimatedWaitMinutes = Math.max(5, currentQueue.length * 15 + 5);
+    }
   }
 
   const newBooking: Booking = {
@@ -2111,7 +2313,7 @@ apiRouter.get('/bookings', requireAuth, (req: AuthenticatedRequest, res: Respons
   }
 
   if (date && typeof date === 'string') {
-    bookingsList = bookingsList.filter((b) => b.scheduledDate === date || b.createdAt.startsWith(date));
+    bookingsList = bookingsList.filter((b) => targetDates.includes(b.scheduledDate) || b.createdAt.startsWith(date));
   }
 
   if (staffId && typeof staffId === 'string') {
@@ -2235,8 +2437,21 @@ apiRouter.patch('/bookings/:id/cancel', requireAuth, (req: AuthenticatedRequest,
   const refundPct = isOwnerCancel
     ? 100 // Owner cancels → full refund always
     : (booking.refundPercentage ?? salon?.bookingSettings?.refundPercentage ?? 70);
-  const refundAmount = Math.round((booking.amount * refundPct) / 100);
-  const nonRefundableAmount = booking.amount - refundAmount;
+    
+  let refundAmount = 0;
+  let nonRefundableAmount = 0;
+  let refundStatus: 'none' | 'pending' | 'completed' | 'rejected' = 'none';
+
+  if (booking.paymentStatus === 'paid') {
+    refundAmount = Math.round((booking.amount * refundPct) / 100);
+    nonRefundableAmount = booking.amount - refundAmount;
+    refundStatus = refundAmount > 0 ? 'pending' : 'none';
+  } else {
+    // If pay_at_shop or pending, no money was collected online
+    refundAmount = 0;
+    nonRefundableAmount = 0;
+    refundStatus = 'none';
+  }
 
   booking.status = 'cancelled';
   booking.cancelledBy = isCustomer ? 'customer' : 'owner';
@@ -2245,7 +2460,7 @@ apiRouter.patch('/bookings/:id/cancel', requireAuth, (req: AuthenticatedRequest,
   booking.refundPercentage = refundPct;
   booking.refundAmount = refundAmount;
   booking.nonRefundableAmount = nonRefundableAmount;
-  booking.refundStatus = refundAmount > 0 ? 'pending' : 'none';
+  booking.refundStatus = refundStatus;
 
   // Release slot lock — slot becomes available again for new bookings
   releaseBookingSlotLock(booking);
@@ -2782,7 +2997,7 @@ apiRouter.post('/checkin/scan', requireAuth, requireRole('owner'), (req: Authent
 });
 
 apiRouter.post('/checkin/accept', requireAuth, requireRole('owner'), (req: AuthenticatedRequest, res: Response) => {
-  const { bookingId, salonId } = req.body;
+  const { bookingId, salonId, markAsPaid } = req.body;
   if (!bookingId || !salonId) {
     return res.status(400).json({ error: 'bookingId and salonId are required' });
   }
@@ -2803,6 +3018,7 @@ apiRouter.post('/checkin/accept', requireAuth, requireRole('owner'), (req: Authe
 
   booking!.status = 'checked_in';
   booking!.checkedInAt = new Date().toISOString();
+  if (markAsPaid) booking!.paymentStatus = 'paid';
 
   const qe = db.queueEntries.get(`qe_${booking!.id}`);
   if (qe) {
@@ -3335,7 +3551,9 @@ apiRouter.post('/salons/:id/unblock-slot', requireAuth, (req: AuthenticatedReque
 
 apiRouter.post('/salons/:id/block-date', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
-  const { date, reason = 'Personal Holiday / Private Event', forceCancelBookings } = req.body;
+  const { date, dates, reason = 'Personal Holiday / Private Event', forceCancelBookings } = req.body;
+  const targetDates = dates && Array.isArray(dates) && dates.length > 0 ? dates : (date ? [date] : []);
+  if (targetDates.length === 0) return res.status(400).json({ error: 'No dates provided to block' });
 
   const salon = db.salons.get(id);
   if (!salon) {
@@ -3351,7 +3569,7 @@ apiRouter.post('/salons/:id/block-date', requireAuth, (req: AuthenticatedRequest
 
   if (affectedBookings.length > 0 && !forceCancelBookings) {
     return res.status(409).json({
-      error: `There are ${affectedBookings.length} existing booking(s) on ${date}.`,
+      error: `There are ${affectedBookings.length} existing booking(s) on the selected dates.`,
       hasConflicts: true,
       affectedBookings,
     });
@@ -3370,7 +3588,7 @@ apiRouter.post('/salons/:id/block-date', requireAuth, (req: AuthenticatedRequest
         userId: b.customerId,
         type: 'cancelled',
         title: 'Booking Cancelled (Full Refund)',
-        message: `Your booking on ${date} at ${salon.name} was cancelled due to: ${reason}. Full refund of ₹${b.amount} has been initiated.`,
+        message: `Your booking on ${b.scheduledDate} at ${salon.name} was cancelled due to: ${reason}. Full refund of ₹${b.amount} has been initiated.`,
         bookingId: b.id,
       });
     }
@@ -3378,21 +3596,23 @@ apiRouter.post('/salons/:id/block-date', requireAuth, (req: AuthenticatedRequest
 
   // Add to specialDates
   salon.holidays = salon.holidays || [];
-  if (!salon.holidays.some((h) => h.date === date)) {
-    salon.holidays.push({ date, reason });
-  }
-
   const schedules = salon.turfSchedule || [];
   if (schedules.length > 0) {
     schedules[0].specialDates = schedules[0].specialDates || [];
-    if (!schedules[0].specialDates.some((sd) => sd.date === date)) {
-      schedules[0].specialDates.push({ date, reason, isClosed: true });
+  }
+
+  for (const d of targetDates) {
+    if (!salon.holidays.some((h) => h.date === d)) {
+      salon.holidays.push({ date: d, reason });
+    }
+    if (schedules.length > 0 && !schedules[0].specialDates.some((sd) => sd.date === d)) {
+      schedules[0].specialDates.push({ date: d, reason, isClosed: true });
     }
   }
 
   return res.json({
     success: true,
-    message: `Date ${date} blocked successfully.`,
+    message: `${targetDates.length} date(s) blocked successfully.`,
     affectedBookings,
   });
 });
@@ -3400,6 +3620,17 @@ apiRouter.post('/salons/:id/block-date', requireAuth, (req: AuthenticatedRequest
 // ----------------------------------------------------
 // 10. NOTIFICATIONS
 // ----------------------------------------------------
+
+apiRouter.post('/salons/:id/unblock-date', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const { dates } = req.body;
+  if (!dates || !Array.isArray(dates) || dates.length === 0) return res.status(400).json({ error: 'No dates' });
+  const salon = db.salons.get(id);
+  if (!salon) return res.status(404).json({ error: 'Not found' });
+  if (salon.holidays) salon.holidays = salon.holidays.filter(h => !dates.includes(h.date));
+  if (salon.turfSchedule && salon.turfSchedule[0] && salon.turfSchedule[0].specialDates) salon.turfSchedule[0].specialDates = salon.turfSchedule[0].specialDates.filter(sd => !dates.includes(sd.date));
+  return res.json({ success: true, message: 'unblocked' });
+});
 
 apiRouter.get('/notifications', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const notifs = db.notifications.get(req.auth!.userId) || [];

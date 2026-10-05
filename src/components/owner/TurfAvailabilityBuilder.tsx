@@ -15,7 +15,6 @@ import {
   Trash2,
   Copy,
   Calendar,
-  Sparkles,
   Zap,
   Check,
   AlertCircle,
@@ -29,11 +28,12 @@ import {
   Coffee,
   Sun,
   Moon,
-  CheckCircle2,
-} from 'lucide-react';
+  Pencil,
+  CheckCircle2} from 'lucide-react';
 
 import { NumberInput } from '../common/NumberInput';
 import { TimeInput } from '../common/TimeInput';
+import { DurationInput } from '../common/DurationInput';
 import {
   format12Hour,
   isMinuteInInterval,
@@ -47,6 +47,7 @@ interface TurfAvailabilityBuilderProps {
   onChange: (schedule: TurfAvailabilitySchedule[]) => void;
   holidays?: SalonHoliday[];
   onHolidayChange?: (holidays: SalonHoliday[]) => void;
+  activeScheduleId?: string;
 }
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -238,7 +239,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
   // Resolve current schedule for selected turf
   const currentSchedule = useMemo(() => {
-    const existing = turfSchedule.find((s) => s.resourceId === selectedTurfId);
+    const existing = activeScheduleId ? turfSchedule.find((s) => s.id === activeScheduleId) : turfSchedule.find((s) => s.resourceId === selectedTurfId && !s.id && !s.validFrom && !s.validTo);
     if (existing) return existing;
     const def = turfSchedule.find((s) => s.resourceId === 'default' || !s.resourceId);
     if (def) return { ...def, resourceId: selectedTurfId };
@@ -315,7 +316,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
       days: newDays,
     };
 
-    const existingIndex = turfSchedule.findIndex((s) => s.resourceId === selectedTurfId);
+    const existingIndex = activeScheduleId ? turfSchedule.findIndex(s => s.id === activeScheduleId) : turfSchedule.findIndex(s => s.resourceId === selectedTurfId && !s.id && !s.validFrom && !s.validTo);
     let newScheduleList: TurfAvailabilitySchedule[];
     if (existingIndex >= 0) {
       newScheduleList = [...turfSchedule];
@@ -755,107 +756,102 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         </div>
 
         {/* ── DAY & NIGHT PRICING CARDS ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {/* DAY PRICING CARD */}
-          <div className="p-4 rounded-2xl border-2 border-amber-200 bg-amber-50/40 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-amber-200/60">
-              <div className="flex items-center gap-2 text-amber-800">
-                <Sun className="w-4 h-4 text-amber-500 fill-amber-400" />
-                <span className="text-xs font-black uppercase tracking-wider">DAY PRICING</span>
+          <div className="h-full min-h-[160px] p-3 sm:p-4 rounded-3xl border-[1.5px] border-amber-300 bg-amber-50/20 flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-1 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <Sun className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />
+                  <span className="text-[11px] font-black uppercase text-amber-900 tracking-wider">DAY</span>
+                </div>
+                <span className="text-[8px] font-black uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                  Daytime
+                </span>
               </div>
-              <span className="text-[10px] font-black uppercase bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
-                Daytime
-              </span>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-amber-200 shadow-sm">
+                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">START</span>
+                  <TimeInput
+                    value={dayStartTime}
+                    onChange={setDayStartTime}
+                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
+                  />
+                </div>
+                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-amber-200 shadow-sm">
+                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">END</span>
+                  <TimeInput
+                    value={dayEndTime}
+                    onChange={setDayEndTime}
+                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5">
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Start Time
-                </label>
-                <TimeInput
-                  value={dayStartTime}
-                  onChange={setDayStartTime}
-                  className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  End Time
-                </label>
-                <TimeInput
-                  value={dayEndTime}
-                  onChange={setDayEndTime}
-                  className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Price (₹)
-                </label>
+            <div className="flex flex-col items-center justify-center mt-2 bg-white px-2 py-1.5 rounded-xl border border-amber-200 shadow-sm">
+              <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">PRICE</span>
+              <div className="flex items-center">
+                <span className="text-[10px] sm:text-[11px] font-black text-slate-500 mr-0.5">₹</span>
                 <NumberInput
                   min={1}
                   step={50}
                   value={dayPrice}
                   onChange={(val) => setDayPrice(Math.max(1, val))}
-                  className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-black text-emerald-800 bg-white"
+                  className="text-[10px] sm:text-[11px] font-black text-emerald-700 bg-transparent text-center outline-none w-16 p-0 border-none"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-amber-800 font-medium">
-              ☀️ {format12Hour(dayStartTime)} → {format12Hour(dayEndTime)} &middot; <strong>₹{dayPrice} / slot</strong>
-            </p>
           </div>
 
+
           {/* NIGHT PRICING CARD */}
-          <div className="p-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50/40 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-indigo-200/60">
-              <div className="flex items-center gap-2 text-indigo-900">
-                <Moon className="w-4 h-4 text-indigo-600 fill-indigo-400" />
-                <span className="text-xs font-black uppercase tracking-wider">NIGHT PRICING</span>
+          <div className="h-full min-h-[160px] p-3 sm:p-4 rounded-3xl border-[1.5px] border-indigo-300 bg-indigo-50/20 flex flex-col justify-between shadow-sm relative overflow-hidden">
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-1 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <Moon className="w-4 h-4 text-indigo-600 fill-indigo-600 shrink-0" />
+                  <span className="text-[11px] font-black uppercase text-indigo-950 tracking-wider">NIGHT</span>
+                </div>
+                <span className="text-[8px] font-black uppercase bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                  Overnight
+                </span>
               </div>
-              <span className="text-[10px] font-black uppercase bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
-                Overnight
-              </span>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-indigo-200 shadow-sm">
+                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">START</span>
+                  <TimeInput
+                    value={nightStartTime}
+                    onChange={setNightStartTime}
+                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
+                  />
+                </div>
+                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-indigo-200 shadow-sm">
+                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">END</span>
+                  <TimeInput
+                    value={nightEndTime}
+                    onChange={setNightEndTime}
+                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2.5">
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Start Time
-                </label>
-                <TimeInput
-                  value={nightStartTime}
-                  onChange={setNightStartTime}
-                  className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  End Time
-                </label>
-                <TimeInput
-                  value={nightEndTime}
-                  onChange={setNightEndTime}
-                  className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Price (₹)
-                </label>
+            <div className="flex flex-col items-center justify-center mt-2 bg-white px-2 py-1.5 rounded-xl border border-indigo-200 shadow-sm">
+              <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">PRICE</span>
+              <div className="flex items-center">
+                <span className="text-[10px] sm:text-[11px] font-black text-slate-500 mr-0.5">₹</span>
                 <NumberInput
                   min={1}
                   step={50}
                   value={nightPrice}
                   onChange={(val) => setNightPrice(Math.max(1, val))}
-                  className="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs font-black text-indigo-900 bg-white"
+                  className="text-[10px] sm:text-[11px] font-black text-indigo-700 bg-transparent text-center outline-none w-16 p-0 border-none"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-indigo-900 font-medium">
-              🌙 {format12Hour(nightStartTime)} → {format12Hour(nightEndTime)} (Next Day) &middot; <strong>₹{nightPrice} / slot</strong>
-            </p>
           </div>
         </div>
 
@@ -885,18 +881,14 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           </div>
 
           {durationPreset === -1 && (
-            <div className="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200 max-w-sm">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1">
-                Enter Custom Duration (minutes)
+            <div className="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200 max-w-sm flex items-center justify-between">
+              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600">
+                Custom Duration
               </label>
-              <NumberInput
-                min={15}
-                max={360}
-                step={15}
+              <DurationInput
                 value={customDurationMinutes}
                 onChange={(val) => setCustomDurationMinutes(Math.max(15, val))}
-                placeholder="e.g. 45, 90, 120, 150"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white text-emerald-700"
               />
             </div>
           )}
@@ -907,7 +899,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
             GENERATION RANGE
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setGenerationRange('days')}
@@ -973,7 +965,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   key={shortName}
                   type="button"
                   onClick={() => toggleDaySelection(idx)}
-                  className={`py-3 rounded-2xl border text-center font-black text-xs transition-all ${
+                  className={`py-2 sm:py-3 rounded-xl sm:rounded-2xl border text-center font-black text-[10px] sm:text-xs transition-all ${
                     isSelected
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30'
                       : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
@@ -998,9 +990,9 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           type="button"
           onClick={handleGenerateClick}
           disabled={Boolean(validationError)}
-          className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Sparkles className="w-4 h-4" />
+          
           <span>
             GENERATE SLOTS (
             {generationRange === 'month'
@@ -1026,25 +1018,6 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
               Day slots (☀️) and Night slots (🌙) are visually distinguished with their assigned pricing.
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleApplyToWeekdays}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs flex items-center gap-1.5 bg-slate-50"
-            >
-              <Copy className="w-3.5 h-3.5 text-slate-400" />
-              <span>Apply {activeDay.dayName} to Weekdays</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleApplyToAllDays}
-              className="px-3 py-1.5 rounded-xl border border-emerald-200 hover:border-emerald-300 text-emerald-800 font-bold text-xs flex items-center gap-1.5 bg-emerald-50"
-            >
-              <Copy className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Apply to All 7 Days</span>
-            </button>
-          </div>
         </div>
 
         {/* Day Tabs: SUN | MON | TUE | WED | THU | FRI | SAT */}
@@ -1057,19 +1030,19 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 key={d.dayOfWeek}
                 type="button"
                 onClick={() => setActiveDayView(d.dayOfWeek)}
-                className={`py-3 px-1 rounded-2xl border text-center transition-all ${
+                className={`w-11 h-11 sm:w-14 sm:h-14 mx-auto rounded-full flex flex-col items-center justify-center transition-all ${
                   isTabActive
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-700'
+                    ? 'bg-slate-900 text-white shadow-md ring-2 ring-slate-700 ring-offset-1'
                     : d.isOpen
-                    ? 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
-                    : 'bg-slate-100 border-slate-200 text-slate-400'
+                    ? 'bg-white border border-slate-200 text-slate-800 hover:bg-slate-50'
+                    : 'bg-slate-100 border border-slate-200 text-slate-400'
                 }`}
               >
-                <span className="block text-[10px] font-black tracking-wider uppercase">
+                <span className="block text-[9px] sm:text-[10px] font-black tracking-wider uppercase leading-none mb-1">
                   {DAY_SHORT[d.dayOfWeek]}
                 </span>
                 <span
-                  className={`inline-block px-1.5 py-0.5 rounded-full text-[9px] font-black mt-1 ${
+                  className={`inline-block px-1.5 py-0.5 rounded-full text-[8px] font-black leading-none ${
                     !d.isOpen
                       ? 'bg-red-100 text-red-700'
                       : isTabActive
@@ -1077,63 +1050,14 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                       : 'bg-emerald-100 text-emerald-800'
                   }`}
                 >
-                  {d.isOpen ? `${activeSlotsCount} slots` : 'Closed'}
+                  {d.isOpen ? `${activeSlotsCount}` : 'Off'}
                 </span>
               </button>
             );
           })}
         </div>
 
-        {/* ── Active Day Header & Controls ── */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-black text-slate-900">{activeDay.dayName} Schedule</h4>
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                  activeDay.isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'
-                }`}
-              >
-                {activeDay.isOpen ? 'Open' : 'Closed'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Operating Schedule: 24 Hours ({format12Hour(dayStartTime)} → {format12Hour(nightEndTime)} Next Day)
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleDayOpen}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
-                activeDay.isOpen
-                  ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-              }`}
-            >
-              {activeDay.isOpen ? `Close ${activeDay.dayName}` : `Re-open ${activeDay.dayName}`}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowAddBreakModal(true)}
-              className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center gap-1.5"
-            >
-              <Coffee className="w-3.5 h-3.5 text-amber-500" />
-              <span>Add Break</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowAddCustomSlotModal(true)}
-              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Custom Slot</span>
-            </button>
-          </div>
-        </div>
+        {/* ── Active Day Header & Controls Removed as requested ── */}
 
         {/* Closed Day Alert */}
         {!activeDay.isOpen && (
@@ -1190,7 +1114,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
               Generated Slots ({activeDaySlots.length} Total ·{' '}
               {activeDaySlots.filter((s) => s.status === 'active').length} Active)
             </span>
-            <div className="flex items-center gap-2 text-[11px] font-bold">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
                 <Sun className="w-3 h-3 text-amber-500 fill-amber-400" /> Day Slot (₹{dayPrice})
               </span>
@@ -1209,7 +1133,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               {activeDaySlots.map((slot) => {
                 const isActive = slot.status === 'active';
                 const isEditingPrice = editingSlotId === slot.id;
@@ -1219,7 +1143,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 return (
                   <div
                     key={slot.id}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                    className={`p-2 rounded-xl border transition-all flex flex-col justify-between overflow-hidden ${
                       !isActive
                         ? 'bg-slate-100/80 border-slate-200 text-slate-400 opacity-75'
                         : isNightSlot
@@ -1229,134 +1153,75 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   >
                     <div>
                       {/* Top Header Badge */}
-                      <div className="flex items-center justify-between gap-1 mb-2.5">
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex items-center justify-between gap-0.5 mb-1.5">
+                        <div className="flex items-center gap-0.5">
                           {isNightSlot ? (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900">
-                              <Moon className="w-2.5 h-2.5 fill-indigo-600 text-indigo-600" /> NIGHT
-                            </span>
+                            <Moon className="w-3 h-3 text-indigo-600 fill-indigo-400" />
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
-                              <Sun className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> DAY
-                            </span>
+                            <Sun className="w-3 h-3 text-amber-500 fill-amber-400" />
                           )}
 
                           <span
-                            className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                            className={`text-[7px] font-black uppercase tracking-widest px-1 py-0.5 rounded-sm leading-none ${
                               isActive
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : 'bg-slate-200 text-slate-600'
                             }`}
                           >
-                            {isActive ? 'ACTIVE' : 'DISABLED'}
+                            {isActive ? 'ON' : 'OFF'}
                           </span>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          {slot.source === 'custom' && (
-                            <span className="text-[8px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">
-                              CUSTOM
-                            </span>
-                          )}
-                          {slot.isCustomized && (
-                            <span className="text-[8px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
-                              EDITED
-                            </span>
-                          )}
                         </div>
                       </div>
 
                       {/* Slot Time Range */}
                       {isEditingTime ? (
-                        <div className="space-y-2 py-1">
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <TimeInput
-                              value={editStartTimeVal}
-                              onChange={setEditStartTimeVal}
-                              className="px-2 py-1 text-xs border rounded bg-white font-mono font-bold"
-                            />
-                            <TimeInput
-                              value={editEndTimeVal}
-                              onChange={setEditEndTimeVal}
-                              className="px-2 py-1 text-xs border rounded bg-white font-mono font-bold"
-                            />
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleSaveSlotTime(slot.id)}
-                              className="flex-1 py-1 bg-emerald-600 text-white rounded text-[10px] font-black"
-                            >
-                              Save Time
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditingTimeSlotId(null)}
-                              className="px-2 py-1 border text-slate-600 rounded text-[10px] font-bold"
-                            >
-                              Cancel
-                            </button>
+                        <div className="space-y-1 py-1">
+                          <TimeInput
+                            value={editStartTimeVal}
+                            onChange={setEditStartTimeVal}
+                            className="w-full px-1 py-0.5 text-[10px] border rounded bg-white font-mono font-bold"
+                          />
+                          <TimeInput
+                            value={editEndTimeVal}
+                            onChange={setEditEndTimeVal}
+                            className="w-full px-1 py-0.5 text-[10px] border rounded bg-white font-mono font-bold"
+                          />
+                          <div className="flex gap-1 mt-1">
+                            <button onClick={() => handleSaveSlotTime(slot.id)} className="flex-1 py-0.5 bg-emerald-600 text-white rounded text-[8px] font-black">Save</button>
+                            <button onClick={() => setEditingTimeSlotId(null)} className="flex-1 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">Esc</button>
                           </div>
                         </div>
                       ) : (
                         <div>
-                          <p className="font-black text-sm text-slate-900 font-mono">
-                            {format12Hour(slot.startTime)} – {format12Hour(slot.endTime)}
-                          </p>
-                          <p className="text-[10px] text-slate-400 font-medium">
-                            {slot.durationMinutes} min duration
-                            {slot.label ? ` · ${slot.label}` : ''}
-                          </p>
+                        <div className="font-black text-[10px] text-slate-900 font-mono leading-snug flex flex-col py-1">
+                          <span>{format12Hour(slot.startTime).replace(' AM','a').replace(' PM','p')}</span>
+                          <span className="text-slate-400 text-[8px] leading-none ml-1">to</span>
+                          <span>{format12Hour(slot.endTime).replace(' AM','a').replace(' PM','p')}</span>
+                        </div>
                         </div>
                       )}
 
                       {/* Slot Price */}
-                      <div className="mt-3">
+                      <div className="mt-1.5">
                         {isEditingPrice ? (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs font-bold text-slate-400">₹</span>
+                          <div className="flex items-center gap-0.5">
                             <NumberInput
                               min={1}
                               step={50}
                               value={editPriceVal}
                               onChange={setEditPriceVal}
-                              className="w-24 px-2 py-1 rounded border border-emerald-400 text-xs font-bold bg-white"
+                              className="w-12 px-1 py-0.5 rounded border border-emerald-400 text-[10px] font-bold bg-white"
                               autoFocus
                             />
-                            <button
-                              type="button"
-                              onClick={() => handleSaveSlotPrice(slot.id)}
-                              className="p-1 bg-emerald-600 text-white rounded text-xs"
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditingSlotId(null)}
-                              className="p-1 bg-slate-200 text-slate-600 rounded text-xs"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
+                            <button onClick={() => handleSaveSlotPrice(slot.id)} className="p-0.5 bg-emerald-600 text-white rounded"><Check className="w-3 h-3" /></button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className={`text-base font-black font-sans ${
-                                isNightSlot ? 'text-indigo-900' : 'text-emerald-700'
-                              }`}
-                            >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[11px] font-black font-sans leading-none ${isNightSlot ? 'text-indigo-900' : 'text-emerald-700'}`}>
                               ₹{slot.price}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingSlotId(slot.id);
-                                setEditPriceVal(slot.price);
-                              }}
-                              className="text-[10px] font-bold text-slate-400 hover:text-emerald-600 flex items-center gap-0.5"
-                            >
-                              <Edit2 className="w-3 h-3" />
-                              Edit
+                            <button onClick={() => { setEditingSlotId(slot.id); setEditPriceVal(slot.price); }} className="text-slate-400 hover:text-emerald-600">
+                              <Pencil className="w-2.5 h-2.5" />
                             </button>
                           </div>
                         )}
@@ -1364,51 +1229,19 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                     </div>
 
                     {/* Action Bar */}
-                    <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleSlotStatus(slot.id)}
-                          className={`px-2 py-1 rounded-lg text-[10px] font-black ${
-                            isActive
-                              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                              : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
-                          }`}
-                        >
-                          {isActive ? 'Disable' : 'Enable'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingTimeSlotId(slot.id);
-                            setEditStartTimeVal(slot.startTime);
-                            setEditEndTimeVal(slot.endTime);
-                          }}
-                          className="px-2 py-1 rounded-lg text-[10px] font-bold text-slate-500 hover:bg-slate-100"
-                        >
-                          Edit Time
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicateSlot(slot)}
-                          className="p-1 text-slate-400 hover:text-slate-700"
-                          title="Duplicate slot"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteSlot(slot.id)}
-                          className="p-1 text-slate-400 hover:text-red-600"
-                          title="Delete slot"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    <div className="pt-2 mt-2 border-t border-slate-200/60 flex items-center justify-between text-slate-400">
+                      <button onClick={() => handleToggleSlotStatus(slot.id)} className={`p-1 rounded hover:text-slate-700 ${isActive ? 'hover:bg-slate-200' : 'text-emerald-600 hover:bg-emerald-100'}`} title={isActive ? "Disable" : "Enable"}>
+                        <ToggleLeft className={`w-3.5 h-3.5 ${isActive ? 'rotate-180 text-emerald-600' : ''}`} />
+                      </button>
+                      <button onClick={() => { setEditingTimeSlotId(slot.id); setEditStartTimeVal(slot.startTime); setEditEndTimeVal(slot.endTime); }} className="p-1 rounded hover:bg-slate-200 hover:text-slate-700" title="Edit Time">
+                        <Clock className="w-3 h-3" />
+                      </button>
+                      <button onClick={() => handleDuplicateSlot(slot)} className="p-1 rounded hover:bg-slate-200 hover:text-slate-700" title="Duplicate">
+                        <Copy className="w-3 h-3" />
+                      </button>
+                      <button onClick={() => handleDeleteSlot(slot.id)} className="p-1 rounded hover:bg-red-100 hover:text-red-600" title="Delete">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
                 );
@@ -1653,207 +1486,6 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════
-          CLOSED / HOLIDAY DATES SECTION
-         ══════════════════════════════════════════════════════ */}
-      <HolidayBlockSection holidays={holidays} onChange={onHolidayChange} />
     </div>
   );
 };
-
-// ── Standalone Holiday Block Section ──────────────────────────────────────────
-function HolidayBlockSection({
-  holidays = [],
-  onChange,
-}: {
-  holidays?: SalonHoliday[];
-  onChange?: (h: SalonHoliday[]) => void;
-}) {
-  const todayStr = new Date().toISOString().split('T')[0];
-  const [date, setDate] = React.useState('');
-  const [endDate, setEndDate] = React.useState('');
-  const [reason, setReason] = React.useState('');
-  const [leaveMode, setLeaveMode] = React.useState(false);
-
-  const activeHolidays = holidays.filter((h) => {
-    const ed = h.endDate || h.date;
-    return ed >= todayStr;
-  });
-
-  const addHoliday = () => {
-    if (!date) return;
-    if (leaveMode && !endDate) return;
-    const ed = leaveMode && endDate ? endDate : date;
-    const label = leaveMode ? (reason || 'Leave') : (reason || 'Closed');
-    const already = holidays.some((h) => h.date === date);
-    if (already) return;
-    onChange?.([...holidays, { date, endDate: ed, reason: label }]);
-    setDate(''); setEndDate(''); setReason('');
-  };
-
-  const removeHoliday = (d: string) => {
-    onChange?.(holidays.filter((h) => h.date !== d));
-  };
-
-  const fmtDate = (s: string) => {
-    if (!s) return '';
-    const d = new Date(s + 'T00:00:00');
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
-      {/* Header */}
-      <div>
-        <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-700">
-          <Calendar className="w-4 h-4 text-slate-500" />
-          Closed / Holiday Dates
-        </h3>
-        <p className="text-[11px] text-slate-400 mt-0.5">
-          Block specific dates — these override your weekly schedule.
-        </p>
-      </div>
-
-      {/* Mode Toggle */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => { setLeaveMode(false); setEndDate(''); }}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-            !leaveMode ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-500 border-slate-200 hover:border-rose-300'
-          }`}
-        >
-          🚫 Block Day
-        </button>
-        <button
-          type="button"
-          onClick={() => setLeaveMode(true)}
-          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-            leaveMode ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-slate-500 border-slate-200 hover:border-amber-300'
-          }`}
-        >
-          🏖️ Add Leave
-        </button>
-      </div>
-
-      {/* Form Row */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
-        {/* DATE */}
-        <div className="w-full sm:w-auto">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-            {leaveMode ? 'From Date' : 'Date'}
-          </label>
-          <div className="relative">
-            <input
-              type="date"
-              value={date}
-              min={todayStr}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full sm:w-44 h-11 pl-3 pr-9 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-400 appearance-none"
-            />
-            <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* TO DATE */}
-        {leaveMode && (
-          <div className="w-full sm:w-auto">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-              To Date
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={endDate}
-                min={date || todayStr}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full sm:w-44 h-11 pl-3 pr-9 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400 appearance-none"
-              />
-              <Calendar className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-        )}
-
-        {/* REASON */}
-        <div className="flex-1 w-full">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-            Reason (Optional)
-          </label>
-          <input
-            type="text"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') addHoliday(); }}
-            placeholder={leaveMode ? 'e.g. Vacation, Training...' : 'e.g. Diwali, Maintenance...'}
-            className="w-full h-11 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-400"
-          />
-        </div>
-
-        {/* BUTTON */}
-        <div className="w-full sm:w-auto">
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-transparent mb-1 select-none">.</label>
-          <button
-            type="button"
-            onClick={addHoliday}
-            disabled={!date || (leaveMode && !endDate)}
-            className={`w-full sm:w-auto h-11 flex items-center justify-center gap-1.5 px-5 rounded-full text-white text-xs font-bold transition-all disabled:opacity-40 shadow-sm ${
-              leaveMode ? 'bg-amber-500 hover:bg-amber-600 active:scale-95' : 'bg-rose-500 hover:bg-rose-600 active:scale-95'
-            }`}
-          >
-            <Plus className="w-4 h-4" />
-            {leaveMode ? 'Add Leave' : 'Block Date'}
-          </button>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-slate-100" />
-
-      {/* List */}
-      {activeHolidays.length > 0 ? (
-        <div className="space-y-2">
-          {activeHolidays.map((h) => {
-            const isLeave = h.endDate && h.endDate !== h.date;
-            return (
-              <div
-                key={h.date}
-                className={`flex items-start justify-between p-3 rounded-xl border text-xs ${
-                  isLeave ? 'bg-amber-50 border-amber-200' : 'bg-rose-50 border-rose-100'
-                }`}
-              >
-                <div className="flex items-start gap-2">
-                  <span className="text-base leading-none mt-0.5">{isLeave ? '🏖️' : '🚫'}</span>
-                  <div>
-                    <p className={`font-black text-sm ${isLeave ? 'text-amber-900' : 'text-rose-900'}`}>
-                      {isLeave ? `${fmtDate(h.date)} → ${fmtDate(h.endDate!)}` : fmtDate(h.date)}
-                    </p>
-                    <p className={`text-[11px] mt-0.5 ${isLeave ? 'text-amber-700' : 'text-rose-600'}`}>
-                      {h.reason}
-                      <span className="ml-2 text-slate-400 font-normal">(auto-expires after date)</span>
-                    </p>
-                    <p className={`text-[10px] mt-1 font-bold uppercase tracking-wider ${isLeave ? 'text-amber-500' : 'text-rose-400'}`}>
-                      {isLeave ? '🔒 All slots in this range are blocked' : '🔒 All slots on this day are blocked'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeHoliday(h.date)}
-                  className="p-1 rounded-lg hover:bg-white/60 text-slate-400 hover:text-slate-700 ml-2 shrink-0"
-                  title="Remove"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="py-4 text-center rounded-xl border-2 border-dashed border-slate-200">
-          <Calendar className="w-5 h-5 mx-auto text-slate-300 mb-1" />
-          <p className="text-xs text-slate-400">No blocked dates. Add a date above to close your shop.</p>
-        </div>
-      )}
-    </div>
-  );
-}

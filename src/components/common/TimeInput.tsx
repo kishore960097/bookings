@@ -157,8 +157,8 @@ function Drum<T>({
               style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
               className={`flex items-center justify-center cursor-pointer transition-all duration-150
                 ${isSelected
-                  ? 'text-slate-900 font-black text-2xl'
-                  : 'text-slate-400 font-medium text-lg'
+                  ? 'text-white font-black text-3xl tracking-tight'
+                  : 'text-[#48484a] font-bold text-xl'
                 }`}
               onClick={() => commitIndex(i)}
             >
@@ -175,14 +175,14 @@ function Drum<T>({
         className="pointer-events-none absolute inset-x-0 top-0"
         style={{
           height: padTop,
-          background: 'linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0))',
+          background: 'linear-gradient(to bottom, rgba(28,28,30,1), rgba(28,28,30,0))',
         }}
       />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0"
         style={{
           height: padTop,
-          background: 'linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0))',
+          background: 'linear-gradient(to top, rgba(28,28,30,1), rgba(28,28,30,0))',
         }}
       />
 
@@ -192,8 +192,8 @@ function Drum<T>({
         style={{
           top: padTop,
           height: ITEM_H,
-          borderTop: '1.5px solid #e2e8f0',
-          borderBottom: '1.5px solid #e2e8f0',
+          borderTop: '1px solid #38383a',
+          borderBottom: '1px solid #38383a',
         }}
       />
     </div>
@@ -227,49 +227,47 @@ function DrumTimePickerModal({ value, onChange, onClose }: DrumTimePickerProps) 
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl pb-safe overflow-hidden"
+        className="relative w-full max-w-sm bg-[#1c1c1e] sm:rounded-[32px] rounded-t-[32px] shadow-2xl pb-safe overflow-hidden border border-[#2c2c2e] m-0 sm:m-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-slate-200" />
+          <div className="w-12 h-1.5 rounded-full bg-[#38383a]" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 py-4">
           <button
             onClick={onClose}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+            className="text-base font-semibold text-[#8e8e93] hover:text-white transition-colors"
           >
             Cancel
           </button>
-          <span className="text-sm font-black text-slate-900 uppercase tracking-wider">Time</span>
           <button
             onClick={handleConfirm}
-            className="text-sm font-black text-blue-600 hover:text-blue-700 transition-colors"
+            className="text-base font-bold text-blue-500 hover:text-blue-400 transition-colors"
           >
             Done
           </button>
         </div>
 
         {/* Drums */}
-        <div className="flex items-center justify-center gap-1 py-4 px-4">
+        <div className="flex items-center justify-center gap-1 py-2 px-4 mb-8">
           <Drum
             items={HOURS}
             selected={hour}
             onSelect={setHour}
             format={(v) => String(v)}
           />
-          <span className="text-2xl font-black text-slate-600 mb-0.5 select-none">:</span>
           <Drum
             items={MINUTES}
             selected={minute}
             onSelect={setMinute}
             format={(v) => String(v).padStart(2, '0')}
           />
-          <div className="w-2" />
+          <div className="w-1" />
           <Drum
             items={AMPM}
             selected={ampm}
@@ -278,15 +276,8 @@ function DrumTimePickerModal({ value, onChange, onClose }: DrumTimePickerProps) 
           />
         </div>
 
-        {/* Done button (mobile-friendly) */}
-        <div className="px-5 pb-6">
-          <button
-            onClick={handleConfirm}
-            className="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-black text-sm tracking-wide hover:bg-slate-800 active:scale-[0.98] transition-all"
-          >
-            Confirm {to24(hour, minute, ampm).replace(':', ':')} {ampm}
-          </button>
-        </div>
+        {/* Done button removed for pure iOS style, relying on top right Done button */}
+        <div className="h-6" />
       </div>
     </div>
   );

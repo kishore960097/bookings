@@ -12,9 +12,7 @@ import {
   Check,
   X,
   Star,
-  Clock,
-  Sparkles,
-} from 'lucide-react';
+  Clock} from 'lucide-react';
 
 interface ServicesStaffManagerProps {
   salon: Salon;

@@ -173,6 +173,10 @@ export interface SpecialDateOverride {
 }
 
 export interface TurfAvailabilitySchedule {
+  id?: string;
+  name?: string; // e.g. "October Schedule"
+  validFrom?: string; // e.g. "2026-10-01"
+  validTo?: string; // e.g. "2026-10-31"
   resourceId?: string; // 'default' or specific turf ID
   days: DaySlotConfig[];
   specialDates?: SpecialDateOverride[];

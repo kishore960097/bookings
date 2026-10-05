@@ -11,13 +11,11 @@ import {
   Clock,
   CheckCircle2,
   Filter,
-  Sparkles,
   Ticket,
   ChevronRight,
   LocateFixed,
   Map,
-  Navigation,
-} from 'lucide-react';
+  Navigation} from 'lucide-react';
 
 interface SalonListProps {
   onSelectSalon: (salon: Salon) => void;
@@ -364,7 +362,7 @@ export const SalonList: React.FC<SalonListProps> = ({ onSelectSalon, onOpenActiv
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-slate-400">
-                    <Sparkles className="w-8 h-8 mb-1 text-indigo-400 opacity-60" />
+                    
                     <span className="text-xs font-bold text-slate-300">{salon.name}</span>
                   </div>
                 )}

@@ -1,8 +1,12 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, User, Shield, HelpCircle, ChevronRight, FileText } from 'lucide-react';
+import { LogOut, User, Shield, HelpCircle, ChevronRight, FileText, Settings } from 'lucide-react';
 
-export const OwnerProfileView: React.FC = () => {
+interface OwnerProfileViewProps {
+  onOpenSettings: () => void;
+}
+
+export const OwnerProfileView: React.FC<OwnerProfileViewProps> = ({ onOpenSettings }) => {
   const { user, logout } = useAuth();
 
   const getInitial = (name?: string) => name ? name.charAt(0).toUpperCase() : 'O';
@@ -30,8 +34,9 @@ export const OwnerProfileView: React.FC = () => {
           {[
             { icon: User, label: 'Personal Information', desc: 'Update your name and phone number' },
             { icon: Shield, label: 'Security', desc: 'Password and 2FA settings' },
+            { icon: Settings, label: 'Business Settings', desc: 'Manage your business details, working hours, and services', action: onOpenSettings },
           ].map((item, idx) => (
-            <button key={idx} className="w-full flex items-center p-4 hover:bg-slate-50 transition-colors text-left group">
+            <button key={idx} onClick={item.action} className="w-full flex items-center p-4 hover:bg-slate-50 transition-colors text-left group">
               <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-white group-hover:shadow-sm transition-all">
                 <item.icon size={18} className="text-slate-600" />
               </div>

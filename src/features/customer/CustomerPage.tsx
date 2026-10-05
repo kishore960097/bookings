@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Bell, CalendarDays, ChevronDown, CircleDollarSign, Globe2, Heart, Home, Info, LockKeyhole, LogOut, MapPin, Search, SlidersHorizontal, Ticket, UserRound, UserCircle, Headphones, ClipboardCheck, Phone, Star, Receipt, Wallet, CreditCard, ShieldCheck, Zap, Clock, Check, ChevronLeft, Crosshair, IndianRupee, Sun, Moon, QrCode, Download } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { Salon } from '../../../packages/shared/types';
+import { Salon } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -101,8 +101,8 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
         try {
           const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`);
           const data = await res.json();
-          // Prioritize city > locality to ensure broader matches (e.g. "Chennai" instead of "Guindy")
-          const city = data.city || data.principalSubdivision || data.locality || 'Current Location';
+          // Prioritize city > locality > state to ensure broader matches (e.g. "Chennai" instead of "Guindy")
+          const city = data.city || data.locality || data.principalSubdivision || 'Current Location';
           setUserLocation(city);
           setIsLocationModalOpen(false);
           setIsMapView(false);
@@ -201,67 +201,64 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
   }
 
   return (
-    <main className="bg-[#f2fcf9] min-h-[100dvh] pb-24 font-sans relative" aria-label="Customer home">
+    <main className="bg-[var(--qp-bg)] text-[var(--qp-text)] min-h-[100dvh] pb-24 font-sans relative" aria-label="Customer home">
       
       {/* --- HOME TAB --- */}
       {activeTab === 'home' && (
         <div className="flex flex-col w-full relative">
-          {/* Header Area with Gradient Background */}
-          <div className="bg-gradient-to-br from-[#eafaf5] via-[#f2fcf9] to-[#d6f5ea] px-5 pt-10 pb-6 rounded-b-[2rem] relative overflow-hidden">
-            {/* Decorative background shapes if needed */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -translate-y-1/2 translate-x-1/3"></div>
-
+          {/* Header Area */}
+          <div className="sticky top-0 z-50 ap-glass-nav px-5 pt-10 pb-6 w-full">
             {/* Top Bar */}
-            <header className="flex justify-between items-center mb-6 relative z-10">
+            <header className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-[#00a870] rounded-xl flex items-center justify-center shadow-sm">
+                <div className="w-10 h-10 bg-[var(--qp-primary)] rounded-xl flex items-center justify-center shadow-sm">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                 </div>
-                <span className="text-[22px] font-black text-[#0f172a] tracking-tight">QGo</span>
+                <span className="text-[22px] font-semibold text-[var(--qp-text)] tracking-tight">QGo</span>
               </div>
               
               <div className="flex items-center gap-3">
                 <button type="button" className="relative" onClick={onOpenNotifications}>
-                  <Bell size={22} className="text-[#004230]" />
-                  <span className="absolute top-0 right-1 w-2.5 h-2.5 bg-[#ef4444] border-2 border-[#eafaf5] rounded-full"></span>
+                  <Bell size={22} className="text-[var(--qp-text)] hover:opacity-80 transition-opacity" />
+                  <span className="absolute top-0 right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-[var(--qp-bg)] rounded-full"></span>
                 </button>
               </div>
             </header>
 
             {/* Location & Greeting */}
-            <div className="flex justify-between items-end mb-6 relative z-10">
+            <div className="flex justify-between items-end mb-6">
               <div>
-                <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-0.5">YOUR LOCATION</p>
+                <p className="text-[10px] font-semibold text-[var(--qp-text-sec)] tracking-wider mb-0.5 uppercase">Your Location</p>
                 <div 
-                  className="flex items-center gap-1.5 cursor-pointer"
+                  className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setIsLocationModalOpen(true)}
                   title="Change Location"
                 >
-                  <MapPin size={18} className="text-[#004230] fill-[#004230] text-white" />
-                  <h2 className="text-[19px] font-black text-[#0f172a]">{userLocation}</h2>
-                  <ChevronDown size={16} className="text-[#0f172a] mt-0.5" />
+                  <MapPin size={18} className="text-[var(--qp-primary)]" />
+                  <h2 className="text-[19px] font-semibold text-[var(--qp-text)] tracking-tight">{userLocation}</h2>
+                  <ChevronDown size={16} className="text-[var(--qp-text)] mt-0.5" />
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-[9px] font-bold text-[#00a870] tracking-wider mb-0.5 uppercase">Welcome Back!</p>
-                <p className="text-[13px] font-bold text-[#0f172a]">{user?.name || user?.displayName || 'Customer'} 👋</p>
+                <p className="text-[10px] font-semibold text-[var(--qp-text-sec)] tracking-wider mb-0.5 uppercase">Welcome Back</p>
+                <p className="text-[14px] font-medium text-[var(--qp-text)]">{user?.name || user?.displayName || 'Customer'}</p>
               </div>
             </div>
 
             {/* Search Bar */}
-            <div className="relative z-10 flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <div className="relative flex-1">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--qp-text-sec)]" />
                 <input 
                   type="text" 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search venues, sports..." 
-                  className="w-full bg-white rounded-[14px] py-3.5 pl-11 pr-4 text-[13px] font-medium text-slate-800 shadow-sm border border-emerald-50 focus:outline-none focus:ring-2 focus:ring-[#00a870]/20 placeholder-slate-400"
+                  className="w-full bg-[var(--qp-surface)] border border-[var(--qp-border)] rounded-[14px] py-3.5 pl-11 pr-4 text-[13px] font-medium text-[var(--qp-text)] focus:outline-none focus:border-[var(--qp-primary)] transition-colors placeholder-[var(--qp-text-sec)]"
                 />
               </div>
-              <button type="button" className="w-12 h-[50px] bg-white rounded-[14px] flex items-center justify-center shadow-sm border border-emerald-50 text-[#00a870] shrink-0">
-                <SlidersHorizontal size={20} strokeWidth={2.5} />
+              <button type="button" className="w-[50px] h-[50px] bg-[var(--qp-surface)] border border-[var(--qp-border)] rounded-[14px] flex items-center justify-center text-[var(--qp-text)] hover:bg-black/5 transition-colors shrink-0">
+                <SlidersHorizontal size={20} strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -269,25 +266,24 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
 
 
           {/* Available Venues */}
-          <div className="px-5 mb-6">
+          <div className="px-5 mb-6 mt-6">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <MapPin size={22} className="text-[#004230] fill-[#004230] text-white" />
-                <h2 className="text-[19px] font-black text-[#0f172a] tracking-tight">Available Venues</h2>
+                <h2 className="text-2xl font-semibold text-[var(--qp-text)] tracking-tight">Available Venues</h2>
               </div>
             </div>
             
             {/* Filter Chips */}
             <div className="flex gap-2 overflow-x-auto scrollbar-none pb-4 snap-x">
-              <button type="button" className="flex items-center gap-1.5 shrink-0 bg-[#00a870] text-white px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start">
+              <button type="button" className="flex items-center gap-1.5 shrink-0 bg-[var(--qp-primary)] text-white px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start">
                 <CalendarDays size={14} /> 14 Sep <ChevronDown size={14} />
               </button>
-              <button type="button" onClick={() => setSelectedSport('All Sports')} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === 'All Sports' ? 'bg-[#00a870] text-white border-[#00a870]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
+              <button type="button" onClick={() => setSelectedSport('All Sports')} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === 'All Sports' ? 'bg-[var(--qp-primary)] text-white border-[var(--qp-primary)]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> 
                 All Sports <ChevronDown size={14} />
               </button>
               {['Cricket', 'Football', 'Tennis'].map((sport) => (
-                <button key={sport} type="button" onClick={() => setSelectedSport(sport)} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === sport ? 'bg-[#00a870] text-white border-[#00a870]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
+                <button key={sport} type="button" onClick={() => setSelectedSport(sport)} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === sport ? 'bg-[var(--qp-primary)] text-white border-[var(--qp-primary)]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
                   {sport}
                 </button>
               ))}
@@ -308,12 +304,12 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       </div>
                       {userLocation !== 'All Locations' && (
                         <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[10px] font-bold text-[#00a870] bg-[#eafaf5] px-1.5 py-0.5 rounded uppercase tracking-wider">{venue.distance || '1.2 km'} Away</span>
+                          <span className="text-[10px] font-bold text-[var(--qp-primary)] bg-[var(--qp-primary-soft)] px-1.5 py-0.5 rounded uppercase tracking-wider">{venue.distance || '1.2 km'} Away</span>
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full shrink-0">
-                      <Star size={12} className="fill-[#00a870] text-[#00a870]" />
+                      <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
                       <span className="text-[11px] font-black text-slate-900">{Math.random() > 0.5 ? '4.0' : '4.5'}</span>
                     </div>
                   </div>
@@ -330,7 +326,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                       Sports <span className="text-slate-300">•</span> Turf
                     </div>
-                    <div className="flex gap-2 text-[#00a870]">
+                    <div className="flex gap-2 text-[var(--qp-primary)]">
                       <button type="button" className="p-1.5 hover:bg-emerald-50 rounded-full transition-colors"><MapPin size={18} strokeWidth={2.5} /></button>
                       <button type="button" className="p-1.5 hover:bg-emerald-50 rounded-full transition-colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4L22 2z"/></svg></button>
                     </div>
@@ -353,14 +349,14 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search venues, sports..." 
-              className="w-full bg-white rounded-[14px] py-3.5 pl-11 pr-4 text-[13px] font-medium text-slate-800 shadow-sm border border-emerald-50 focus:outline-none focus:ring-2 focus:ring-[#00a870]/20 placeholder-slate-400"
+              className="w-full bg-white rounded-[14px] py-3.5 pl-11 pr-4 text-[13px] font-medium text-slate-800 shadow-sm border border-emerald-50 focus:outline-none focus:ring-2 focus:ring-[var(--qp-primary)]/20 placeholder-slate-400"
             />
           </div>
           
           <div className="flex gap-2 overflow-x-auto scrollbar-none pb-4 snap-x">
-             <button type="button" onClick={() => setSelectedSport('All Sports')} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === 'All Sports' ? 'bg-[#00a870] text-white border-[#00a870]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>All Sports</button>
+             <button type="button" onClick={() => setSelectedSport('All Sports')} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === 'All Sports' ? 'bg-[var(--qp-primary)] text-white border-[var(--qp-primary)]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>All Sports</button>
              {['Cricket', 'Football', 'Tennis'].map((sport) => (
-                <button key={sport} type="button" onClick={() => setSelectedSport(sport)} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === sport ? 'bg-[#00a870] text-white border-[#00a870]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
+                <button key={sport} type="button" onClick={() => setSelectedSport(sport)} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === sport ? 'bg-[var(--qp-primary)] text-white border-[var(--qp-primary)]' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
                   {sport}
                 </button>
               ))}
@@ -380,19 +376,19 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       </div>
                       {userLocation !== 'All Locations' && (
                         <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[10px] font-bold text-[#00a870] bg-[#eafaf5] px-1.5 py-0.5 rounded uppercase tracking-wider">{venue.distance || '1.2 km'} Away</span>
+                          <span className="text-[10px] font-bold text-[var(--qp-primary)] bg-[var(--qp-primary-soft)] px-1.5 py-0.5 rounded uppercase tracking-wider">{venue.distance || '1.2 km'} Away</span>
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full shrink-0">
-                      <Star size={12} className="fill-[#00a870] text-[#00a870]" />
+                      <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
                       <span className="text-[11px] font-black text-slate-900">4.0</span>
                     </div>
                   </div>
                   
                   <div className="relative w-full h-[150px] rounded-xl overflow-hidden mb-3">
                     <img src={venue.image} alt={venue.name} className="w-full h-full object-cover" />
-                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#00a870] shadow-md hover:bg-emerald-50 transition-colors" onClick={(e) => { e.stopPropagation(); /* handle favorite */ }}>
+                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-[var(--qp-primary)] shadow-md hover:bg-emerald-50 transition-colors" onClick={(e) => { e.stopPropagation(); /* handle favorite */ }}>
                       <Heart size={16} strokeWidth={2.5} />
                     </button>
                   </div>
@@ -413,26 +409,26 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
       {activeTab === 'profile' && <ProfileView onLogout={onLogout} />}
       {activeTab === 'favorites' && <FavoritesView venues={venues} favorites={favorites} onToggleFavorite={toggleFavorite} onSelectVenue={setSelectedVenue} />}
 
-      <nav className={`fixed bottom-6 left-4 right-4 bg-white/60 backdrop-blur-2xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex justify-between items-center px-6 h-[72px] rounded-[2rem] z-50 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`} aria-label="Customer navigation">
-        <button type="button" className={`flex flex-col items-center gap-1 font-bold text-[10px] transition-colors ${activeTab === 'home' ? 'text-[#00a870]' : 'text-slate-400 hover:text-slate-600'}`} onClick={() => { setActiveTab('home'); setSelectedSport('All Sports'); }}>
-          <Home size={22} strokeWidth={activeTab === 'home' ? 2.5 : 2} />
-          <span className={activeTab === 'home' ? 'border-b-2 border-[#00a870] pb-0.5 text-slate-900' : 'pb-[2px]'}>Home</span>
+      <nav className={`fixed bottom-6 left-4 right-4 ap-glass-panel flex justify-between items-center px-6 h-[72px] z-50 transition-all duration-300 ${showBottomNav ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'}`} aria-label="Customer navigation">
+        <button type="button" className={`flex flex-col items-center gap-1 font-medium text-[10px] transition-colors ${activeTab === 'home' ? 'text-[var(--qp-primary)]' : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)]'}`} onClick={() => { setActiveTab('home'); setSelectedSport('All Sports'); }}>
+          <Home size={24} strokeWidth={activeTab === 'home' ? 2 : 1.5} />
+          <span className={activeTab === 'home' ? 'text-[var(--qp-primary)] font-semibold' : ''}>Home</span>
         </button>
-        <button type="button" className={`flex flex-col items-center gap-1 font-bold text-[10px] transition-colors ${activeTab === 'turf' ? 'text-[#00a870]' : 'text-slate-400 hover:text-slate-600'}`} onClick={() => { setActiveTab('turf'); setSelectedSport('All Sports'); }}>
-          <Ticket size={22} strokeWidth={activeTab === 'turf' ? 2.5 : 2} />
-          <span className={activeTab === 'turf' ? 'border-b-2 border-[#00a870] pb-0.5 text-slate-900' : 'pb-[2px]'}>Turf</span>
+        <button type="button" className={`flex flex-col items-center gap-1 font-medium text-[10px] transition-colors ${activeTab === 'turf' ? 'text-[var(--qp-primary)]' : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)]'}`} onClick={() => { setActiveTab('turf'); setSelectedSport('All Sports'); }}>
+          <Ticket size={24} strokeWidth={activeTab === 'turf' ? 2 : 1.5} />
+          <span className={activeTab === 'turf' ? 'text-[var(--qp-primary)] font-semibold' : ''}>Turf</span>
         </button>
-        <button type="button" className={`flex flex-col items-center gap-1 font-bold text-[10px] transition-colors ${activeTab === 'booking' ? 'text-[#00a870]' : 'text-slate-400 hover:text-slate-600'}`} onClick={() => setActiveTab('booking')}>
-          <CalendarDays size={22} strokeWidth={activeTab === 'booking' ? 2.5 : 2} />
-          <span className={activeTab === 'booking' ? 'border-b-2 border-[#00a870] pb-0.5 text-slate-900' : 'pb-[2px]'}>Booking</span>
+        <button type="button" className={`flex flex-col items-center gap-1 font-medium text-[10px] transition-colors ${activeTab === 'booking' ? 'text-[var(--qp-primary)]' : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)]'}`} onClick={() => setActiveTab('booking')}>
+          <CalendarDays size={24} strokeWidth={activeTab === 'booking' ? 2 : 1.5} />
+          <span className={activeTab === 'booking' ? 'text-[var(--qp-primary)] font-semibold' : ''}>Booking</span>
         </button>
-        <button type="button" className={`flex flex-col items-center gap-1 font-bold text-[10px] transition-colors ${activeTab === 'favorites' ? 'text-[#00a870]' : 'text-slate-400 hover:text-slate-600'}`} onClick={() => setActiveTab('favorites')}>
-          <Heart size={22} strokeWidth={activeTab === 'favorites' ? 2.5 : 2} />
-          <span className={activeTab === 'favorites' ? 'border-b-2 border-[#00a870] pb-0.5 text-slate-900' : 'pb-[2px]'}>Favorites</span>
+        <button type="button" className={`flex flex-col items-center gap-1 font-medium text-[10px] transition-colors ${activeTab === 'favorites' ? 'text-[var(--qp-primary)]' : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)]'}`} onClick={() => setActiveTab('favorites')}>
+          <Heart size={24} strokeWidth={activeTab === 'favorites' ? 2 : 1.5} />
+          <span className={activeTab === 'favorites' ? 'text-[var(--qp-primary)] font-semibold' : ''}>Favorites</span>
         </button>
-        <button type="button" className={`flex flex-col items-center gap-1 font-bold text-[10px] transition-colors ${activeTab === 'profile' ? 'text-[#00a870]' : 'text-slate-400 hover:text-slate-600'}`} onClick={() => setActiveTab('profile')}>
-          <UserRound size={22} strokeWidth={activeTab === 'profile' ? 2.5 : 2} />
-          <span className={activeTab === 'profile' ? 'border-b-2 border-[#00a870] pb-0.5 text-slate-900' : 'pb-[2px]'}>Profile</span>
+        <button type="button" className={`flex flex-col items-center gap-1 font-medium text-[10px] transition-colors ${activeTab === 'profile' ? 'text-[var(--qp-primary)]' : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)]'}`} onClick={() => setActiveTab('profile')}>
+          <UserRound size={24} strokeWidth={activeTab === 'profile' ? 2 : 1.5} />
+          <span className={activeTab === 'profile' ? 'text-[var(--qp-primary)] font-semibold' : ''}>Profile</span>
         </button>
       </nav>
 
@@ -459,7 +455,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
               <div className="flex-1 relative flex flex-col bg-slate-100">
                 <div className="absolute inset-0 z-0">
                   <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80" alt="Map" className="w-full h-full object-cover opacity-70" />
-                  <div className="absolute inset-0 bg-[#00a870]/10 mix-blend-color"></div>
+                  <div className="absolute inset-0 bg-[var(--qp-primary)]/10 mix-blend-color"></div>
                 </div>
                 
                 {/* Center Pin */}
@@ -467,13 +463,13 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                   <div className="bg-[#0f172a] text-white text-[10px] font-bold px-3 py-1.5 rounded-full mb-1 shadow-md">
                     Move map to adjust
                   </div>
-                  <MapPin size={40} className="text-[#00a870] drop-shadow-md -mt-2 fill-white" />
+                  <MapPin size={40} className="text-[var(--qp-primary)] drop-shadow-md -mt-2 fill-white" />
                 </div>
 
                 <div className="mt-auto p-4 z-10 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
                   <div className="flex items-start gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                      <MapPin size={18} className="text-[#00a870]" />
+                      <MapPin size={18} className="text-[var(--qp-primary)]" />
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">Selected Location</h4>
@@ -486,7 +482,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       setIsLocationModalOpen(false);
                       setIsMapView(false);
                     }}
-                    className="w-full bg-[#00a870] hover:bg-[#009665] text-white p-3.5 rounded-xl font-bold transition-colors shadow-md"
+                    className="w-full bg-[var(--qp-primary)] hover:bg-[var(--qp-primary-hover)] text-white p-3.5 rounded-xl font-bold transition-colors shadow-md"
                   >
                     Confirm Location
                   </button>
@@ -502,7 +498,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       placeholder="Search city or neighborhood..."
                       value={locationSearch}
                       onChange={(e) => setLocationSearch(e.target.value)}
-                      className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00a870]"
+                      className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[var(--qp-primary)]"
                       autoFocus
                     />
                   </div>
@@ -514,16 +510,16 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       setUserLocation('All Locations');
                       setIsLocationModalOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-2xl mb-2 transition-colors ${userLocation === 'All Locations' ? 'bg-[#00a870]/10 text-[#00a870]' : 'hover:bg-slate-50 text-slate-700'}`}
+                    className={`w-full flex items-center gap-3 p-3 rounded-2xl mb-2 transition-colors ${userLocation === 'All Locations' ? 'bg-[var(--qp-primary)]/10 text-[var(--qp-primary)]' : 'hover:bg-slate-50 text-slate-700'}`}
                   >
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                      <Globe2 size={18} className={userLocation === 'All Locations' ? 'text-[#00a870]' : 'text-slate-500'} />
+                      <Globe2 size={18} className={userLocation === 'All Locations' ? 'text-[var(--qp-primary)]' : 'text-slate-500'} />
                     </div>
                     <div className="text-left">
                       <p className="font-bold text-sm">All Locations</p>
                       <p className="text-[10px] text-slate-400 font-semibold">Search everywhere</p>
                     </div>
-                    {userLocation === 'All Locations' && <Check size={16} className="ml-auto text-[#00a870]" />}
+                    {userLocation === 'All Locations' && <Check size={16} className="ml-auto text-[var(--qp-primary)]" />}
                   </button>
 
                   {suggestedLocations.map(loc => (
@@ -533,13 +529,13 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                         setUserLocation(loc);
                         setIsLocationModalOpen(false);
                       }}
-                      className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-colors ${userLocation === loc ? 'bg-[#00a870]/10 text-[#00a870]' : 'hover:bg-slate-50 text-slate-700'}`}
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-colors ${userLocation === loc ? 'bg-[var(--qp-primary)]/10 text-[var(--qp-primary)]' : 'hover:bg-slate-50 text-slate-700'}`}
                     >
                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <MapPin size={18} className={userLocation === loc ? 'text-[#00a870]' : 'text-slate-500'} />
+                        <MapPin size={18} className={userLocation === loc ? 'text-[var(--qp-primary)]' : 'text-slate-500'} />
                       </div>
                       <div className="text-left font-bold text-sm flex-1">{loc}</div>
-                      {userLocation === loc && <Check size={16} className="text-[#00a870]" />}
+                      {userLocation === loc && <Check size={16} className="text-[var(--qp-primary)]" />}
                     </button>
                   ))}
                   
@@ -628,14 +624,14 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
         <div>
           <div className="flex justify-between items-start">
             <h1 className="text-[22px] leading-none font-black text-[#0f172a] uppercase">{name}</h1>
-            <Heart size={20} className="text-[#00a870]" />
+            <Heart size={20} className="text-[var(--qp-primary)]" />
           </div>
           <div className="flex items-start gap-1.5 mt-1">
-            <MapPin size={14} className="text-[#00a870] shrink-0 mt-0.5" />
+            <MapPin size={14} className="text-[var(--qp-primary)] shrink-0 mt-0.5" />
             <p className="text-[12px] text-slate-600 leading-tight line-clamp-2">{address}</p>
           </div>
           <div className="flex items-center gap-1.5 mt-1">
-            <Star size={14} className="fill-[#00a870] text-[#00a870]" />
+            <Star size={14} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
             <span className="font-bold text-slate-900 text-sm">{salon?.rating || 4.0}</span>
             <span className="text-slate-400 text-[11px]">[{salon?.reviewCount || 0}]</span>
           </div>
@@ -646,7 +642,7 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
             Get Direction
           </button>
-          <button type="button" className="w-[42px] h-[42px] shrink-0 bg-[#00a870] hover:bg-[#009665] text-white rounded-[10px] flex items-center justify-center shadow-sm transition-colors" aria-label="Call venue">
+          <button type="button" className="w-[42px] h-[42px] shrink-0 bg-[var(--qp-primary)] hover:bg-[var(--qp-primary-hover)] text-white rounded-[10px] flex items-center justify-center shadow-sm transition-colors" aria-label="Call venue">
             <Phone size={18} strokeWidth={2.5} className="fill-white"/>
           </button>
         </div>
@@ -654,21 +650,21 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
         {/* Highlight Cards */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none snap-x">
           <div className="min-w-[100px] snap-start flex-1 bg-[#f0fdf4] border border-[#dcfce7] rounded-lg p-2 flex items-start gap-1.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00a870" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--qp-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
             <div>
               <p className="text-[10px] font-bold text-slate-900 leading-tight">Flexible offer</p>
               <p className="text-[8px] text-slate-500 mt-0.5">{salon?.bookingSettings?.cancellationPolicy || 'On all slots'}</p>
             </div>
           </div>
           <div className="min-w-[100px] snap-start flex-1 bg-[#f0fdf4] border border-[#dcfce7] rounded-lg p-2 flex items-start gap-1.5">
-            <CalendarDays size={12} className="text-[#00a870] shrink-0 mt-0.5" strokeWidth={2.5}/>
+            <CalendarDays size={12} className="text-[var(--qp-primary)] shrink-0 mt-0.5" strokeWidth={2.5}/>
             <div>
               <p className="text-[10px] font-bold text-slate-900 leading-tight">Available slots</p>
               <p className="text-[8px] text-slate-500 mt-0.5">Book online</p>
             </div>
           </div>
           <div className="min-w-[100px] snap-start flex-1 bg-[#f0fdf4] border border-[#dcfce7] rounded-lg p-2 flex items-start gap-1.5">
-            <ShieldCheck size={12} className="text-[#00a870] shrink-0 mt-0.5" strokeWidth={2.5}/>
+            <ShieldCheck size={12} className="text-[var(--qp-primary)] shrink-0 mt-0.5" strokeWidth={2.5}/>
             <div>
               <p className="text-[10px] font-bold text-slate-900 leading-tight">Verified venue</p>
               <p className="text-[8px] text-slate-500 mt-0.5">QGo protected</p>
@@ -681,12 +677,12 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
           {/* Available Sports */}
           <div>
             <div className="flex items-center gap-1 mb-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00a870" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M12 9l2 3-1 6"/><path d="M14 12h4"/><path d="M7 11l4-2 3 5"/><path d="M5 22l4-5"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--qp-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M12 9l2 3-1 6"/><path d="M14 12h4"/><path d="M7 11l4-2 3 5"/><path d="M5 22l4-5"/></svg>
               <h2 className="text-[13px] font-bold text-slate-900">Sports</h2>
             </div>
             <div className="flex flex-wrap gap-1">
               {(salon?.resources?.length ? salon.resources.map((resource: any) => resource.name) : ['Turf 1']).map((sport: string, index: number) => (
-                <button className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${index === 0 ? 'bg-[#00a870] text-white' : 'bg-slate-100 text-slate-600'}`} type="button" key={sport}>{sport}</button>
+                <button className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${index === 0 ? 'bg-[var(--qp-primary)] text-white' : 'bg-slate-100 text-slate-600'}`} type="button" key={sport}>{sport}</button>
               ))}
             </div>
           </div>
@@ -694,16 +690,16 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
           {/* Venue Info */}
           <div>
             <div className="flex items-center gap-1 mb-1.5">
-              <Info size={14} className="text-[#00a870] fill-[#00a870] text-white" />
+              <Info size={14} className="text-[var(--qp-primary)] fill-[var(--qp-primary)] text-white" />
               <h2 className="text-[13px] font-bold text-slate-900">Venue info</h2>
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center gap-1">
-                <span className="bg-[#00a870] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm">Pitch</span>
+                <span className="bg-[var(--qp-primary)] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-sm">Pitch</span>
                 <span className="text-[11px] font-medium text-slate-900">- {salon?.resources?.length || 1} Nets</span>
               </div>
               <div className="flex items-start gap-1">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00a870" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M4 20h16"/><path d="M5 20V12l3 3 4-7 4 7 3-3v8"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--qp-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M4 20h16"/><path d="M5 20V12l3 3 4-7 4 7 3-3v8"/></svg>
                 <div>
                   <p className="text-[11px] font-bold text-slate-900 leading-tight">Equipment</p>
                   <p className="text-[9px] text-slate-500 mt-0.5 line-clamp-1">{salon?.description || 'Artificial Turf'}</p>
@@ -716,13 +712,13 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
         {/* Amenities */}
         <div className="mt-1">
           <div className="flex items-center gap-1 mb-1.5">
-            <Star size={14} className="text-[#00a870] fill-[#00a870]" />
+            <Star size={14} className="text-[var(--qp-primary)] fill-[var(--qp-primary)]" />
             <h2 className="text-[13px] font-bold text-slate-900">Amenities</h2>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             {(salon?.facilities?.length ? salon.facilities : ['Sports / Turf', 'Washroom', 'Parking']).slice(0, 3).map((amenity: string) => (
               <div key={amenity} className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
-                <div className="w-3 h-3 bg-[#00a870] rounded-sm flex items-center justify-center">
+                <div className="w-3 h-3 bg-[var(--qp-primary)] rounded-sm flex items-center justify-center">
                    <Check size={8} className="text-white" strokeWidth={4} />
                 </div>
                 {amenity}
@@ -734,7 +730,7 @@ function TurfDetailView({ venue, onBack, onProceed }: { venue: { id: string; nam
 
       {/* Fixed Bottom CTA */}
       <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-100 z-50">
-        <button type="button" className="w-full bg-[#00a870] hover:bg-[#009665] text-white py-3 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 shadow-sm transition-all" onClick={onProceed}>
+        <button type="button" className="w-full bg-[var(--qp-primary)] hover:bg-[var(--qp-primary-hover)] text-white py-3 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2 shadow-sm transition-all" onClick={onProceed}>
           <CalendarDays size={16} strokeWidth={2.5}/> PROCEED TO SELECT A SLOT <ArrowRight size={16} strokeWidth={2.5}/>
         </button>
       </div>
@@ -761,7 +757,7 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
   
   useEffect(() => { 
     if (!venue.id.startsWith('demo-')) {
-      api.getAvailability(venue.id, { date, durationMinutes: 60, slotCategory: 'adult' })
+      api.getAvailability(venue.id, { date, durationMinutes: 60, slotCategory: 'adult' } as any)
          .then(setAvailability)
          .catch(() => setAvailability({ slots: [] })); 
     } 
@@ -829,12 +825,12 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
         <div className="bg-white w-full flex-1 sm:flex-none sm:max-w-2xl rounded-none sm:rounded-[1.5rem] overflow-hidden flex flex-col shadow-2xl relative animate-in fade-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200">
           
           {/* Header */}
-        <div className="bg-[#004230] p-6 text-white relative rounded-b-[2rem] shadow-sm z-10">
+        <div className="bg-[var(--qp-text)] p-6 text-white relative rounded-b-[2rem] shadow-sm z-10">
           <button onClick={onBack} className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
              <span className="sr-only">Close</span>
              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 1l12 12m0-12L1 13"/></svg>
           </button>
-          <div className="inline-flex items-center gap-1.5 bg-[#00c885] text-white text-[10px] font-bold px-2 py-1 rounded mb-3">
+          <div className="inline-flex items-center gap-1.5 bg-[var(--qp-primary-hover)] text-white text-[10px] font-bold px-2 py-1 rounded mb-3">
              <span>🎫</span> BOOK A TURF SLOT
           </div>
           <h2 className="text-2xl font-black mb-1">{venue.name}</h2>
@@ -849,7 +845,7 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
             <h3 className="text-xs font-bold text-slate-800 mb-3 uppercase tracking-wider">1. Select Date</h3>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none scroll-smooth">
               {generateDates().map(d => (
-                <button key={d.iso} onClick={() => { setLocalDraft({ ...localDraft, date: d.iso }); setSelectedSlotIds([]); }} className={`flex-shrink-0 w-[64px] h-[76px] rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all ${d.active ? 'bg-[#00c885] border-[#00c885] text-white shadow-md shadow-green-500/20' : 'bg-white border-slate-200 text-slate-600 hover:border-[#00c885]/50'}`}>
+                <button key={d.iso} onClick={() => { setLocalDraft({ ...localDraft, date: d.iso }); setSelectedSlotIds([]); }} className={`flex-shrink-0 w-[64px] h-[76px] rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all ${d.active ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-white shadow-md shadow-green-500/20' : 'bg-white border-slate-200 text-slate-600 hover:border-[var(--qp-primary-hover)]/50'}`}>
                   <span className={`text-[10px] font-semibold uppercase ${d.active ? 'text-white/90' : 'text-slate-400'}`}>{d.label}</span>
                   <span className="text-lg font-black">{d.day}</span>
                   <span className={`text-[10px] font-semibold ${d.active ? 'text-white/90' : 'text-slate-400'}`}>{d.mon}</span>
@@ -866,9 +862,9 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
                 <p className="text-[10px] text-slate-500">Slots for {venue.name}</p>
               </div>
               <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-full border border-slate-200">
-                <button onClick={() => setSlotFilter('all')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'all' ? 'bg-[#00c885] text-white' : 'text-slate-600 hover:bg-slate-200'}`}>All</button>
-                <button onClick={() => setSlotFilter('morning')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'morning' ? 'bg-[#00c885] text-white' : 'text-slate-600 hover:bg-slate-200'}`}>☀️ Morning</button>
-                <button onClick={() => setSlotFilter('evening')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'evening' ? 'bg-[#00c885] text-white' : 'text-slate-600 hover:bg-slate-200'}`}>🌙 Evening</button>
+                <button onClick={() => setSlotFilter('all')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'all' ? 'bg-[var(--qp-primary-hover)] text-white' : 'text-slate-600 hover:bg-slate-200'}`}>All</button>
+                <button onClick={() => setSlotFilter('morning')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'morning' ? 'bg-[var(--qp-primary-hover)] text-white' : 'text-slate-600 hover:bg-slate-200'}`}>☀️ Morning</button>
+                <button onClick={() => setSlotFilter('evening')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'evening' ? 'bg-[var(--qp-primary-hover)] text-white' : 'text-slate-600 hover:bg-slate-200'}`}>🌙 Evening</button>
               </div>
             </div>
 
@@ -902,17 +898,17 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
                 if (isBooked) {
                   return (
                     <div key={slot.id} className={`border ${theme.bookedBorder} ${theme.bookedBg} rounded-xl p-2 flex flex-col items-center justify-center opacity-60`}>
-                      <span className={`text-[11px] font-semibold ${theme.mutedText} line-through mb-1.5`}>{timeStr}</span>
-                      <span className="text-[9px] font-black text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded uppercase tracking-wider">Booked</span>
+                      <span className={`text-[9px] sm:text-[10px] font-semibold ${theme.mutedText} line-through mb-1.5 leading-tight text-center`}>{timeStr}</span>
+                      <span className="text-[8px] sm:text-[9px] font-black text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded uppercase tracking-wider">Booked</span>
                     </div>
                   );
                 }
 
                 return (
-                  <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`border rounded-xl p-2 flex flex-col items-start transition-all text-left ${isActive ? 'bg-[#00c885] border-[#00c885] text-white shadow-md shadow-green-500/20' : `${theme.bg} ${theme.border} ${theme.text} ${theme.hover}`}`}>
-                    <span className="text-[11px] font-bold mb-1">{timeStr}</span>
-                    <span className={`text-[10px] font-medium mb-0.5 ${isActive ? 'text-white/80' : theme.mutedText}`}>{slot.durationMinutes} min</span>
-                    <span className="text-sm font-black">₹{slot.price}</span>
+                  <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`border rounded-xl p-2 flex flex-col items-start transition-all text-left ${isActive ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-white shadow-md shadow-green-500/20' : `${theme.bg} ${theme.border} ${theme.text} ${theme.hover}`}`}>
+                    <span className="text-[9px] sm:text-[10px] font-bold leading-tight mb-1">{timeStr}</span>
+                    <span className={`text-[9px] font-medium mb-0.5 ${isActive ? 'text-white/80' : theme.mutedText}`}>{slot.durationMinutes} min</span>
+                    <span className="text-xs sm:text-sm font-black">₹{slot.price}</span>
                   </button>
                 );
               })}
@@ -923,19 +919,19 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Your Name *</label>
-              <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Kishore C J" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[#00c885] focus:ring-1 focus:ring-[#00c885] placeholder-slate-400 text-slate-900 font-medium" />
+              <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Kishore C J" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 text-slate-900 font-medium" />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Phone Number *</label>
-              <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="+91 98765 00000" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[#00c885] focus:ring-1 focus:ring-[#00c885] placeholder-slate-400 text-slate-900 font-medium" />
+              <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="+91 98765 00000" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 text-slate-900 font-medium" />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Expected Players / Team Size</label>
-              <input type="number" value={localDraft.players} onChange={e => setLocalDraft({...localDraft, players: Number(e.target.value)})} placeholder="10" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[#00c885] focus:ring-1 focus:ring-[#00c885] placeholder-slate-400 font-medium text-slate-900 bg-white" />
+              <input type="number" value={localDraft.players} onChange={e => setLocalDraft({...localDraft, players: Number(e.target.value)})} placeholder="10" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 font-medium text-slate-900 bg-white" />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Notes (Optional)</label>
-              <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Football kits needed, 5v5 friendly match" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[#00c885] focus:ring-1 focus:ring-[#00c885] placeholder-slate-400 font-medium text-slate-900 bg-white" />
+              <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Football kits needed, 5v5 friendly match" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 font-medium text-slate-900 bg-white" />
             </div>
           </div>
 
@@ -952,7 +948,7 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
               </div>
             </div>
           </div>
-          <button onClick={onContinue} disabled={!isFormValid} className={`w-full sm:w-auto text-white px-6 py-3.5 rounded-full font-bold text-[13px] flex items-center justify-center gap-2 transition-transform shadow-lg ${isFormValid ? 'bg-[#00c885] hover:bg-[#00a870] active:scale-95 shadow-[#00c885]/30' : 'bg-slate-300 shadow-none'}`}>
+          <button onClick={onContinue} disabled={!isFormValid} className={`w-full sm:w-auto text-white px-6 py-3.5 rounded-full font-bold text-[13px] flex items-center justify-center gap-2 transition-transform shadow-lg ${isFormValid ? 'bg-[var(--qp-primary-hover)] hover:bg-[var(--qp-primary)] active:scale-95 shadow-[var(--qp-primary-hover)]/30' : 'bg-slate-300 shadow-none'}`}>
             CONFIRM & BOOK SLOT
             <ArrowRight size={16} />
           </button>
@@ -996,7 +992,7 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
           {/* Bill Details */}
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-[#00c885]">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-[var(--qp-primary-hover)]">
                 <Receipt size={20} />
               </div>
               <h3 className="text-lg font-bold text-slate-800">Bill Details</h3>
@@ -1006,11 +1002,11 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
               <span className="font-black text-slate-800">₹{total}</span>
             </div>
             <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center gap-2 text-[#00c885] font-bold text-sm">
+              <div className="flex items-center gap-2 text-[var(--qp-primary-hover)] font-bold text-sm">
                 <Wallet size={16} />
                 <span>Total Payable</span>
               </div>
-              <span className="text-2xl font-black text-[#00c885]">₹{total}</span>
+              <span className="text-2xl font-black text-[var(--qp-primary-hover)]">₹{total}</span>
             </div>
           </div>
 
@@ -1027,11 +1023,11 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
             </div>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <button onClick={() => setPaymentMode('advance')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'advance' ? 'border-[#00c885] bg-[#00c885]/5 shadow-sm shadow-[#00c885]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[#00c885]/40'}`}>
+              <button onClick={() => setPaymentMode('advance')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'advance' ? 'border-[var(--qp-primary-hover)] bg-[var(--qp-primary-hover)]/5 shadow-sm shadow-[var(--qp-primary-hover)]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[var(--qp-primary-hover)]/40'}`}>
                 <div className="flex justify-between items-start mb-3 w-full">
                   <CreditCard size={18} className="text-slate-600" />
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'advance' ? 'border-[#00c885]' : 'border-slate-300'}`}>
-                    {paymentMode === 'advance' && <div className="w-2 h-2 rounded-full bg-[#00c885]" />}
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'advance' ? 'border-[var(--qp-primary-hover)]' : 'border-slate-300'}`}>
+                    {paymentMode === 'advance' && <div className="w-2 h-2 rounded-full bg-[var(--qp-primary-hover)]" />}
                   </div>
                 </div>
                 <div className="font-bold text-slate-800 text-sm mb-0.5">Advance</div>
@@ -1039,30 +1035,30 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
                 <div className="text-lg font-black text-slate-800 mt-auto">₹{advance}</div>
               </button>
 
-              <button onClick={() => setPaymentMode('full')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'full' ? 'border-[#00c885] bg-[#00c885]/5 shadow-sm shadow-[#00c885]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[#00c885]/40'}`}>
+              <button onClick={() => setPaymentMode('full')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'full' ? 'border-[var(--qp-primary-hover)] bg-[var(--qp-primary-hover)]/5 shadow-sm shadow-[var(--qp-primary-hover)]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[var(--qp-primary-hover)]/40'}`}>
                 <div className="flex justify-between items-start mb-3 w-full">
-                  <Wallet size={18} className={paymentMode === 'full' ? 'text-[#00c885]' : 'text-slate-600'} />
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'full' ? 'border-[#00c885]' : 'border-slate-300'}`}>
-                    {paymentMode === 'full' && <div className="w-2 h-2 rounded-full bg-[#00c885]" />}
+                  <Wallet size={18} className={paymentMode === 'full' ? 'text-[var(--qp-primary-hover)]' : 'text-slate-600'} />
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'full' ? 'border-[var(--qp-primary-hover)]' : 'border-slate-300'}`}>
+                    {paymentMode === 'full' && <div className="w-2 h-2 rounded-full bg-[var(--qp-primary-hover)]" />}
                   </div>
                 </div>
                 <div className="font-bold text-slate-800 text-sm mb-0.5">Full Amount</div>
                 <div className="text-[10px] text-slate-500 mb-2">Pay entire amount now</div>
-                <div className={`text-lg font-black mt-auto ${paymentMode === 'full' ? 'text-[#00c885]' : 'text-slate-800'}`}>₹{total}</div>
+                <div className={`text-lg font-black mt-auto ${paymentMode === 'full' ? 'text-[var(--qp-primary-hover)]' : 'text-slate-800'}`}>₹{total}</div>
               </button>
             </div>
 
-            <div className="bg-gradient-to-r from-[#d9f2e6] to-[#e6f7ef] rounded-2xl p-4 flex items-center justify-between border border-[#00c885]/10">
+            <div className="bg-gradient-to-r from-[#d9f2e6] to-[#e6f7ef] rounded-2xl p-4 flex items-center justify-between border border-[var(--qp-primary-hover)]/10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#00c885] rounded-xl flex items-center justify-center text-white shadow-md shadow-[#00c885]/30">
+                <div className="w-10 h-10 bg-[var(--qp-primary-hover)] rounded-xl flex items-center justify-center text-white shadow-md shadow-[var(--qp-primary-hover)]/30">
                   <ShieldCheck size={20} />
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Total Amount</div>
-                  <div className="text-2xl font-black text-[#00c885] leading-none">₹{amountToPay}</div>
+                  <div className="text-2xl font-black text-[var(--qp-primary-hover)] leading-none">₹{amountToPay}</div>
                 </div>
               </div>
-              <div className="bg-[#00c885]/10 text-[#00c885] px-2.5 py-1.5 rounded-full text-[9px] font-black tracking-widest flex items-center gap-1 uppercase">
+              <div className="bg-[var(--qp-primary-hover)]/10 text-[var(--qp-primary-hover)] px-2.5 py-1.5 rounded-full text-[9px] font-black tracking-widest flex items-center gap-1 uppercase">
                 <Zap size={10} fill="currentColor" /> PROCESSED TO PAY
               </div>
             </div>
@@ -1071,7 +1067,7 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
           {/* Cancellation Policy */}
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-[#00c885]">
+              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-[var(--qp-primary-hover)]">
                 <ShieldCheck size={16} />
               </div>
               <h3 className="text-lg font-bold text-slate-800">Cancellation Policy</h3>
@@ -1079,14 +1075,14 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
             
             <div className="bg-[#f4faf8] rounded-2xl p-4 space-y-4">
               <div className="flex items-start gap-3">
-                <Clock size={16} className="text-[#00c885] shrink-0 mt-0.5" />
+                <Clock size={16} className="text-[var(--qp-primary-hover)] shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Cancel before <span className="font-bold text-[#00c885]">24 hours of start time</span> to avail a refund.<br />
+                  Cancel before <span className="font-bold text-[var(--qp-primary-hover)]">24 hours of start time</span> to avail a refund.<br />
                   <span className="text-slate-500">Service fee is non-refundable.</span>
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <Info size={16} className="text-[#00c885] shrink-0 mt-0.5" />
+                <Info size={16} className="text-[var(--qp-primary-hover)] shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-600 leading-relaxed">
                   If you cancel after the above time, you will lose the entire amount paid.
                 </p>
@@ -1099,7 +1095,7 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
         {/* Fixed Bottom CTA */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md sm:relative sm:bg-transparent z-50">
           <div className="max-w-md mx-auto">
-            <button onClick={onContinue} className="w-full bg-[#00c885] hover:bg-[#00b075] active:scale-[0.98] transition-all text-white py-4 rounded-full font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-[#00c885]/30">
+            <button onClick={onContinue} className="w-full bg-[var(--qp-primary-hover)] hover:bg-[#00b075] active:scale-[0.98] transition-all text-white py-4 rounded-full font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-[var(--qp-primary-hover)]/30">
               <LockKeyhole size={18} /> PROCEED TO PAY ₹{amountToPay} <ArrowRight size={18} />
             </button>
           </div>
@@ -1207,7 +1203,7 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
           
           <div className="border-t border-slate-100 pt-4 flex justify-between items-center">
             <span className="font-bold text-slate-900 text-base">Total Payable</span>
-            <span className="text-2xl font-black text-[#00c885]">₹{totalPayable}</span>
+            <span className="text-2xl font-black text-[var(--qp-primary-hover)]">₹{totalPayable}</span>
           </div>
         </div>
 
@@ -1217,8 +1213,8 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
           <p className="text-[11px] text-slate-500 mb-4">Choose your preferred payment method</p>
           
           <div className="grid grid-cols-3 gap-3">
-            <button onClick={() => setPaymentMethod('google')} className={`border-2 bg-white rounded-xl p-3 flex flex-col items-center justify-center relative shadow-sm transition-all ${paymentMethod === 'google' ? 'border-[#00c885]' : 'border-transparent border-slate-200 hover:border-slate-300'}`}>
-              <div className={`absolute top-2 right-2 w-[14px] h-[14px] rounded-full flex items-center justify-center ${paymentMethod === 'google' ? 'bg-[#00c885] text-white' : 'border border-slate-300'}`}>
+            <button onClick={() => setPaymentMethod('google')} className={`border-2 bg-white rounded-xl p-3 flex flex-col items-center justify-center relative shadow-sm transition-all ${paymentMethod === 'google' ? 'border-[var(--qp-primary-hover)]' : 'border-transparent border-slate-200 hover:border-slate-300'}`}>
+              <div className={`absolute top-2 right-2 w-[14px] h-[14px] rounded-full flex items-center justify-center ${paymentMethod === 'google' ? 'bg-[var(--qp-primary-hover)] text-white' : 'border border-slate-300'}`}>
                 {paymentMethod === 'google' && <Check size={10} strokeWidth={4}/>}
               </div>
               <div className="mb-2 mt-1">
@@ -1232,8 +1228,8 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
               <span className="font-bold text-[11px] text-slate-900">Google Pay</span>
             </button>
 
-            <button onClick={() => setPaymentMethod('phonepe')} className={`border-2 bg-white rounded-xl p-3 flex flex-col items-center justify-center relative shadow-sm transition-all ${paymentMethod === 'phonepe' ? 'border-[#00c885]' : 'border-transparent border-slate-200 hover:border-slate-300'}`}>
-              <div className={`absolute top-2 right-2 w-[14px] h-[14px] rounded-full flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-[#00c885] text-white' : 'border border-slate-300'}`}>
+            <button onClick={() => setPaymentMethod('phonepe')} className={`border-2 bg-white rounded-xl p-3 flex flex-col items-center justify-center relative shadow-sm transition-all ${paymentMethod === 'phonepe' ? 'border-[var(--qp-primary-hover)]' : 'border-transparent border-slate-200 hover:border-slate-300'}`}>
+              <div className={`absolute top-2 right-2 w-[14px] h-[14px] rounded-full flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-[var(--qp-primary-hover)] text-white' : 'border border-slate-300'}`}>
                 {paymentMethod === 'phonepe' && <Check size={10} strokeWidth={4}/>}
               </div>
               <div className="mb-2 mt-1">
@@ -1242,8 +1238,8 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
               <span className="font-bold text-[11px] text-slate-900">PhonePe</span>
             </button>
 
-            <button onClick={() => setPaymentMethod('paytm')} className={`border-2 bg-white rounded-xl p-3 flex flex-col items-center justify-center relative shadow-sm transition-all ${paymentMethod === 'paytm' ? 'border-[#00c885]' : 'border-transparent border-slate-200 hover:border-slate-300'}`}>
-              <div className={`absolute top-2 right-2 w-[14px] h-[14px] rounded-full flex items-center justify-center ${paymentMethod === 'paytm' ? 'bg-[#00c885] text-white' : 'border border-slate-300'}`}>
+            <button onClick={() => setPaymentMethod('paytm')} className={`border-2 bg-white rounded-xl p-3 flex flex-col items-center justify-center relative shadow-sm transition-all ${paymentMethod === 'paytm' ? 'border-[var(--qp-primary-hover)]' : 'border-transparent border-slate-200 hover:border-slate-300'}`}>
+              <div className={`absolute top-2 right-2 w-[14px] h-[14px] rounded-full flex items-center justify-center ${paymentMethod === 'paytm' ? 'bg-[var(--qp-primary-hover)] text-white' : 'border border-slate-300'}`}>
                 {paymentMethod === 'paytm' && <Check size={10} strokeWidth={4}/>}
               </div>
               <div className="mb-2 mt-1">
@@ -1261,7 +1257,7 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
         {/* Fixed Bottom CTA */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#f9fafb] sm:relative sm:bg-transparent z-50">
           <div className="max-w-md mx-auto">
-            <button onClick={pay} disabled={loading} className="w-full bg-[#00a870] hover:bg-[#009665] active:scale-[0.98] transition-all text-white py-4 rounded-[14px] font-bold text-[16px] flex items-center justify-center gap-2 shadow-sm">
+            <button onClick={pay} disabled={loading} className="w-full bg-[var(--qp-primary)] hover:bg-[var(--qp-primary-hover)] active:scale-[0.98] transition-all text-white py-4 rounded-[14px] font-bold text-[16px] flex items-center justify-center gap-2 shadow-sm">
               <LockKeyhole size={18} /> {loading ? 'Confirming...' : 'Complete Order'} <ArrowRight size={18} />
             </button>
           </div>
@@ -1274,9 +1270,9 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
 
 function PaidView() { 
   return (
-    <div className="fixed inset-0 bg-[#00a870] flex flex-col items-center justify-center z-[100] animate-in slide-in-from-bottom-10">
+    <div className="fixed inset-0 bg-[var(--qp-primary)] flex flex-col items-center justify-center z-[100] animate-in slide-in-from-bottom-10">
       <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center mb-8 shadow-2xl animate-in zoom-in duration-500 delay-150">
-        <Check size={56} strokeWidth={3} className="text-[#00a870]" />
+        <Check size={56} strokeWidth={3} className="text-[var(--qp-primary)]" />
       </div>
       <h1 className="text-[28px] font-black text-white mb-3 tracking-tight">Payment Successful!</h1>
       <p className="text-emerald-100 font-bold text-sm">Generating your ticket...</p>
@@ -1325,7 +1321,7 @@ function TicketView({ venue, user, booking, draft, onHome }: { venue: { name: st
             </div>
             <div>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Time</p>
-              <p className="font-black text-[#00a870] text-[13px]">{draft.startTime} - {draft.endTime}</p>
+              <p className="font-black text-[var(--qp-primary)] text-[13px]">{draft.startTime} - {draft.endTime}</p>
             </div>
             <div>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Name</p>
@@ -1376,8 +1372,8 @@ function BookingView() {
       <h2 className="text-2xl font-black text-[#0f172a] tracking-tight mb-6">My Bookings</h2>
       
       <div className="flex bg-white rounded-full p-1 shadow-sm border border-slate-100 mb-6 relative z-10">
-        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'upcoming' ? 'bg-[#00a870] text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
-        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'past' ? 'bg-[#00a870] text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('past')}>Past</button>
+        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'upcoming' ? 'bg-[var(--qp-primary)] text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
+        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'past' ? 'bg-[var(--qp-primary)] text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`} onClick={() => setActiveTab('past')}>Past</button>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -1401,7 +1397,7 @@ function BookingView() {
               </div>
             </div>
             <div className="flex gap-2">
-               <button className="flex-1 bg-emerald-50 text-[#00a870] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-emerald-100">Get Directions</button>
+               <button className="flex-1 bg-emerald-50 text-[var(--qp-primary)] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-emerald-100">Get Directions</button>
                <button className="flex-1 bg-white border border-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-slate-50">View Ticket</button>
             </div>
           </article>
@@ -1458,21 +1454,21 @@ function ProfileView({ onLogout }: { onLogout: () => void }) {
       id: 'account', 
       label: 'Account', 
       sub: 'Manage your personal details', 
-      icon: <UserCircle size={20} strokeWidth={2} className="text-[#00a870]" />, 
+      icon: <UserCircle size={20} strokeWidth={2} className="text-[var(--qp-primary)]" />, 
       bg: 'bg-[#e0f5eb]' 
     },
     { 
       id: 'booking', 
       label: 'Your Booking', 
       sub: 'View and manage your bookings', 
-      icon: <CalendarDays size={20} strokeWidth={2} className="text-[#00a870]" />, 
+      icon: <CalendarDays size={20} strokeWidth={2} className="text-[var(--qp-primary)]" />, 
       bg: 'bg-[#e0f5eb]' 
     },
     { 
       id: 'refunds', 
       label: 'Refunds', 
       sub: 'Track your refunds and wallet', 
-      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00a870" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 8h8M8 12h8M9 8v10M11 12l4 4"/></svg>, 
+      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--qp-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 8h8M8 12h8M9 8v10M11 12l4 4"/></svg>, 
       bg: 'bg-[#e0f5eb]' 
     },
     { 
@@ -1515,7 +1511,7 @@ function ProfileView({ onLogout }: { onLogout: () => void }) {
       <div className="w-full rounded-[2rem] bg-gradient-to-br from-[#e0f5eb] to-[#bbf7d0] dark:from-emerald-900/40 dark:to-emerald-800/20 p-5 mb-5 relative overflow-hidden shadow-sm">
         {/* Decorative Graphic */}
         <div className="absolute top-1/2 right-[-20px] -translate-y-1/2 w-48 h-48 opacity-[0.15] mix-blend-multiply dark:mix-blend-lighten pointer-events-none">
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[#00a870]">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-[var(--qp-primary)]">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
             <path d="M11 6.5v4l-3.5 2 1.5 2.5 4.5-2.5 4.5 2.5 1.5-2.5-3.5-2v-4h-5z"/>
           </svg>
@@ -1527,7 +1523,7 @@ function ProfileView({ onLogout }: { onLogout: () => void }) {
         </button>
 
         <div className="relative z-10 flex flex-col items-center justify-center text-center pt-2">
-          <div className="w-[64px] h-[64px] rounded-full bg-[#00a870] flex items-center justify-center text-3xl font-black text-white shadow-md mb-3">
+          <div className="w-[64px] h-[64px] rounded-full bg-[var(--qp-primary)] flex items-center justify-center text-3xl font-black text-white shadow-md mb-3">
             {user?.name?.charAt(0) || user?.displayName?.charAt(0) || 'C'}
           </div>
           <h2 className="text-xl font-black text-[#0f172a] dark:text-white tracking-tight mb-0.5">{user?.name || user?.displayName || 'Customer'}</h2>
@@ -1536,8 +1532,8 @@ function ProfileView({ onLogout }: { onLogout: () => void }) {
             <span className="text-xs font-medium">{user?.email || 'customer@gmail.com'}</span>
           </div>
           <div className="inline-flex items-center gap-1.5 bg-white/80 dark:bg-emerald-950/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800 shadow-sm mb-4">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00a870" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="2 4 5 18 19 18 22 4 17 8 12 4 7 8 2 4"/></svg>
-            <span className="text-[10px] font-black text-[#00a870] dark:text-emerald-400 uppercase tracking-wide">Premium Member</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--qp-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="2 4 5 18 19 18 22 4 17 8 12 4 7 8 2 4"/></svg>
+            <span className="text-[10px] font-black text-[var(--qp-primary)] dark:text-emerald-400 uppercase tracking-wide">Premium Member</span>
           </div>
 
           {/* Theme Switcher Toggle */}
@@ -1625,7 +1621,7 @@ function FavoritesView({ venues, favorites, onToggleFavorite, onSelectVenue }: {
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full shrink-0">
-                <Star size={12} className="fill-[#00a870] text-[#00a870]" />
+                <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
                 <span className="text-[11px] font-black text-slate-900">4.0</span>
               </div>
             </div>

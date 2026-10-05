@@ -12,7 +12,6 @@ import {
   Calendar,
   Users,
   CheckCircle2,
-  Sparkles,
   Ticket,
   Scissors,
   ChevronRight,
@@ -21,8 +20,7 @@ import {
   Navigation,
   Map,
   Layers,
-  Zap,
-} from 'lucide-react';
+  Zap} from 'lucide-react';
 
 interface SalonDetailProps {
   salonId: string;
@@ -113,7 +111,7 @@ export const SalonDetail: React.FC<SalonDetailProps> = ({
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-slate-400">
-              <Sparkles className="w-12 h-12 mb-2 text-indigo-400 opacity-60" />
+              
               <span className="text-sm font-bold text-slate-200">{salon.name}</span>
             </div>
           )}

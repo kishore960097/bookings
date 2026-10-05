@@ -11,6 +11,7 @@ import { OwnerCustomersView } from './OwnerCustomersView';
 import { OwnerEarningsView } from './OwnerEarningsView';
 import { OwnerNotificationsView } from './OwnerNotificationsView';
 import { SalonSettings } from './SalonSettings';
+import { ScheduleManagerView } from './ScheduleManagerView';
 import { QrScannerModal } from './QrScannerModal';
 import { BusinessSetupWizard } from './BusinessSetupWizard';
 import { BusinessStatusBanner, StatusBadge } from './BusinessStatusBanner';
@@ -18,13 +19,13 @@ import { OwnerProfileView } from './OwnerProfileView';
 import {
   Home,
   Calendar,
+  CalendarDays,
   Layers,
   Users,
   TrendingUp,
   Settings,
   Bell,
   QrCode,
-  Sparkles,
   Building2,
   ChevronDown,
   Check,
@@ -32,26 +33,28 @@ import {
   Share2,
   Clock,
   CheckCircle2,
+  ArrowLeft,
   Lock,
   Unlock,
-  User,
-} from 'lucide-react';
+  User} from 'lucide-react';
 
 interface OwnerDashboardProps {
   initialSalon?: Salon;
+  onBackToLanding?: () => void;
 }
 
 export type OwnerNavTab =
   | 'dashboard'
   | 'bookings'
   | 'slots'
+  | 'schedules'
   | 'customers'
   | 'earnings'
   | 'settings'
   | 'notifications'
   | 'profile';
 
-export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) => {
+export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, onBackToLanding }) => {
   const { user } = useAuth();
   const { notifications, refreshNotifications, markAllNotificationsRead } = useQueue();
 
@@ -179,9 +182,9 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
   // ─── Loading Screen ───
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-20 text-center">
-        <Sparkles className="w-10 h-10 mx-auto mb-3 text-emerald-600 animate-spin" />
-        <p className="text-sm font-bold text-slate-700">Loading your business...</p>
+      <div className="min-h-screen bg-[var(--qp-bg)] text-[var(--qp-text)] flex flex-col items-center justify-center p-4">
+        
+        <p className="text-sm font-semibold text-[var(--qp-text-sec)] tracking-tight">Loading your business...</p>
       </div>
     );
   }
@@ -189,28 +192,41 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
   // ─── State 1: No Business Created Yet ───
   if (!salon && !showWizard) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-10 text-center space-y-6">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center mx-auto shadow-lg">
-            <Building2 className="w-10 h-10 text-white" />
-          </div>
+      <div className="min-h-screen bg-[var(--qp-bg)] text-[var(--qp-text)] py-16 px-4">
+        <div className="max-w-2xl mx-auto">
+          {onBackToLanding && (
+            <button
+              onClick={onBackToLanding}
+              className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] transition-colors cursor-pointer"
+              type="button"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+          )}
 
-          <div className="space-y-2">
-            <h1 className="text-2xl font-black text-slate-900">
-              Welcome to QGo, {user?.name?.split(' ')[0] || 'Partner'}! 👋
-            </h1>
-            <p className="text-slate-500 text-sm max-w-sm mx-auto">
-              Set up your business on QGo so customers can discover you and start booking slots.
-            </p>
-          </div>
+          <div className="ap-glass-card p-10 text-center space-y-6">
+            <div className="w-20 h-20 rounded-3xl bg-[var(--qp-surface)] border border-[var(--qp-border)] flex items-center justify-center mx-auto shadow-sm">
+              <Building2 className="w-10 h-10 text-[var(--qp-text)]" />
+            </div>
 
-          <button
-            onClick={() => setShowWizard(true)}
-            className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base flex items-center justify-center gap-2 transition-all shadow-xl cursor-pointer"
-          >
-            <Sparkles className="w-5 h-5 text-amber-300" />
-            Start Setting Up My Business
-          </button>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight text-[var(--qp-text)]">
+                Welcome to QGo, {user?.name?.split(' ')[0] || 'Partner'}!
+              </h1>
+              <p className="text-[var(--qp-text-sec)] text-sm max-w-sm mx-auto">
+                Set up your business on QGo so customers can discover you and start booking slots.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowWizard(true)}
+              className="w-full py-4 rounded-2xl bg-[var(--qp-primary)] text-white font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm cursor-pointer"
+            >
+              
+              Start Setting Up My Business
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -219,11 +235,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
   // ─── State 2: Onboarding Wizard ───
   if (showWizard) {
     return (
-      <div>
+      <div className="min-h-screen bg-[var(--qp-bg)] text-[var(--qp-text)]">
         <div className="max-w-2xl mx-auto px-4 pt-4">
           <button
             onClick={() => setShowWizard(false)}
-            className="text-sm font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 mb-2 cursor-pointer"
+            className="text-sm font-semibold text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] flex items-center gap-1.5 mb-2 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
             Exit Setup
@@ -245,75 +261,77 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
   // ─── State 3: Under Review Screen (with instant approval simulation button) ───
   if (salon && !isApprovedOrLive) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5 animate-in fade-in duration-150">
-        {/* Business Header Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 flex items-start justify-between gap-4 shadow-sm">
-          <div className="flex items-center gap-3.5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-black shadow-sm shrink-0">
-              {salon.logoUrl ? (
-                <img src={salon.logoUrl} alt={salon.name} className="w-full h-full object-cover rounded-2xl" />
-              ) : (
-                salon.name.charAt(0)
-              )}
+      <div className="min-h-screen bg-[var(--qp-bg)] text-[var(--qp-text)] px-4 py-8 flex flex-col items-center">
+        <div className="w-full max-w-2xl space-y-6 transition-all duration-500 ease-out">
+          {/* Business Header Card */}
+          <div className="ap-glass-card p-6 flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-[20px] bg-[var(--qp-surface)] border border-[var(--qp-border)] flex items-center justify-center text-[var(--qp-text)] text-2xl font-semibold shadow-sm shrink-0 overflow-hidden">
+                {salon.logoUrl ? (
+                  <img src={salon.logoUrl} alt={salon.name} className="w-full h-full object-cover" />
+                ) : (
+                  salon.name.charAt(0)
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-[var(--qp-text-sec)] uppercase">Your Business</p>
+                <h1 className="text-2xl font-semibold tracking-tight text-[var(--qp-text)]">{salon.name}</h1>
+                <p className="text-sm text-[var(--qp-text-sec)] mt-0.5">{salon.address || salon.city || 'Location set'}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Your Business</p>
-              <h1 className="text-xl font-black text-slate-900">{salon.name}</h1>
-              <p className="text-xs text-slate-500 mt-0.5">{salon.address || salon.city || 'Location set'}</p>
-            </div>
+            <StatusBadge status={salon.status} />
           </div>
-          <StatusBadge status={salon.status} />
+
+          {/* Under Review Card */}
+          {isUnderReview && (
+            <div className="ap-glass-card p-8 text-center space-y-6">
+              <div className="w-16 h-16 rounded-[20px] bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-text)] flex items-center justify-center mx-auto shadow-sm">
+                <Clock className="w-8 h-8" />
+              </div>
+
+              <div className="space-y-3">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-text)]">
+                  Under Review
+                </span>
+                <h2 className="text-2xl font-semibold tracking-tight text-[var(--qp-text)]">
+                  Your business is being reviewed
+                </h2>
+                <p className="text-sm text-[var(--qp-text-sec)] max-w-md mx-auto leading-relaxed">
+                  Our team is verifying your business details, pitch dimensions, and working hours. We'll notify you as soon as your business is approved and live.
+                </p>
+              </div>
+
+              {/* Quick Simulation Button */}
+              <div className="pt-6 border-t border-[var(--qp-border)] flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSimulateApproval}
+                  disabled={approving}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[var(--qp-primary)] text-white font-semibold text-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  
+                  <span>{approving ? 'Approving...' : 'Simulate Approval'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowWizard(true)}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-text)] font-semibold text-sm hover:bg-white/40 transition-colors"
+                >
+                  Review Details
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isDraft && (
+            <BusinessStatusBanner
+              salon={salon}
+              onContinueSetup={() => setShowWizard(true)}
+              onResubmit={() => setShowWizard(true)}
+            />
+          )}
         </div>
-
-        {/* Under Review Card */}
-        {isUnderReview && (
-          <div className="bg-white rounded-3xl border border-blue-200 bg-gradient-to-b from-white to-blue-50/40 p-8 text-center space-y-5 shadow-sm">
-            <div className="w-16 h-16 rounded-3xl bg-blue-100 text-blue-600 flex items-center justify-center mx-auto shadow-sm animate-pulse">
-              <Clock className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-600 text-white shadow-2xs">
-                Under Review
-              </span>
-              <h2 className="text-2xl font-black text-slate-900">
-                Your business is being reviewed by QGo
-              </h2>
-              <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-                Our verification team is verifying your business details, pitch dimensions, and working hours. We'll notify you as soon as your business is approved and live.
-              </p>
-            </div>
-
-            {/* Quick Simulation Button */}
-            <div className="pt-4 border-t border-blue-100 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={handleSimulateApproval}
-                disabled={approving}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>{approving ? 'Approving Business...' : '⚡ Simulate QGo Admin Approval'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowWizard(true)}
-                className="w-full sm:w-auto px-4 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
-              >
-                Review Submitted Info
-              </button>
-            </div>
-          </div>
-        )}
-
-        {isDraft && (
-          <BusinessStatusBanner
-            salon={salon}
-            onContinueSetup={() => setShowWizard(true)}
-            onResubmit={() => setShowWizard(true)}
-          />
-        )}
       </div>
     );
   }
@@ -328,16 +346,16 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
         setActiveTab(id);
         if (id === 'notifications') markAllNotificationsRead();
       }}
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-sm font-medium transition-all duration-300 ease-out whitespace-nowrap cursor-pointer ${
         activeTab === id
-          ? 'bg-emerald-600 text-white shadow-sm'
-          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          ? 'bg-[var(--qp-surface)] shadow-sm text-[var(--qp-text)]'
+          : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] hover:bg-black/5'
       }`}
     >
       <Icon className="w-4 h-4" />
       <span>{label}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
+        <span className="w-4 h-4 rounded-full bg-[var(--qp-primary)] text-white text-[10px] font-bold flex items-center justify-center">
           {badge}
         </span>
       )}
@@ -345,82 +363,107 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6 pb-24 md:pb-12">
+    <div className="min-h-screen bg-[var(--qp-bg)] text-[var(--qp-text)] font-sans pb-24 md:pb-12">
       {/* ── TOP OWNER APP BAR ── */}
-      <div className="bg-slate-900 text-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-800 flex flex-wrap items-center justify-between gap-3">
-        {/* Business Selector & Name */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-base shadow-sm shrink-0">
-            {salon!.name.charAt(0)}
+      <div className="sticky top-0 z-50 ap-glass-nav w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+          {/* Business Selector & Name */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[var(--qp-surface)] border border-[var(--qp-border)] flex items-center justify-center font-semibold text-[var(--qp-text)] text-base shadow-sm shrink-0 overflow-hidden">
+              {salon!.logoUrl ? (
+                <img src={salon!.logoUrl} alt={salon!.name} className="w-full h-full object-cover" />
+              ) : (
+                salon!.name.charAt(0)
+              )}
+            </div>
+
+            <div className="relative">
+              <button
+                onClick={() => setIsShopSwitcherOpen(!isShopSwitcherOpen)}
+                className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-[var(--qp-text)] hover:opacity-80 transition-opacity group cursor-pointer"
+              >
+                <span className="truncate max-w-[200px] sm:max-w-none">{salon!.name}</span>
+                {ownerSalons.length > 1 && (
+                  <ChevronDown className="w-4 h-4 text-[var(--qp-text-sec)] group-hover:text-[var(--qp-text)] shrink-0" />
+                )}
+              </button>
+              <p className="text-xs text-[var(--qp-text-sec)] truncate">{salon!.address || salon!.city}</p>
+
+              {/* Switcher dropdown */}
+              {isShopSwitcherOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setIsShopSwitcherOpen(false)} />
+                  <div className="absolute left-0 top-full mt-2 w-72 rounded-2xl ap-glass-panel text-[var(--qp-text)] z-40 overflow-hidden py-2 animate-in zoom-in-95">
+                    <div className="px-4 py-2 border-b border-[var(--qp-border)] text-xs font-semibold text-[var(--qp-text-sec)]">
+                      My Businesses
+                    </div>
+                    {ownerSalons.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setSalon(s);
+                          setIsShopSwitcherOpen(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-black/5 transition-colors ${
+                          s.id === salon!.id ? 'bg-black/5 font-semibold' : ''
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm truncate text-[var(--qp-text)]">{s.name}</p>
+                          <StatusBadge status={s.status} />
+                        </div>
+                        {s.id === salon!.id && <Check className="w-4 h-4 text-[var(--qp-primary)] shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="relative">
+          {/* Header Action Icons */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => setIsShopSwitcherOpen(!isShopSwitcherOpen)}
-              className="flex items-center gap-1.5 text-base sm:text-lg font-black tracking-tight hover:text-emerald-400 transition-colors group cursor-pointer"
+              onClick={() => setActiveTab('notifications')}
+              className={`p-2.5 rounded-full hover:bg-[var(--qp-surface)] text-[var(--qp-text)] transition-colors relative flex items-center justify-center cursor-pointer ${activeTab === 'notifications' ? 'bg-[var(--qp-surface)] text-[var(--qp-primary)]' : ''}`}
+              title="Alerts"
             >
-              <span className="truncate max-w-[200px] sm:max-w-none">{salon!.name}</span>
-              {ownerSalons.length > 1 && (
-                <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 shrink-0" />
+              <Bell className="w-5 h-5" />
+              {unreadNotifsCount > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[var(--qp-bg)]"></span>
               )}
             </button>
-            <p className="text-[11px] text-slate-400 truncate">{salon!.address || salon!.city}</p>
-
-            {/* Switcher dropdown */}
-            {isShopSwitcherOpen && (
-              <>
-                <div className="fixed inset-0 z-30" onClick={() => setIsShopSwitcherOpen(false)} />
-                <div className="absolute left-0 top-full mt-2 w-72 rounded-2xl bg-white text-slate-900 shadow-2xl border border-slate-200 z-40 overflow-hidden py-2 animate-in zoom-in-95">
-                  <div className="px-4 py-2 border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    My Businesses
-                  </div>
-                  {ownerSalons.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        setSalon(s);
-                        setIsShopSwitcherOpen(false);
-                      }}
-                      className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                        s.id === salon!.id ? 'bg-emerald-50 text-emerald-950 font-bold' : ''
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold truncate text-slate-900">{s.name}</p>
-                        <StatusBadge status={s.status} />
-                      </div>
-                      {s.id === salon!.id && <Check className="w-4 h-4 text-emerald-600 shrink-0" />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`p-2.5 rounded-full hover:bg-[var(--qp-surface)] text-[var(--qp-text)] transition-colors flex items-center justify-center cursor-pointer ${activeTab === 'profile' ? 'bg-[var(--qp-surface)] text-[var(--qp-primary)]' : ''}`}
+              title="Profile"
+            >
+              <User className="w-5 h-5" />
+            </button>
+            
+            <div className="w-px h-6 bg-[var(--qp-border)] mx-1 hidden sm:block"></div>
+            
+            <button
+              onClick={() => setIsScannerOpen(true)}
+              className="px-4 py-2.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] hover:bg-white/40 text-[var(--qp-text)] font-semibold text-sm shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <QrCode className="w-4 h-4" />
+              <span className="hidden sm:inline">Scan Customer</span>
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* QR Scan Button */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => setIsScannerOpen(true)}
-            className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <QrCode className="w-4 h-4" />
-            <span className="hidden sm:inline">Scan Customer QR</span>
-          </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-8">
+        {/* ── RESPONSIVE OWNER NAVIGATION BAR ── */}
+        <div className="flex ap-glass-card p-1.5 gap-1 overflow-x-auto scrollbar-none w-max max-w-full mx-auto">
+          {navItem('dashboard', 'Dashboard', Home)}
+          {navItem('bookings', 'Bookings', Calendar)}
+          {navItem('slots', 'Slots & Calendar', Layers)}
+          {navItem('customers', 'Customers', Users)}
+          {navItem('earnings', 'Earnings', TrendingUp)}
+          {navItem('schedules', 'Open Slots', CalendarDays)}
         </div>
-      </div>
-
-      {/* ── RESPONSIVE OWNER NAVIGATION BAR ── */}
-      <div className="flex bg-white p-1.5 rounded-3xl border border-slate-200 shadow-2xs gap-1 overflow-x-auto scrollbar-none">
-        {navItem('dashboard', 'Dashboard', Home)}
-        {navItem('bookings', 'Bookings', Calendar)}
-        {navItem('slots', 'Slots & Calendar', Layers)}
-        {navItem('customers', 'Customers', Users)}
-        {navItem('earnings', 'Earnings', TrendingUp)}
-        {navItem('settings', 'Business Settings', Settings)}
-        {navItem('notifications', 'Notifications', Bell, unreadNotifsCount)}
-        {navItem('profile', 'Profile', User)}
-      </div>
 
       {/* ── ACTIVE TAB VIEW CONTENT ── */}
       {activeTab === 'dashboard' && (
@@ -440,12 +483,17 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
         <OwnerSlotCalendar
           salon={salon!}
           onOpenSettings={() => setActiveTab('settings')}
+          onOpenSchedules={() => setActiveTab('schedules')}
         />
       )}
 
       {activeTab === 'customers' && <OwnerCustomersView salon={salon!} />}
 
       {activeTab === 'earnings' && <OwnerEarningsView salon={salon!} />}
+
+      {activeTab === 'schedules' && (
+        <ScheduleManagerView salon={salon!} onUpdateSalon={(updated) => setSalon(updated)} />
+      )}
 
       {activeTab === 'settings' && (
         <SalonSettings salon={salon!} onUpdateSalon={(updated) => setSalon(updated)} />
@@ -459,78 +507,80 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
       )}
 
       {activeTab === 'profile' && (
-        <OwnerProfileView />
+        <OwnerProfileView onOpenSettings={() => setActiveTab('settings')} />
       )}
 
       {/* ── QR Scanner Modal ── */}
       {isScannerOpen && (
         <QrScannerModal
-          salonId={salon!.id}
+          salon={salon!}
           onClose={() => setIsScannerOpen(false)}
-          onSuccess={() => {
-            setIsScannerOpen(false);
-            fetchOverviewData();
+          onCheckInSuccess={(booking) => {
+            setTimeout(() => {
+              setIsScannerOpen(false);
+              fetchOverviewData();
+            }, 1500);
           }}
         />
       )}
 
       {/* ── Slot Detail Modal from Today's Slots ── */}
       {selectedSlotForDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+          <div className="ap-glass-panel p-8 max-w-md w-full space-y-6 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-4 border-b border-[var(--qp-border)]">
               <div>
-                <h3 className="font-black text-base text-slate-900">Slot Details</h3>
-                <p className="text-xs text-slate-500 font-mono">Today · {fmt12(selectedSlotForDetail.startTime)} – {fmt12(selectedSlotForDetail.endTime)}</p>
+                <h3 className="text-xl font-semibold tracking-tight text-[var(--qp-text)]">Slot Details</h3>
+                <p className="text-sm text-[var(--qp-text-sec)]">Today · {fmt12(selectedSlotForDetail.startTime)} – {fmt12(selectedSlotForDetail.endTime)}</p>
               </div>
               <button
                 onClick={() => setSelectedSlotForDetail(null)}
-                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                className="p-2 rounded-full hover:bg-[var(--qp-surface)] text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] transition-colors"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Slot Time:</span>
-                <span className="font-bold text-slate-900 font-mono">{fmt12(selectedSlotForDetail.startTime)} – {fmt12(selectedSlotForDetail.endTime)}</span>
+            <div className="p-5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] space-y-4 text-sm text-[var(--qp-text)]">
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--qp-text-sec)]">Slot Time:</span>
+                <span className="font-semibold">{fmt12(selectedSlotForDetail.startTime)} – {fmt12(selectedSlotForDetail.endTime)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Duration &amp; Price:</span>
-                <span className="font-bold text-slate-900 font-mono">{selectedSlotForDetail.durationMinutes}m · ₹{selectedSlotForDetail.price}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--qp-text-sec)]">Duration &amp; Price:</span>
+                <span className="font-semibold">{selectedSlotForDetail.durationMinutes}m · ₹{selectedSlotForDetail.price}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Status:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--qp-text-sec)]">Status:</span>
                 <span
-                  className={`font-black uppercase px-2 py-0.5 rounded text-[10px] ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                     selectedSlotForDetail.isBooked
-                      ? 'bg-rose-100 text-rose-800'
+                      ? 'bg-rose-100 text-rose-700'
                       : selectedSlotForDetail.isBlocked
-                      ? 'bg-slate-200 text-slate-700'
-                      : 'bg-emerald-100 text-emerald-800'
+                      ? 'bg-black/10 text-[var(--qp-text)]'
+                      : 'bg-emerald-100 text-emerald-700'
                   }`}
                 >
-                  {selectedSlotForDetail.isBooked ? 'BOOKED' : selectedSlotForDetail.isBlocked ? 'BLOCKED' : 'AVAILABLE'}
+                  {selectedSlotForDetail.isBooked ? 'Booked' : selectedSlotForDetail.isBlocked ? 'Blocked' : 'Available'}
                 </span>
               </div>
 
               {selectedSlotForDetail.isBooked && (
                 <>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between">
-                    <span className="text-slate-500">Customer:</span>
-                    <span className="font-bold text-slate-900">{selectedSlotForDetail.customerName || 'Customer'}</span>
+                  <div className="pt-4 border-t border-[var(--qp-border)] flex justify-between items-center">
+                    <span className="text-[var(--qp-text-sec)]">Customer:</span>
+                    <span className="font-semibold">{selectedSlotForDetail.customerName || 'Customer'}</span>
                   </div>
                   {selectedSlotForDetail.customerPhone && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Phone:</span>
-                      <span className="font-bold text-slate-900 font-mono">{selectedSlotForDetail.customerPhone}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[var(--qp-text-sec)]">Phone:</span>
+                      <span className="font-semibold">{selectedSlotForDetail.customerPhone}</span>
                     </div>
                   )}
                   {selectedSlotForDetail.bookingId && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Booking ID:</span>
-                      <span className="font-bold text-indigo-700 font-mono">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[var(--qp-text-sec)]">Booking ID:</span>
+                      <span className="font-semibold text-[var(--qp-primary)]">
                         QGO-{selectedSlotForDetail.bookingId.split('_').pop()?.toUpperCase()}
                       </span>
                     </div>
@@ -539,13 +589,13 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
               )}
             </div>
 
-            <div className="pt-2">
+            <div className="pt-4">
               {selectedSlotForDetail.isBooked ? (
                 <button
                   type="button"
                   onClick={handleCancelBookedSlotModal}
                   disabled={slotActionLoading}
-                  className="w-full py-3 rounded-xl bg-rose-600 text-white font-black text-xs hover:bg-rose-700 shadow-sm"
+                  className="w-full py-3.5 rounded-2xl bg-rose-50 text-rose-600 font-semibold text-sm hover:bg-rose-100 transition-colors"
                 >
                   {slotActionLoading ? 'Processing...' : 'Cancel Booking & Process Refund'}
                 </button>
@@ -556,7 +606,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
                     setSelectedSlotForDetail(null);
                     setActiveTab('slots');
                   }}
-                  className="w-full py-3 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700 shadow-sm"
+                  className="w-full py-3.5 rounded-2xl bg-[var(--qp-primary)] text-white font-semibold text-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm"
                 >
                   Manage in Slots Calendar
                 </button>
@@ -565,6 +615,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon }) 
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
