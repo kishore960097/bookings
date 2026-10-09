@@ -16,6 +16,13 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+  // Allow Google OAuth Popups to communicate with the main window
+  app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    next();
+  });
+
   // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', name: 'QGo API', timestamp: new Date().toISOString() });
