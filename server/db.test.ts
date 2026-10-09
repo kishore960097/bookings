@@ -6,6 +6,8 @@ describe('db key builders', () => {
     it('generates a consistent key for same inputs', () => {
       const key1 = buildQueueKey('salon1', '2023-10-09');
       const key2 = buildQueueKey('salon1', '2023-10-09');
+      
+      // Explicitly compare the two generated keys
       expect(key1).toBe(key2);
       expect(key1).toBe('salon1:2023-10-09');
     });
@@ -29,6 +31,8 @@ describe('db key builders', () => {
     it('generates a consistent key for same inputs', () => {
       const key1 = buildSlotKey('salon1', 'staffA', '2023-10-09', '10:00');
       const key2 = buildSlotKey('salon1', 'staffA', '2023-10-09', '10:00');
+      
+      // Explicitly compare the two generated keys
       expect(key1).toBe(key2);
       expect(key1).toBe('salon1:staffA:2023-10-09:10:00');
     });
