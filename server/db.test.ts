@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildQueueKey, buildSlotKey } from './db';
+import { buildQueueKey, buildSlotKey } from './keys';
 
 describe('db key builders', () => {
   describe('buildQueueKey', () => {

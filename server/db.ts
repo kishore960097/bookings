@@ -12,16 +12,7 @@ import {
   UserRoleMap,
 } from '../src/types';
 import { adminDb } from './firebaseAdmin';
-
-export function buildQueueKey(salonId: string, date: string): string {
-  if (!salonId || !date) throw new Error('Invalid queue key parameters');
-  return `${salonId}:${date}`;
-}
-
-export function buildSlotKey(salonId: string, staffId: string, date: string, time: string): string {
-  if (!salonId || !staffId || !date || !time) throw new Error('Invalid slot key parameters');
-  return `${salonId}:${staffId}:${date}:${time}`;
-}
+import { buildQueueKey, buildSlotKey } from './keys';
 
 // Write-through cache map that persists to Firestore
 class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
