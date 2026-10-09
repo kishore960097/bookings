@@ -13,6 +13,16 @@ import {
 } from '../src/types';
 import { adminDb } from './firebaseAdmin';
 
+export function buildQueueKey(salonId: string, date: string): string {
+  if (!salonId || !date) throw new Error('Invalid queue key parameters');
+  return `${salonId}:${date}`;
+}
+
+export function buildSlotKey(salonId: string, staffId: string, date: string, time: string): string {
+  if (!salonId || !staffId || !date || !time) throw new Error('Invalid slot key parameters');
+  return `${salonId}:${staffId}:${date}:${time}`;
+}
+
 // Write-through cache map that persists to Firestore
 class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
   public collectionName: string;
@@ -82,10 +92,10 @@ class QGoDatabase {
   public featureRequestVotes: FirestoreBackedMap<string, any> = new FirestoreBackedMap('featureRequestVotes');
   public adminAuditLogs: FirestoreBackedMap<string, any> = new FirestoreBackedMap('adminAuditLogs');
 
-  // Concurrency Slot Lock Map (key: `\${salonId}:\${staffId}:\${date}:\${time}`)
+  // Concurrency Slot Lock Map (key: salonId:staffId:date:time)
   private slotLocks: Map<string, string> = new Map(); // Ephemeral, memory only
 
-  // Queue sequence tracker (key: `\${salonId}:\${date}` -> counter)
+  // Queue sequence tracker (key: salonId:date -> counter)
   private queueSequence: Map<string, number> = new Map(); // Ephemeral, memory only
 
   async initializeAll() {
@@ -112,7 +122,7 @@ class QGoDatabase {
 
   // --- Transactions & Advanced Queries ---
   public getNextQueueNumber(salonId: string, date: string): number {
-    const key = `\${salonId}:\${date}`;
+    const key = buildQueueKey(salonId, date);
     const next = (this.queueSequence.get(key) || 0) + 1;
     this.queueSequence.set(key, next);
     return next;
@@ -155,7 +165,7 @@ class QGoDatabase {
     date: string,
     time: string
   ): boolean {
-    const key = `${salonId}:${staffOrResourceId}:${date}:${time}`;
+    const key = buildSlotKey(salonId, staffOrResourceId, date, time);
     return this.slotLocks.has(key);
   }
 
@@ -200,7 +210,7 @@ class QGoDatabase {
   }
 
   public tryAcquireSlotLock(salonId: string, staffId: string, date: string, time: string, customerId: string): boolean {
-    const key = `\${salonId}:\${staffId}:\${date}:\${time}`;
+    const key = buildSlotKey(salonId, staffId, date, time);
     if (this.slotLocks.has(key)) {
       return false; // Already locked
     }
@@ -215,7 +225,7 @@ class QGoDatabase {
   }
 
   public releaseSlotLock(salonId: string, staffId: string, date: string, time: string, customerId: string): void {
-    const key = `\${salonId}:\${staffId}:\${date}:\${time}`;
+    const key = buildSlotKey(salonId, staffId, date, time);
     if (this.slotLocks.get(key) === customerId) {
       this.slotLocks.delete(key);
     }
