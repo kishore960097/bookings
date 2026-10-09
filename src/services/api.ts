@@ -13,7 +13,8 @@ import {
   OwnerRevenueData,
   GeneratedTurfSlot,
 } from '../types';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { storage } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const API_BASE = '/api/v1';
 export const AUTH_TOKEN_KEY = 'qgo_token';
@@ -204,6 +205,11 @@ export const api = {
     return await res.json();
   },
 
+  async getTurfAvailability(salonId: string, date: string): Promise<{ success: boolean; slots: GeneratedTurfSlot[] }> {
+    const res = await fetch(`${API_BASE}/salons/${salonId}/turf-slots?date=${date}`);
+    return await res.json();
+  },
+
   async blockSlot(salonId: string, data: { date: string; startTime: string; endTime?: string; resourceId?: string; reason?: string }): Promise<{ success: boolean; message: string; affectedBookings?: Booking[] }> {
     const res = await fetch(`${API_BASE}/salons/${salonId}/block-slot`, {
       method: 'POST',
@@ -222,7 +228,7 @@ export const api = {
     return await res.json();
   },
 
-  async blockDate(salonId: string, data: { date: string; reason?: string; forceCancelBookings?: boolean }): Promise<{ success: boolean; message: string; affectedBookings?: Booking[] }> {
+  async blockDate(salonId: string, data: { date?: string; dates?: string[]; reason?: string; forceCancelBookings?: boolean }): Promise<{ success: boolean; message: string; affectedBookings?: Booking[] }> {
     const res = await fetch(`${API_BASE}/salons/${salonId}/block-date`, {
       method: 'POST',
       headers: authHeaders(),
@@ -367,6 +373,8 @@ export const api = {
     price?: number;
     numberOfPlayers?: number;
     notes?: string;
+    paymentType?: 'FULL' | 'ADVANCE';
+    advanceAmount?: number;
   }): Promise<{ success: boolean; booking?: Booking; qrPayload?: any; error?: string; slotTaken?: boolean }> {
     const res = await fetch(`${API_BASE}/bookings`, {
       method: 'POST',
@@ -393,6 +401,14 @@ export const api = {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify({ status }),
+    });
+    return await res.json();
+  },
+
+  async collectBalance(bookingId: string): Promise<{ success: boolean; booking?: Booking }> {
+    const res = await fetch(`${API_BASE}/bookings/${bookingId}/collect-balance`, {
+      method: 'POST',
+      headers: authHeaders(),
     });
     return await res.json();
   },
@@ -567,20 +583,17 @@ export const api = {
     return await res.json();
   },
 
-  // Supabase Storage & direct queries if configured
+  // Firebase Storage
   async uploadImage(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
-    if (isSupabaseConfigured) {
-      try {
-        const ext = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${ext}`;
-        const { data, error } = await supabase.storage.from('turf-images').upload(fileName, file);
-        if (error) return { success: false, error: error.message };
-        const { data: publicUrlData } = supabase.storage.from('turf-images').getPublicUrl(fileName);
-        return { success: true, url: publicUrlData.publicUrl };
-      } catch (err: any) {
-        return { success: false, error: err?.message };
-      }
+    try {
+      const ext = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${ext}`;
+      const storageRef = ref(storage, `turf-images/${fileName}`);
+      await uploadBytes(storageRef, file);
+      const publicUrl = await getDownloadURL(storageRef);
+      return { success: true, url: publicUrl };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Upload failed' };
     }
-    return { success: false, error: 'Supabase storage is not configured' };
   }
 };

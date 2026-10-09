@@ -226,6 +226,7 @@ function createDefaultDays(): DaySlotConfig[] {
 export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = ({
   resources = [],
   turfSchedule = [],
+  activeScheduleId,
   onChange,
   holidays = [],
   onHolidayChange,
@@ -268,6 +269,10 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
   const [durationPreset, setDurationPreset] = useState<number>(60);
   const [customDurationMinutes, setCustomDurationMinutes] = useState<number>(120);
 
+  // ─── 3. Payment Options State ───
+  const [globalPaymentType, setGlobalPaymentType] = useState<'FULL' | 'ADVANCE' | 'BOTH'>('BOTH');
+  const [globalAdvanceAmount, setGlobalAdvanceAmount] = useState<number>(400);
+
   // ─── 3. Generation Range & Days Selection ───
   const [generationRange, setGenerationRange] = useState<'days' | 'week' | 'month'>('week');
   const [selectedDays, setSelectedDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]); // Default All 7 Days
@@ -304,6 +309,10 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
   const [editingTimeSlotId, setEditingTimeSlotId] = useState<string | null>(null);
   const [editStartTimeVal, setEditStartTimeVal] = useState<string>('06:00');
   const [editEndTimeVal, setEditEndTimeVal] = useState<string>('08:00');
+
+  const [editingPaymentSlotId, setEditingPaymentSlotId] = useState<string | null>(null);
+  const [editPaymentTypeVal, setEditPaymentTypeVal] = useState<'FULL' | 'ADVANCE' | 'BOTH'>('BOTH');
+  const [editAdvanceAmountVal, setEditAdvanceAmountVal] = useState<number>(400);
 
   // Resolved slot duration in minutes
   const activeDurationMinutes = durationPreset === -1 ? customDurationMinutes : durationPreset;
@@ -392,6 +401,12 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         d.slots || []
       );
 
+      const generatedWithPayment = generated.map(s => ({
+        ...s,
+        paymentType: globalPaymentType,
+        advanceAmount: globalPaymentType === 'FULL' ? 0 : globalAdvanceAmount,
+      }));
+
       return {
         ...d,
         isOpen: true,
@@ -401,7 +416,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         defaultPrice: dayPrice,
         allowPartialSlot: false,
         timePricingPeriods,
-        slots: generated,
+        slots: generatedWithPayment,
       };
     });
 
@@ -479,6 +494,27 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
     });
     updateDays(newDays);
     setEditingSlotId(null);
+  };
+
+  const handleSaveSlotPayment = (slotId: string) => {
+    const newDays = days.map((d) => {
+      if (d.dayOfWeek !== activeDayView) return d;
+      const updatedSlots = (d.slots || []).map((s) => {
+        if (s.id === slotId) {
+          return { 
+            ...s, 
+            paymentType: editPaymentTypeVal, 
+            advanceAmount: editPaymentTypeVal === 'FULL' ? 0 : editAdvanceAmountVal,
+            isCustomized: true,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return s;
+      });
+      return { ...d, slots: updatedSlots };
+    });
+    updateDays(newDays);
+    setEditingPaymentSlotId(null);
   };
 
   const handleSaveSlotTime = (slotId: string) => {
@@ -894,6 +930,63 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           )}
         </div>
 
+        {/* ── PAYMENT OPTIONS ── */}
+        <div>
+          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+            PAYMENT OPTIONS
+          </label>
+          <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setGlobalPaymentType('FULL')}
+              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
+                globalPaymentType === 'FULL'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Full Payment Only
+            </button>
+            <button
+              type="button"
+              onClick={() => setGlobalPaymentType('ADVANCE')}
+              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
+                globalPaymentType === 'ADVANCE'
+                  ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Advance Payment Only
+            </button>
+            <button
+              type="button"
+              onClick={() => setGlobalPaymentType('BOTH')}
+              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
+                globalPaymentType === 'BOTH'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Allow Both Options
+            </button>
+          </div>
+
+          {(globalPaymentType === 'ADVANCE' || globalPaymentType === 'BOTH') && (
+            <div className="mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-200 max-w-sm flex items-center justify-between">
+              <label className="block text-[11px] font-black uppercase tracking-wider text-amber-900">
+                Advance Amount (₹)
+              </label>
+              <NumberInput
+                min={0}
+                step={50}
+                value={globalAdvanceAmount}
+                onChange={setGlobalAdvanceAmount}
+                className="w-24 px-3 py-1.5 rounded-xl border border-amber-300 text-xs font-bold bg-white text-amber-900 text-center"
+              />
+            </div>
+          )}
+        </div>
+
         {/* ── GENERATION RANGE ── */}
         <div>
           <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
@@ -1223,6 +1316,55 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                             <button onClick={() => { setEditingSlotId(slot.id); setEditPriceVal(slot.price); }} className="text-slate-400 hover:text-emerald-600">
                               <Pencil className="w-2.5 h-2.5" />
                             </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Payment Settings */}
+                      <div className="mt-2 border-t border-slate-100 pt-1.5">
+                        {editingPaymentSlotId === slot.id ? (
+                          <div className="space-y-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                            <select
+                              value={editPaymentTypeVal}
+                              onChange={(e) => setEditPaymentTypeVal(e.target.value as any)}
+                              className="w-full text-[10px] px-1 py-0.5 rounded border border-slate-300 bg-white"
+                            >
+                              <option value="FULL">Full Payment</option>
+                              <option value="ADVANCE">Advance Only</option>
+                              <option value="BOTH">Allow Both</option>
+                            </select>
+                            {(editPaymentTypeVal === 'ADVANCE' || editPaymentTypeVal === 'BOTH') && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-[9px] font-black uppercase text-slate-500">Adv:</span>
+                                <NumberInput
+                                  min={0}
+                                  step={50}
+                                  value={editAdvanceAmountVal}
+                                  onChange={setEditAdvanceAmountVal}
+                                  className="flex-1 px-1 py-0.5 rounded border border-slate-300 text-[10px] bg-white"
+                                />
+                              </div>
+                            )}
+                            <div className="flex gap-1 mt-1">
+                              <button onClick={() => handleSaveSlotPayment(slot.id)} className="flex-1 py-0.5 bg-emerald-600 text-white rounded text-[8px] font-black">Save</button>
+                              <button onClick={() => setEditingPaymentSlotId(null)} className="flex-1 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">Esc</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-bold text-slate-500">
+                                {slot.paymentType === 'FULL' ? 'Full Payment' : slot.paymentType === 'ADVANCE' ? 'Advance Only' : 'Advance or Full'}
+                              </span>
+                              <button onClick={() => { setEditingPaymentSlotId(slot.id); setEditPaymentTypeVal(slot.paymentType || 'BOTH'); setEditAdvanceAmountVal(slot.advanceAmount || 400); }} className="text-slate-400 hover:text-emerald-600">
+                                <Pencil className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                            {slot.paymentType !== 'FULL' && (
+                              <div className="text-[9px] font-black text-amber-600">
+                                Adv: ₹{slot.advanceAmount || 0}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

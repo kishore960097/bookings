@@ -6,6 +6,10 @@ import { apiRouter, startNotificationAndSlotScheduler } from './server/routes';
 
 async function startServer() {
   const app = express();
+  
+  const { db } = await import('./server/db');
+  await db.initializeAll();
+
   const PORT = Number(process.env.PORT) || 3000;
 
   // Standard middleware

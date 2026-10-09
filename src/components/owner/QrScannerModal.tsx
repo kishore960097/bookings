@@ -297,35 +297,35 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
                   
                   {result.status === 'success' && (
                     <div className="bg-white/60 rounded-xl p-3 border border-emerald-200/60 shadow-xs space-y-1.5 w-full">
-                      <div className="flex justify-between items-center text-emerald-800">
-                        <span>Total Amount:</span>
-                        <span className="font-bold">₹{result.booking.amount}</span>
+                      <div className="flex justify-between items-center text-emerald-800 text-xs">
+                        <span>Total Slot Amount:</span>
+                        <span className="font-bold">₹{result.booking.totalAmount || result.booking.amount}</span>
                       </div>
-                      <div className="flex justify-between items-center text-emerald-800">
-                        <span>Status:</span>
-                        <span className="font-bold uppercase tracking-wide text-[10px]">{result.booking.paymentStatus === 'paid' ? 'Paid Online' : 'Pay at Venue'}</span>
+                      <div className="flex justify-between items-center text-emerald-800 text-xs mt-1">
+                        <span>Slot Amount Paid:</span>
+                        <span className="font-bold">₹{(result.booking.totalAmount || result.booking.amount || 0) - (result.booking.balanceAmount || 0)}</span>
                       </div>
-                      <div className="flex justify-between items-center pt-1.5 border-t border-emerald-200/60 text-emerald-950 font-black text-sm">
-                        <span>Balance to Collect:</span>
-                        <span>₹{result.booking.paymentStatus === 'paid' ? '0' : result.booking.amount}</span>
+                      <div className="flex justify-between items-center pt-2 mt-2 border-t border-emerald-200/60 text-emerald-950 font-black text-sm">
+                        <span>Balance Due:</span>
+                        <span>₹{result.booking.balanceAmount || 0}</span>
                       </div>
 
-                      <div className="pt-2 flex flex-col gap-2">
-                        {result.booking.paymentStatus !== 'paid' ? (
+                      <div className="pt-3 flex flex-col gap-2">
+                        {(result.booking.balanceAmount || 0) > 0 ? (
                           <>
                             <button
                               type="button"
                               disabled={scanning}
                               onClick={() => handleAcceptAndComplete(result.booking!, true)}
-                              className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                              className="w-full py-2.5 bg-[#F66B0E] hover:bg-[#e05e0a] text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
                             >
-                              Collect ₹{result.booking.amount} & Accept
+                              Collect ₹{result.booking.balanceAmount} & Accept
                             </button>
                             <button
                               type="button"
                               disabled={scanning}
                               onClick={() => handleAcceptAndComplete(result.booking!, false)}
-                              className="w-full py-2 bg-transparent hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-bold transition-colors"
+                              className="w-full py-2.5 bg-transparent hover:bg-orange-50 text-[#F66B0E] border border-[#F66B0E] rounded-lg text-xs font-bold transition-colors"
                             >
                               Accept without Payment
                             </button>
@@ -335,7 +335,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
                             type="button"
                             disabled={scanning}
                             onClick={() => handleAcceptAndComplete(result.booking!, true)}
-                            className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
                           >
                             Accept & Check-in
                           </button>

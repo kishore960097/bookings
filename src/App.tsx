@@ -35,9 +35,12 @@ function AppContent() {
   }, [user]);
 
   // Navigation states for consumer app
-  const [currentView, setCurrentView] = useState<'home' | 'salon_detail' | 'ticket' | 'bookings'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'salon_detail' | 'ticket' | 'bookings'>(() => (sessionStorage.getItem('qgo_cv') as any) || 'home');
   const [selectedSalon, setSelectedSalon] = useState<Salon | null>(null);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(() => sessionStorage.getItem('qgo_sbid') || null);
+
+  React.useEffect(() => { sessionStorage.setItem('qgo_cv', currentView); }, [currentView]);
+  React.useEffect(() => { if (selectedBookingId) sessionStorage.setItem('qgo_sbid', selectedBookingId); else sessionStorage.removeItem('qgo_sbid'); }, [selectedBookingId]);
 
   // Modals state
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);

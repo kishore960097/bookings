@@ -106,6 +106,23 @@ export const OwnerBookingsView: React.FC<OwnerBookingsViewProps> = ({ salon }) =
     }
   };
 
+  const handleCollectBalance = async (bookingId: string) => {
+    setActionLoading(true);
+    setActionError('');
+    try {
+      await api.collectBalance(bookingId);
+      await fetchBookings();
+      if (selectedBooking && selectedBooking.id === bookingId) {
+        const updated = await api.getBooking(bookingId);
+        if (updated?.booking) setSelectedBooking(updated.booking);
+      }
+    } catch (e: any) {
+      setActionError(e?.message || 'Error collecting balance');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleCancelWithRefund = async (bookingId: string) => {
     if (!window.confirm('Are you sure you want to cancel this booking and process refund?')) return;
     setActionLoading(true);
@@ -253,7 +270,7 @@ export const OwnerBookingsView: React.FC<OwnerBookingsViewProps> = ({ salon }) =
 
                   <div className="text-right">
                     <span className="text-base font-black text-slate-900 font-mono block">
-                      ₹{b.amount}
+                      ₹{b.totalAmount || b.amount}
                     </span>
                     <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider capitalize">
                       {b.paymentStatus === 'paid' ? 'Paid' : 'Pay at Shop'}
@@ -265,7 +282,7 @@ export const OwnerBookingsView: React.FC<OwnerBookingsViewProps> = ({ salon }) =
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
                   <div className="flex items-center gap-1.5 font-mono font-bold">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{b.scheduledDate || 'Today'} · {b.scheduledTime ? fmt12(b.scheduledTime) : 'Live Token'}</span>
+                    <span>{b.scheduledDate || 'Today'} · {b.scheduledTime ? `${fmt12(b.scheduledTime)}${b.slotEndTime ? ` - ${fmt12(b.slotEndTime)}` : ''}` : 'Live Token'}</span>
                   </div>
 
                   <div className="flex items-center gap-1 text-slate-400 group-hover:text-indigo-600 text-xs font-bold">
@@ -314,9 +331,22 @@ export const OwnerBookingsView: React.FC<OwnerBookingsViewProps> = ({ salon }) =
                 <span className="font-bold text-slate-900 font-mono">{selectedBooking.customerPhone}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Booking Amount:</span>
-                <span className="font-black text-slate-900 font-mono">₹{selectedBooking.amount}</span>
+                <span className="text-slate-500">Total Amount:</span>
+                <span className="font-black text-slate-900 font-mono">₹{selectedBooking.totalAmount || selectedBooking.amount}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Paid Amount:</span>
+                <span className="font-black text-emerald-600 font-mono">₹{selectedBooking.paidAmount || selectedBooking.amount}</span>
+              </div>
+              {(selectedBooking.balanceAmount ?? 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Balance:</span>
+                  <div className="text-right">
+                    <span className="font-black text-[#ea580c] font-mono block">₹{selectedBooking.balanceAmount}</span>
+                    <span className={`text-[10px] font-bold ${selectedBooking.balanceStatus === 'COLLECTED' ? 'text-emerald-600' : 'text-[#ea580c]'}`}>{selectedBooking.balanceStatus || 'PENDING'}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-500">Payment Status:</span>
                 <span className="font-bold text-emerald-700 uppercase capitalize">{selectedBooking.paymentStatus}</span>
@@ -363,6 +393,17 @@ export const OwnerBookingsView: React.FC<OwnerBookingsViewProps> = ({ salon }) =
             {/* Owner Actions */}
             {selectedBooking.status !== 'completed' && selectedBooking.status !== 'cancelled' && (
               <div className="space-y-2 pt-2">
+                {selectedBooking.balanceStatus === 'PENDING' && (selectedBooking.balanceAmount ?? 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleCollectBalance(selectedBooking.id)}
+                    disabled={actionLoading}
+                    className="w-full py-2.5 rounded-xl bg-[#ea580c] hover:bg-[#c2410c] text-white font-black text-xs shadow-2xs transition-colors mb-2"
+                  >
+                    Mark Balance Collected (₹{selectedBooking.balanceAmount})
+                  </button>
+                )}
+                
                 <div className="flex gap-2">
                   {selectedBooking.status !== 'checked_in' && (
                     <button

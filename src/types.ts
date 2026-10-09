@@ -125,6 +125,8 @@ export interface SlotOverride {
 }
 
 export interface TurfSlotItem {
+  paymentType?: 'FULL' | 'ADVANCE' | 'BOTH';
+  advanceAmount?: number;
   id: string;
   dayOfWeek: number;
   startTime: string; // e.g. "06:00"
@@ -173,6 +175,10 @@ export interface SpecialDateOverride {
 }
 
 export interface TurfAvailabilitySchedule {
+  id?: string;
+  name?: string; // e.g. "October Schedule"
+  validFrom?: string; // e.g. "2026-10-01"
+  validTo?: string; // e.g. "2026-10-31"
   resourceId?: string; // 'default' or specific turf ID
   days: DaySlotConfig[];
   specialDates?: SpecialDateOverride[];
@@ -186,10 +192,12 @@ export interface GeneratedTurfSlot {
   price: number;
   isPeak?: boolean;
   isCustom?: boolean;
+  paymentType?: 'FULL' | 'ADVANCE' | 'BOTH';
+  advanceAmount?: number;
   available: boolean;
   isBooked?: boolean;
   isBlocked?: boolean;
-  status?: 'available' | 'booked' | 'blocked' | 'disabled';
+  status?: 'available' | 'booked' | 'blocked' | 'disabled' | 'closed' | 'completed';
   bookingId?: string;
   customerName?: string;
   customerPhone?: string;
@@ -389,12 +397,21 @@ export interface Booking {
   reminderMinutesBefore?: number;
   reminderSent?: boolean;
   isArriving?: boolean;
-  paymentStatus: 'paid' | 'pending' | 'pay_at_shop';
+  paymentStatus: 'PAID' | 'PARTIALLY_PAID' | 'pay_at_shop' | 'paid' | 'pending';
+  totalAmount?: number;
+  paidAmount?: number;
+  balanceAmount?: number;
+  balanceStatus?: 'PENDING' | 'COLLECTED';
+  convenienceFee?: number;
+  gstAmount?: number;
+  balanceReminderSent?: boolean;
   amount: number;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface QueueEntry {
+  date?: string;
   id: string;
   bookingId: string;
   salonId: string;

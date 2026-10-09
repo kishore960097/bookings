@@ -113,15 +113,11 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
             setQuery(res.address);
             onChange(res.address, lat, lon, res.city || undefined);
           } else {
-            const fallbackAddr = `Location (Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)})`;
-            setQuery(fallbackAddr);
-            onChange(fallbackAddr, lat, lon, undefined);
+            setLocationError('Unable to detect your location address. Please try again.');
           }
         } catch (err) {
           console.error('Reverse geocoding failed:', err);
-          const fallbackAddr = `Location (Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)})`;
-          setQuery(fallbackAddr);
-          onChange(fallbackAddr, lat, lon, undefined);
+          setLocationError('Unable to detect your location address. Please try again.');
         } finally {
           setIsLocating(false);
         }
@@ -129,11 +125,11 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
       (error) => {
         setIsLocating(false);
         if (error.code === error.PERMISSION_DENIED) {
-          setLocationError('Location permission denied. Please search or enter address manually.');
+          setLocationError('Location permission is required to detect your current location.');
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          setLocationError('GPS position unavailable. Please search or enter address manually.');
+          setLocationError('Unable to detect your location. Please try again.');
         } else {
-          setLocationError('Unable to access your location. Please enter address manually.');
+          setLocationError('Unable to access your location. Please try again.');
         }
       },
       {

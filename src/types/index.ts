@@ -138,6 +138,8 @@ export interface TurfSlotItem {
   periodType?: 'day' | 'night';
   pricingPeriodName?: string;
   label?: string;
+  paymentType?: 'FULL' | 'ADVANCE' | 'BOTH';
+  advanceAmount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -198,6 +200,8 @@ export interface GeneratedTurfSlot {
   customerName?: string;
   customerPhone?: string;
   paymentStatus?: string;
+  paymentType?: 'FULL' | 'ADVANCE' | 'BOTH';
+  advanceAmount?: number;
   bookingStatus?: string;
   bookingCreatedAt?: string;
   resourceId?: string;
@@ -393,12 +397,21 @@ export interface Booking {
   reminderMinutesBefore?: number;
   reminderSent?: boolean;
   isArriving?: boolean;
-  paymentStatus: 'paid' | 'pending' | 'pay_at_shop';
+  paymentType?: 'FULL' | 'ADVANCE';
+  totalAmount?: number;
+  paidAmount?: number;
+  advanceAmount?: number;
+  balanceAmount?: number;
+  paymentStatus: 'paid' | 'pending' | 'pay_at_shop' | 'PARTIALLY_PAID' | 'FULLY_PAID';
+  balanceStatus?: 'PENDING' | 'COLLECTED';
+  balanceCollectedAt?: string;
+  balanceCollectedBy?: string;
   amount: number;
   createdAt: string;
 }
 
 export interface QueueEntry {
+  date?: string;
   id: string;
   bookingId: string;
   salonId: string;

@@ -579,20 +579,7 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
               </div>
             </div>
 
-            {isTurf && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Expected Players / Team Size
-                </label>
-                <NumberInput
-                  min={1}
-                  max={50}
-                  value={numberOfPlayers}
-                  onChange={(val) => setNumberOfPlayers(Math.max(1, Math.min(50, val || 1)))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-                />
-              </div>
-            )}
+
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Notes (Optional)</label>

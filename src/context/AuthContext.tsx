@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useTransition } 
 import { User, UserRole, Language } from '../types';
 import { translations } from '../i18n';
 import { api, AUTH_TOKEN_KEY } from '../services/api';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
-
+import { auth } from '../lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 interface AuthContextType {
   user: User | null;
   role: UserRole;
@@ -95,24 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     restoreSession();
 
-    if (isSupabaseConfigured) {
-      try {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          if (event === 'SIGNED_OUT') {
-            startTransition(() => {
-              setUser(null);
-              localStorage.removeItem(STORAGE_KEY);
-              localStorage.removeItem(TOKEN_KEY);
-            });
-          }
-        });
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (err) {
-        // Ignore Supabase auth listener error if not configured
-      }
-    }
+    // Do not clear session based solely on Firebase auth state 
+    // since the app uses a custom backend token for authorization.
   }, []);
 
   useEffect(() => {
@@ -209,9 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(TOKEN_KEY);
-    if (isSupabaseConfigured) {
-      supabase.auth.signOut().catch(() => {});
-    }
+    signOut(auth).catch(() => {});
   };
 
   const currentT = translations[language] || translations['en'];

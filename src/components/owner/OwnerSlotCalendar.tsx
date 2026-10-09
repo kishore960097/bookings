@@ -268,7 +268,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
               if (window.confirm(`Are you sure you want to unblock ${selectedDate}?`)) {
                 try {
                   setLoading(true);
-                  await api.unblockDate(salonId, { dates: [selectedDate] });
+                  await api.unblockDate(salon.id, { dates: [selectedDate] });
                   await fetchSlots();
                 } catch (e) {
                   alert('Failed to unblock date');

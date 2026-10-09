@@ -491,10 +491,10 @@ function validateBookingForCheckIn(booking: Booking | undefined, salonId: string
 
 function releaseBookingSlotLock(booking: Booking) {
   if (booking.resourceId && booking.scheduledDate && booking.scheduledTime) {
-    db.releaseSlotLock(booking.salonId, booking.resourceId, booking.scheduledDate, booking.scheduledTime);
+    db.releaseSlotLock(booking.salonId, booking.resourceId, booking.scheduledDate, booking.scheduledTime, undefined);
   }
   if (booking.staffId && booking.scheduledDate && booking.scheduledTime) {
-    db.releaseSlotLock(booking.salonId, booking.staffId, booking.scheduledDate, booking.scheduledTime);
+    db.releaseSlotLock(booking.salonId, booking.staffId, booking.scheduledDate, booking.scheduledTime, undefined);
   }
 }
 
@@ -739,7 +739,7 @@ const adminTicket = (ticket: any) => ({ ...ticket, user: db.users.get(ticket.use
 const adminRequest = (request: any) => ({ ...request, requester: db.users.get(request.requesterId) ? adminProfile(db.users.get(request.requesterId)!) : null });
 const auditAdmin = (req: AuthenticatedRequest, action: string, entityType: string, entityId = '', metadata: Record<string, unknown> = {}) => {
   const id = crypto.randomUUID();
-  db.adminAuditLogs.set(id, { id, adminUserId: req.auth!.userId, adminEmail: req.auth!.user.email, action, entityType, entityId, metadata, timestamp: adminDate(), ipAddress: req.ip, requestId: req.headers['x-request-id'] || id });
+  db.adminAuditLogs.set(id, { id, adminUserId: (req as any).auth!.userId, adminEmail: req.auth!.user.email, action, entityType, entityId, metadata, timestamp: adminDate(), ipAddress: req.ip, requestId: req.headers['x-request-id'] || id });
 };
 const adminPage = <T>(items: T[], req: Request) => { const page = Math.max(1, Number(req.query.page) || 1); const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 25)); return { items: items.slice((page - 1) * limit, page * limit), pagination: { page, limit, total: items.length, totalPages: Math.max(1, Math.ceil(items.length / limit)) } }; };
 const adminMatches = (value: unknown, search?: unknown) => !search || JSON.stringify(value).toLowerCase().includes(String(search).trim().toLowerCase());
@@ -955,7 +955,7 @@ apiRouter.get('/geocode/search', async (req: Request, res: Response) => {
     });
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'Geocoding service unavailable', results: [] });
+      return res.json({ success: false, error: 'Geocoding service unavailable', results: [] });
     }
 
     const data: any = await response.json();
@@ -980,7 +980,7 @@ apiRouter.get('/geocode/search', async (req: Request, res: Response) => {
     return res.json({ success: true, results });
   } catch (err: any) {
     console.error('Geocode search error:', err);
-    return res.status(500).json({ error: 'Failed to fetch location suggestions', results: [] });
+    return res.json({ success: false, error: 'Failed to fetch location suggestions', results: [] });
   }
 });
 
@@ -1002,7 +1002,7 @@ apiRouter.get('/geocode/reverse', async (req: Request, res: Response) => {
     });
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'Reverse geocoding unavailable' });
+      return res.json({ success: false, error: 'Reverse geocoding unavailable' });
     }
 
     const data: any = await response.json();
@@ -1025,7 +1025,7 @@ apiRouter.get('/geocode/reverse', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error('Reverse geocode error:', err);
-    return res.status(500).json({ error: 'Failed to reverse geocode location' });
+    return res.json({ success: false, error: 'Failed to reverse geocode location' });
   }
 });
 
@@ -1539,7 +1539,7 @@ function calculateTurfSlotsForDate(
       const isBlocked = slotItem.status === 'blocked' || disabledSlots.includes(slotItem.startTime);
       const available = !isPast && !isBooked && !isBlocked;
       
-      let status = isBooked ? 'booked' : (isBlocked ? 'blocked' : (available ? 'available' : 'disabled'));
+      let status: 'available' | 'booked' | 'blocked' | 'disabled' | 'closed' | 'completed' = isBooked ? 'booked' : (isBlocked ? 'blocked' : (available ? 'available' : 'disabled'));
       
       const isPastDate = queryDate < new Date().toISOString().split('T')[0];
       const isPastSlot = isPastDate || isPast;
@@ -1558,6 +1558,8 @@ function calculateTurfSlotsForDate(
         price: slotItem.price,
         isPeak: slotItem.isPeak,
         isCustom: slotItem.source === 'custom',
+        paymentType: slotItem.paymentType,
+        advanceAmount: slotItem.advanceAmount,
         label: slotItem.label,
         periodType: slotItem.periodType || (timeToMinutes(slotItem.startTime) < 1080 && timeToMinutes(slotItem.startTime) >= 360 ? 'day' : 'night'),
         available,
@@ -1687,6 +1689,8 @@ function calculateTurfSlotsForDate(
         durationMinutes: actualDuration,
         price: slotPrice,
         isPeak,
+        paymentType: 'BOTH',
+        advanceAmount: Math.floor(slotPrice * 0.2), // Fallback logic for legacy auto-slots
         periodType: timeToMinutes(startTimeStr) < 1080 && timeToMinutes(startTimeStr) >= 360 ? 'day' : 'night',
         available,
         isBooked,
@@ -1914,6 +1918,8 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
     price,
     numberOfPlayers,
     notes,
+    paymentType,
+    advanceAmount,
   } = req.body;
 
   if (!salonId || !customerName || !customerPhone) {
@@ -1990,7 +1996,7 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
     });
 
     if (existingConflict) {
-      db.releaseSlotLock(salonId, targetResourceId, scheduledDate, scheduledTime);
+      db.releaseSlotLock(salonId, targetResourceId, scheduledDate, scheduledTime, bookingId);
       return res.status(409).json({
         error: `This time slot for ${targetResourceName} is already booked. Please choose another slot.`,
         slotTaken: true,
@@ -2005,9 +2011,24 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
       ? price
       : (selectedResource?.pricePerHour || salon.startingPrice || 800);
 
+    if (paymentType === 'ADVANCE') {
+      if (!advanceAmount || advanceAmount <= 0) {
+        return res.status(400).json({ error: 'Invalid advance amount.' });
+      }
+      if (advanceAmount > finalPrice) {
+        return res.status(400).json({ error: 'Advance amount cannot be greater than the total price.' });
+      }
+    }
+
     const tokenNumber = db.getNextTokenNumber(salon);
     const qrCodeId = `QR-${bookingId}-${crypto.randomBytes(6).toString('hex')}`.toUpperCase();
     const qrSignature = makeQrSignature(bookingId, salonId, qrCodeId);
+
+    const qgoFee = 30;
+    const gstAmount = 5.40;
+    const customerPaidSlotAmount = paymentType === 'ADVANCE' ? advanceAmount : (paymentType === 'FULL' ? finalPrice : 0);
+    const hasOnlinePayment = customerPaidSlotAmount > 0;
+    const totalCustomerPaid = hasOnlinePayment ? customerPaidSlotAmount + qgoFee + gstAmount : 0;
 
     const newBooking: Booking = {
       id: bookingId,
@@ -2032,8 +2053,14 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
       qrSignature,
       tokenNumber,
       notes,
-      paymentStatus: 'pay_at_shop',
+      paymentStatus: paymentType === 'ADVANCE' && advanceAmount > 0 ? 'PARTIALLY_PAID' : (paymentType === 'FULL' ? 'PAID' : 'pay_at_shop'),
       amount: finalPrice,
+      totalAmount: finalPrice,
+      paidAmount: totalCustomerPaid,
+      balanceAmount: paymentType === 'ADVANCE' ? finalPrice - advanceAmount : (paymentType === 'FULL' ? 0 : finalPrice),
+      balanceStatus: paymentType === 'ADVANCE' || paymentType === 'pay_at_shop' ? 'PENDING' : 'COLLECTED',
+      convenienceFee: hasOnlinePayment ? qgoFee : 0,
+      gstAmount: hasOnlinePayment ? gstAmount : 0,
       refundPercentage: salon.bookingSettings?.refundPercentage ?? 70,
       cancellationDeadlineHours: salon.bookingSettings?.cancellationDeadlineHours ?? 2,
       reminderMinutesBefore: salon.bookingSettings?.reminderMinutesBefore ?? 30,
@@ -2067,6 +2094,15 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
   const service = db.services.get(serviceId);
   if (!service || service.salonId !== salonId || !service.isActive) {
     return res.status(404).json({ error: 'Service not found' });
+  }
+
+  if (paymentType === 'ADVANCE') {
+    if (!advanceAmount || advanceAmount <= 0) {
+      return res.status(400).json({ error: 'Invalid advance amount.' });
+    }
+    if (advanceAmount > service.price) {
+      return res.status(400).json({ error: 'Advance amount cannot be greater than the total price.' });
+    }
   }
 
   let assignedStaff: Staff | undefined;
@@ -2160,7 +2196,7 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
     });
 
     if (existingConflict) {
-      db.releaseSlotLock(salonId, assignedStaff!.id, scheduledDate, scheduledTime);
+      db.releaseSlotLock(salonId, assignedStaff!.id, scheduledDate, scheduledTime, bookingId);
       return res.status(409).json({
         error: 'This appointment slot is already booked. Please choose another time or stylist.',
         slotTaken: true,
@@ -2227,8 +2263,12 @@ apiRouter.post('/bookings', requireAuth, requireRole('consumer'), (req: Authenti
     refundStatus: 'none',
     joinedQueueAt: new Date().toISOString(),
     notes,
-    paymentStatus: 'pay_at_shop',
+    paymentStatus: paymentType === 'ADVANCE' && advanceAmount > 0 ? 'PARTIALLY_PAID' : (paymentType === 'FULL' ? 'PAID' : 'pay_at_shop'),
     amount: service.price,
+    totalAmount: service.price,
+    paidAmount: paymentType === 'ADVANCE' ? advanceAmount : (paymentType === 'FULL' ? service.price : 0),
+    balanceAmount: paymentType === 'ADVANCE' ? service.price - advanceAmount : (paymentType === 'FULL' ? 0 : service.price),
+    balanceStatus: paymentType === 'ADVANCE' || paymentType === 'pay_at_shop' ? 'PENDING' : 'COLLECTED',
     createdAt: new Date().toISOString(),
   };
 
@@ -2313,7 +2353,7 @@ apiRouter.get('/bookings', requireAuth, (req: AuthenticatedRequest, res: Respons
   }
 
   if (date && typeof date === 'string') {
-    bookingsList = bookingsList.filter((b) => targetDates.includes(b.scheduledDate) || b.createdAt.startsWith(date));
+    bookingsList = bookingsList.filter((b) => b.scheduledDate === date || b.createdAt.startsWith(date));
   }
 
   if (staffId && typeof staffId === 'string') {
@@ -2366,7 +2406,8 @@ apiRouter.patch('/bookings/:id/status', requireAuth, requireRole('owner'), (req:
   if (!booking) {
     return res.status(404).json({ error: 'Booking not found' });
   }
-  if (!canManageSalon(req.auth, booking.salonId)) {
+  const salon = db.salons.get(booking.salonId);
+  if (!salon || salon.ownerId !== req.auth!.userId) {
     return forbidden(res);
   }
 
@@ -2395,6 +2436,33 @@ apiRouter.patch('/bookings/:id/status', requireAuth, requireRole('owner'), (req:
 
   db.recalculateQueueStats(booking.salonId);
   return res.json({ success: true, booking });
+});
+
+
+apiRouter.post('/bookings/:id/collect-balance', requireAuth, requireRole('owner'), (req: AuthenticatedRequest, res: Response) => {
+  const bookingId = req.params.id;
+  const booking = db.bookings.get(bookingId);
+
+  if (!booking) {
+    return res.status(404).json({ error: 'Booking not found' });
+  }
+
+  const salon = db.salons.get(booking.salonId);
+  if (!salon || salon.ownerId !== req.auth!.userId) {
+    return res.status(403).json({ error: 'Unauthorized to collect balance for this booking' });
+  }
+
+  if (booking.balanceAmount && booking.balanceAmount > 0) {
+    booking.paidAmount = (booking.paidAmount || 0) + booking.balanceAmount;
+    booking.balanceAmount = 0;
+    booking.balanceStatus = 'COLLECTED';
+    booking.paymentStatus = 'PAID';
+    booking.updatedAt = new Date().toISOString();
+    db.bookings.set(bookingId, booking);
+    return res.json({ success: true, booking });
+  } else {
+    return res.status(400).json({ error: 'No balance to collect' });
+  }
 });
 
 apiRouter.patch('/bookings/:id/cancel', requireAuth, (req: AuthenticatedRequest, res: Response) => {
@@ -3018,7 +3086,12 @@ apiRouter.post('/checkin/accept', requireAuth, requireRole('owner'), (req: Authe
 
   booking!.status = 'checked_in';
   booking!.checkedInAt = new Date().toISOString();
-  if (markAsPaid) booking!.paymentStatus = 'paid';
+  if (markAsPaid) {
+    booking!.paymentStatus = 'paid';
+    booking!.paidAmount = booking!.totalAmount;
+    booking!.balanceAmount = 0;
+    booking!.balanceStatus = 'COLLECTED';
+  }
 
   const qe = db.queueEntries.get(`qe_${booking!.id}`);
   if (qe) {
@@ -3677,6 +3750,31 @@ export function startNotificationAndSlotScheduler(): void {
               message: `Your booking at ${booking.salonName} (${booking.resourceName || 'Turf'}) starts in ${reminderMins} minutes at ${format12Hour(booking.scheduledTime)}. Please arrive on time!`,
               bookingId: booking.id,
             });
+          }
+        }
+
+        // Owner Balance Reminder
+        if (
+          booking.status === 'confirmed' &&
+          booking.balanceAmount && booking.balanceAmount > 0 &&
+          booking.scheduledDate === todayStr &&
+          booking.slotEndTime &&
+          !(booking).balanceReminderSent
+        ) {
+          const endM = timeToMinutes(booking.slotEndTime);
+          if (endM - nowMinutes <= 15 && endM - nowMinutes >= -60) {
+            booking.balanceReminderSent = true;
+            db.bookings.set(booking.id, booking);
+            const salon = db.salons.get(booking.salonId);
+            if (salon) {
+              sendNotification(salon.ownerId, {
+                userId: salon.ownerId,
+                title: 'Collect Balance Amount',
+                message: `Balance ₹${booking.balanceAmount} pending for ${booking.customerName || 'Customer'} — Slot ${format12Hour(booking.scheduledTime)} to ${format12Hour(booking.slotEndTime)}. Please collect the balance.`,
+                type: 'reminder',
+                bookingId: booking.id,
+              });
+            }
           }
         }
       }

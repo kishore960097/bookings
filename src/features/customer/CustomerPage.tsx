@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Bell, CalendarDays, ChevronDown, CircleDollarSign, Globe2, Heart, Home, Info, LockKeyhole, LogOut, MapPin, Search, SlidersHorizontal, Ticket, UserRound, UserCircle, Headphones, ClipboardCheck, Phone, Star, Receipt, Wallet, CreditCard, ShieldCheck, Zap, Clock, Check, ChevronLeft, Crosshair, IndianRupee, Sun, Moon, QrCode, Download } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import { QRCodeSVG } from 'qrcode.react';
 import { Salon } from '../../types';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -20,7 +21,7 @@ const extraTurfs = [
   { id: 'demo-play-champs', name: 'Play Champs Badminton', address: 'Porur, Chennai', image: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=900&q=82', sports: 'Badminton, Cricket, Football, Tennis' },
   { id: 'demo-turfworld', name: 'Turfworld Vivira Mall', address: 'OMR Road, Navalur', image: 'https://images.unsplash.com/photo-1556056504-5c7696c4c28d?auto=format&fit=crop&w=900&q=82', sports: 'Badminton, Box Cricket, Football, Tennis' },
 ];
-type BookingDraft = { date: string; startTime: string; endTime: string; format: string; pitches: number; players: number; customerName?: string; customerPhone?: string; notes?: string; price?: number };
+type BookingDraft = { date: string; startTime: string; endTime: string; format: string; pitches: number; players: number; customerName?: string; customerPhone?: string; notes?: string; price?: number; paymentType?: 'FULL' | 'ADVANCE' | 'BOTH'; advanceAmount?: number };
 
 export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifications?: () => void; onLogout: () => void }) {
   const { user } = useAuth();
@@ -29,7 +30,8 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
   const [selectedSport, setSelectedSport] = useState('All Sports');
   const [activeTab, setActiveTab] = useState<'home' | 'turf' | 'booking' | 'favorites' | 'profile'>('home');
   const [selectedVenue, setSelectedVenue] = useState<{ id: string; name: string; address: string; image: string; sports: string } | null>(null);
-  const [bookingStep, setBookingStep] = useState<'detail' | 'slot' | 'summary' | 'payment' | 'paid' | 'ticket'>('detail');
+  const [bookingStep, setBookingStep] = useState<'detail' | 'slot' | 'summary' | 'payment' | 'paid' | 'ticket'>(() => (sessionStorage.getItem('qgo_bs') as any) || 'detail');
+  useEffect(() => { sessionStorage.setItem('qgo_bs', bookingStep); }, [bookingStep]);
   const [bookingDraft, setBookingDraft] = useState<BookingDraft>({ date: '', startTime: '', endTime: '', format: 'Box Cricket', pitches: 1, players: 10 });
   const [createdBooking, setCreatedBooking] = useState<any>(null);
   const [showBottomNav, setShowBottomNav] = useState(true);
@@ -99,11 +101,13 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         try {
-          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=en`);
-          const data = await res.json();
-          // Prioritize city > locality > state to ensure broader matches (e.g. "Chennai" instead of "Guindy")
-          const city = data.city || data.locality || data.principalSubdivision || 'Current Location';
-          setUserLocation(city);
+          const res = await api.reverseGeocode(position.coords.latitude, position.coords.longitude);
+          if (res.success && res.address) {
+            // Address is already formatted nicely by backend (e.g. "Perundurai, Erode, Tamil Nadu")
+            setUserLocation(res.address.split(' - ')[0]); // Remove pincode if present for header
+          } else {
+            setUserLocation('Current Location');
+          }
           setIsLocationModalOpen(false);
           setIsMapView(false);
         } catch (e) {
@@ -193,7 +197,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
 
   if (selectedVenue) {
     if (bookingStep === 'slot') return <SlotSelectionView venue={selectedVenue} draft={bookingDraft} onBack={() => setBookingStep('detail')} onContinue={(draft) => { setBookingDraft(draft); setBookingStep('summary'); }} />;
-    if (bookingStep === 'summary') return <BookingSummaryView venue={selectedVenue} draft={bookingDraft} onBack={() => setBookingStep('slot')} onContinue={() => setBookingStep('payment')} />;
+    if (bookingStep === 'summary') return <BookingSummaryView venue={selectedVenue} draft={bookingDraft} onBack={() => setBookingStep('slot')} onContinue={(mode) => { setBookingDraft({...bookingDraft, paymentType: mode}); setBookingStep('payment'); }} />;
     if (bookingStep === 'payment') return <PaymentView venue={selectedVenue} user={user} draft={bookingDraft} onBack={() => setBookingStep('summary')} onPaid={(booking) => { setCreatedBooking(booking); setBookingStep('paid'); window.setTimeout(() => setBookingStep('ticket'), 2500); }} />;
     if (bookingStep === 'paid') return <PaidView />;
     if (bookingStep === 'ticket') return <TicketView venue={selectedVenue} user={user} booking={createdBooking} draft={bookingDraft} onHome={() => { setSelectedVenue(null); setBookingStep('detail'); }} />;
@@ -308,7 +312,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full shrink-0">
+                    <div className="flex items-center gap-1 bg-[var(--qp-primary-soft)] px-2 py-1 rounded-full shrink-0">
                       <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
                       <span className="text-[11px] font-black text-slate-900">{Math.random() > 0.5 ? '4.0' : '4.5'}</span>
                     </div>
@@ -316,7 +320,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                   
                   <div className="relative w-full h-[150px] rounded-xl overflow-hidden mb-3">
                     <img src={venue.image} alt={venue.name} className="w-full h-full object-cover" />
-                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-emerald-50 transition-colors" onClick={(e) => { e.stopPropagation(); toggleFavorite(venue.name); }}>
+                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-[var(--qp-primary-soft)] transition-colors" onClick={(e) => { e.stopPropagation(); toggleFavorite(venue.name); }}>
                       <Heart size={16} strokeWidth={2.5} className={favorites.includes(venue.name) ? "fill-[#ef4444] text-[#ef4444]" : "text-slate-400"} />
                     </button>
                   </div>
@@ -327,8 +331,8 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                       Sports <span className="text-slate-300">•</span> Turf
                     </div>
                     <div className="flex gap-2 text-[var(--qp-primary)]">
-                      <button type="button" className="p-1.5 hover:bg-emerald-50 rounded-full transition-colors"><MapPin size={18} strokeWidth={2.5} /></button>
-                      <button type="button" className="p-1.5 hover:bg-emerald-50 rounded-full transition-colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4L22 2z"/></svg></button>
+                      <button type="button" className="p-1.5 hover:bg-[var(--qp-primary-soft)] rounded-full transition-colors"><MapPin size={18} strokeWidth={2.5} /></button>
+                      <button type="button" className="p-1.5 hover:bg-[var(--qp-primary-soft)] rounded-full transition-colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4L22 2z"/></svg></button>
                     </div>
                   </div>
                 </article>
@@ -380,7 +384,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full shrink-0">
+                    <div className="flex items-center gap-1 bg-[var(--qp-primary-soft)] px-2 py-1 rounded-full shrink-0">
                       <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
                       <span className="text-[11px] font-black text-slate-900">4.0</span>
                     </div>
@@ -388,7 +392,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
                   
                   <div className="relative w-full h-[150px] rounded-xl overflow-hidden mb-3">
                     <img src={venue.image} alt={venue.name} className="w-full h-full object-cover" />
-                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-[var(--qp-primary)] shadow-md hover:bg-emerald-50 transition-colors" onClick={(e) => { e.stopPropagation(); /* handle favorite */ }}>
+                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center text-[var(--qp-primary)] shadow-md hover:bg-[var(--qp-primary-soft)] transition-colors" onClick={(e) => { e.stopPropagation(); /* handle favorite */ }}>
                       <Heart size={16} strokeWidth={2.5} />
                     </button>
                   </div>
@@ -468,7 +472,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
 
                 <div className="mt-auto p-4 z-10 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[var(--qp-primary-soft)] flex items-center justify-center shrink-0">
                       <MapPin size={18} className="text-[var(--qp-primary)]" />
                     </div>
                     <div>
@@ -744,9 +748,10 @@ function BookingFlowHeader({ title, subtitle, onBack }: { title: string; subtitl
 }
 
 function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }: { venue: { id: string; name: string; address?: string }; draft: BookingDraft; onBack: () => void; onContinue: (draft: BookingDraft) => void }) {
+  const { user } = useAuth();
   const [localDraft, setLocalDraft] = useState(draft);
-  const [customerName, setCustomerName] = useState(draft.customerName || '');
-  const [customerPhone, setCustomerPhone] = useState(draft.customerPhone || '');
+  const [customerName, setCustomerName] = useState(draft.customerName || user?.name || '');
+  const [customerPhone, setCustomerPhone] = useState(draft.customerPhone || user?.phone || '');
   const [notes, setNotes] = useState(draft.notes || '');
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
   const [slotFilter, setSlotFilter] = useState<'all' | 'morning' | 'evening'>('all');
@@ -790,11 +795,16 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
 
   const onContinue = () => {
     if (!isFormValid) return;
+    const totalAdvance = selectedSlots.reduce((sum, slot) => sum + (slot.advanceAmount || 0), 0);
+    
+    const firstSlot = selectedSlots[0];
     onContinueDraft({ 
       ...localDraft, 
-      startTime: selectedSlots[0].startTime,
+      startTime: firstSlot.startTime,
       endTime: selectedSlots[selectedSlots.length - 1].endTime,
       price: totalPayable,
+      paymentType: firstSlot.paymentType || 'BOTH',
+      advanceAmount: totalAdvance,
       customerName,
       customerPhone,
       notes,
@@ -845,7 +855,7 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
             <h3 className="text-xs font-bold text-slate-800 mb-3 uppercase tracking-wider">1. Select Date</h3>
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none scroll-smooth">
               {generateDates().map(d => (
-                <button key={d.iso} onClick={() => { setLocalDraft({ ...localDraft, date: d.iso }); setSelectedSlotIds([]); }} className={`flex-shrink-0 w-[64px] h-[76px] rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all ${d.active ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-white shadow-md shadow-green-500/20' : 'bg-white border-slate-200 text-slate-600 hover:border-[var(--qp-primary-hover)]/50'}`}>
+                <button key={d.iso} onClick={() => { setLocalDraft({ ...localDraft, date: d.iso }); setSelectedSlotIds([]); }} className={`flex-shrink-0 w-[64px] h-[76px] rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all ${d.active ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-white shadow-md shadow-[var(--qp-primary)]/20' : 'bg-white border-slate-200 text-slate-600 hover:border-[var(--qp-primary-hover)]/50'}`}>
                   <span className={`text-[10px] font-semibold uppercase ${d.active ? 'text-white/90' : 'text-slate-400'}`}>{d.label}</span>
                   <span className="text-lg font-black">{d.day}</span>
                   <span className={`text-[10px] font-semibold ${d.active ? 'text-white/90' : 'text-slate-400'}`}>{d.mon}</span>
@@ -905,7 +915,7 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
                 }
 
                 return (
-                  <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`border rounded-xl p-2 flex flex-col items-start transition-all text-left ${isActive ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-white shadow-md shadow-green-500/20' : `${theme.bg} ${theme.border} ${theme.text} ${theme.hover}`}`}>
+                  <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`border rounded-xl p-2 flex flex-col items-start transition-all text-left ${isActive ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-white shadow-md shadow-[var(--qp-primary)]/20' : `${theme.bg} ${theme.border} ${theme.text} ${theme.hover}`}`}>
                     <span className="text-[9px] sm:text-[10px] font-bold leading-tight mb-1">{timeStr}</span>
                     <span className={`text-[9px] font-medium mb-0.5 ${isActive ? 'text-white/80' : theme.mutedText}`}>{slot.durationMinutes} min</span>
                     <span className="text-xs sm:text-sm font-black">₹{slot.price}</span>
@@ -919,15 +929,11 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
             <div>
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Your Name *</label>
-              <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Kishore C J" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 text-slate-900 font-medium" />
+              <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Name" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 text-slate-900 font-medium" />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Phone Number *</label>
               <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="+91 98765 00000" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 text-slate-900 font-medium" />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Expected Players / Team Size</label>
-              <input type="number" value={localDraft.players} onChange={e => setLocalDraft({...localDraft, players: Number(e.target.value)})} placeholder="10" className="w-full border border-slate-300 rounded-[0.75rem] px-4 py-3 text-sm focus:outline-none focus:border-[var(--qp-primary-hover)] focus:ring-1 focus:ring-[var(--qp-primary-hover)] placeholder-slate-400 font-medium text-slate-900 bg-white" />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-[11px] font-bold text-slate-800 mb-1.5">Notes (Optional)</label>
@@ -960,26 +966,38 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
   );
 }
 
-function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { name: string }; draft: BookingDraft; onBack: () => void; onContinue: () => void }) {
-  const [paymentMode, setPaymentMode] = useState<'advance' | 'full'>('full');
+function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { name: string }; draft: BookingDraft; onBack: () => void; onContinue: (mode: 'FULL' | 'ADVANCE') => void }) {
+  const allowedMode = draft.paymentType || 'BOTH';
+  const [paymentMode, setPaymentMode] = useState<'advance' | 'full'>(allowedMode === 'ADVANCE' ? 'advance' : 'full');
   
   const total = draft.price || 1600;
-  const advance = Math.floor(total * 0.2); // e.g. 320
-  const amountToPay = paymentMode === 'advance' ? advance : total;
+  const advance = draft.advanceAmount || 0;
+  
+  // QGo Convenience Fee calculation
+  const qgoFee = 30;
+  const gst = 5.40; // 18% of 30
+  const totalQgoFee = qgoFee + gst;
+  
+  const advancePayable = (advance + totalQgoFee).toFixed(2);
+  const fullPayable = (total + totalQgoFee).toFixed(2);
+  
+  const baseAmountToPay = paymentMode === 'advance' ? advance : total;
+  const amountToPay = (baseAmountToPay + totalQgoFee).toFixed(2);
+  const remainingBalance = paymentMode === 'advance' ? (total - advance) : 0;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto scrollbar-none scroll-smooth bg-slate-50 flex flex-col items-center animate-in fade-in slide-in-from-right-10 duration-200">
       <div className="w-full sm:max-w-md relative pb-32">
         {/* Header Background */}
-        <div className="bg-[#004d40] px-5 pt-6 pb-24 rounded-b-[2.5rem] relative shrink-0">
-          <div className="flex items-center justify-between text-white">
+        <div className="bg-slate-50 px-5 pt-6 pb-6 relative shrink-0">
+          <div className="flex items-center justify-between text-slate-900">
             <div className="flex items-center gap-3">
-              <button onClick={onBack} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+              <button onClick={onBack} className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-colors shadow-sm text-slate-700">
                 <ArrowLeft size={18} />
               </button>
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  Sep 21 <span className="text-sm font-normal text-white/70">00:00 - 02:00</span>
+                  Sep 21 <span className="text-sm font-medium text-slate-500">00:00 - 02:00</span>
                 </h2>
               </div>
             </div>
@@ -987,12 +1005,12 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
         </div>
 
         {/* Content Cards */}
-        <div className="px-5 -mt-16 space-y-4 relative z-10">
+        <div className="px-5 space-y-4 relative z-10">
           
           {/* Bill Details */}
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-[var(--qp-primary-hover)]">
+              <div className="w-10 h-10 rounded-xl bg-[var(--qp-primary-soft)] flex items-center justify-center text-[var(--qp-primary-hover)]">
                 <Receipt size={20} />
               </div>
               <h3 className="text-lg font-bold text-slate-800">Bill Details</h3>
@@ -1001,19 +1019,33 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
               <span className="text-slate-600 font-medium">Slot Cost</span>
               <span className="font-black text-slate-800">₹{total}</span>
             </div>
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex justify-between items-center text-sm mb-3">
+              <span className="text-slate-600 font-medium">QGo Convenience Fee</span>
+              <span className="font-black text-slate-800">₹{qgoFee.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm mb-3">
+              <span className="text-slate-600 font-medium">GST (18% on Fee)</span>
+              <span className="font-black text-slate-800">₹{gst.toFixed(2)}</span>
+            </div>
+            {paymentMode === 'advance' && (
+              <div className="flex justify-between items-center text-sm mb-3 pt-3 border-t border-slate-100">
+                <span className="text-amber-700 font-bold">Remaining Balance</span>
+                <span className="font-black text-amber-700">₹{remainingBalance.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
               <div className="flex items-center gap-2 text-[var(--qp-primary-hover)] font-bold text-sm">
                 <Wallet size={16} />
-                <span>Total Payable</span>
+                <span>Total Payable Now</span>
               </div>
-              <span className="text-2xl font-black text-[var(--qp-primary-hover)]">₹{total}</span>
+              <span className="text-2xl font-black text-[var(--qp-primary-hover)]">₹{amountToPay}</span>
             </div>
           </div>
 
           {/* Payment Options */}
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600">
+              <div className="w-10 h-10 rounded-xl bg-[var(--qp-primary-soft)] flex items-center justify-center text-[var(--qp-primary)]">
                 <CreditCard size={20} />
               </div>
               <div>
@@ -1023,32 +1055,36 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
             </div>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <button onClick={() => setPaymentMode('advance')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'advance' ? 'border-[var(--qp-primary-hover)] bg-[var(--qp-primary-hover)]/5 shadow-sm shadow-[var(--qp-primary-hover)]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[var(--qp-primary-hover)]/40'}`}>
-                <div className="flex justify-between items-start mb-3 w-full">
-                  <CreditCard size={18} className="text-slate-600" />
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'advance' ? 'border-[var(--qp-primary-hover)]' : 'border-slate-300'}`}>
-                    {paymentMode === 'advance' && <div className="w-2 h-2 rounded-full bg-[var(--qp-primary-hover)]" />}
+              {(allowedMode === 'ADVANCE' || allowedMode === 'BOTH') && (
+                <button onClick={() => setPaymentMode('advance')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'advance' ? 'border-[var(--qp-primary-hover)] bg-[var(--qp-primary-hover)]/5 shadow-sm shadow-[var(--qp-primary-hover)]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[var(--qp-primary-hover)]/40'}`}>
+                  <div className="flex justify-between items-start mb-3 w-full">
+                    <CreditCard size={18} className="text-slate-600" />
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'advance' ? 'border-[var(--qp-primary-hover)]' : 'border-slate-300'}`}>
+                      {paymentMode === 'advance' && <div className="w-2 h-2 rounded-full bg-[var(--qp-primary-hover)]" />}
+                    </div>
                   </div>
-                </div>
-                <div className="font-bold text-slate-800 text-sm mb-0.5">Advance</div>
-                <div className="text-[10px] text-slate-500 mb-2">Pay ₹{advance} now</div>
-                <div className="text-lg font-black text-slate-800 mt-auto">₹{advance}</div>
-              </button>
+                  <div className="font-bold text-slate-800 text-sm mb-0.5">Advance</div>
+                  <div className="text-[10px] text-slate-500 mb-2">Pay ₹{advancePayable} now</div>
+                  <div className="text-lg font-black text-slate-800 mt-auto">₹{advancePayable}</div>
+                </button>
+              )}
 
-              <button onClick={() => setPaymentMode('full')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'full' ? 'border-[var(--qp-primary-hover)] bg-[var(--qp-primary-hover)]/5 shadow-sm shadow-[var(--qp-primary-hover)]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[var(--qp-primary-hover)]/40'}`}>
-                <div className="flex justify-between items-start mb-3 w-full">
-                  <Wallet size={18} className={paymentMode === 'full' ? 'text-[var(--qp-primary-hover)]' : 'text-slate-600'} />
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'full' ? 'border-[var(--qp-primary-hover)]' : 'border-slate-300'}`}>
-                    {paymentMode === 'full' && <div className="w-2 h-2 rounded-full bg-[var(--qp-primary-hover)]" />}
+              {(allowedMode === 'FULL' || allowedMode === 'BOTH') && (
+                <button onClick={() => setPaymentMode('full')} className={`border rounded-2xl p-4 flex flex-col text-left transition-all relative ${paymentMode === 'full' ? 'border-[var(--qp-primary-hover)] bg-[var(--qp-primary-hover)]/5 shadow-sm shadow-[var(--qp-primary-hover)]/10' : 'border-slate-200 bg-slate-50/50 hover:border-[var(--qp-primary-hover)]/40'}`}>
+                  <div className="flex justify-between items-start mb-3 w-full">
+                    <Wallet size={18} className={paymentMode === 'full' ? 'text-[var(--qp-primary-hover)]' : 'text-slate-600'} />
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${paymentMode === 'full' ? 'border-[var(--qp-primary-hover)]' : 'border-slate-300'}`}>
+                      {paymentMode === 'full' && <div className="w-2 h-2 rounded-full bg-[var(--qp-primary-hover)]" />}
+                    </div>
                   </div>
-                </div>
-                <div className="font-bold text-slate-800 text-sm mb-0.5">Full Amount</div>
-                <div className="text-[10px] text-slate-500 mb-2">Pay entire amount now</div>
-                <div className={`text-lg font-black mt-auto ${paymentMode === 'full' ? 'text-[var(--qp-primary-hover)]' : 'text-slate-800'}`}>₹{total}</div>
-              </button>
+                  <div className="font-bold text-slate-800 text-sm mb-0.5">Full Amount</div>
+                  <div className="text-[10px] text-slate-500 mb-2">Pay entire amount now</div>
+                  <div className={`text-lg font-black mt-auto ${paymentMode === 'full' ? 'text-[var(--qp-primary-hover)]' : 'text-slate-800'}`}>₹{fullPayable}</div>
+                </button>
+              )}
             </div>
 
-            <div className="bg-gradient-to-r from-[#d9f2e6] to-[#e6f7ef] rounded-2xl p-4 flex items-center justify-between border border-[var(--qp-primary-hover)]/10">
+            <div className="bg-[var(--qp-primary-hover)]/5 rounded-2xl p-4 flex items-center justify-between border border-[var(--qp-primary-hover)]/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[var(--qp-primary-hover)] rounded-xl flex items-center justify-center text-white shadow-md shadow-[var(--qp-primary-hover)]/30">
                   <ShieldCheck size={20} />
@@ -1067,13 +1103,13 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
           {/* Cancellation Policy */}
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-[var(--qp-primary-hover)]">
+              <div className="w-8 h-8 rounded-full bg-[var(--qp-primary-soft)] flex items-center justify-center text-[var(--qp-primary-hover)]">
                 <ShieldCheck size={16} />
               </div>
               <h3 className="text-lg font-bold text-slate-800">Cancellation Policy</h3>
             </div>
             
-            <div className="bg-[#f4faf8] rounded-2xl p-4 space-y-4">
+            <div className="bg-[var(--qp-primary-hover)]/5 rounded-2xl p-4 space-y-4">
               <div className="flex items-start gap-3">
                 <Clock size={16} className="text-[var(--qp-primary-hover)] shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-600 leading-relaxed">
@@ -1095,7 +1131,7 @@ function BookingSummaryView({ venue, draft, onBack, onContinue }: { venue: { nam
         {/* Fixed Bottom CTA */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md sm:relative sm:bg-transparent z-50">
           <div className="max-w-md mx-auto">
-            <button onClick={onContinue} className="w-full bg-[var(--qp-primary-hover)] hover:bg-[#00b075] active:scale-[0.98] transition-all text-white py-4 rounded-full font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-[var(--qp-primary-hover)]/30">
+            <button onClick={() => onContinue(paymentMode === 'advance' ? 'ADVANCE' : 'FULL')} className="w-full bg-[#F66B0E] hover:opacity-90 active:scale-[0.98] transition-all text-white py-4 rounded-full font-bold text-[15px] flex items-center justify-center gap-2 shadow-lg shadow-[#F66B0E]/30">
               <LockKeyhole size={18} /> PROCEED TO PAY ₹{amountToPay} <ArrowRight size={18} />
             </button>
           </div>
@@ -1110,8 +1146,14 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'google' | 'phonepe' | 'paytm'>('google');
   const basePrice = draft.price || 1600;
-  const gst = Math.floor(basePrice * 0.18);
-  const totalPayable = basePrice + gst;
+  const advanceAmount = draft.advanceAmount || 0;
+  
+  const qgoFee = 30;
+  const qgoGst = 5.40; // 18% of 30
+  const totalQgoFee = qgoFee + qgoGst;
+  
+  const baseAmountToPay = draft.paymentType === 'ADVANCE' ? advanceAmount : basePrice;
+  const totalPayable = (baseAmountToPay + totalQgoFee).toFixed(2);
 
   const pay = async () => {
     if (venue.id.startsWith('demo-')) { setError('This venue is demo data and cannot accept a real booking yet.'); return; }
@@ -1124,7 +1166,7 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
       await new Promise(resolve => setTimeout(resolve, 2500));
     }
 
-    const result = await api.createBooking({ salonId: venue.id, customerName: user.name || user.displayName || 'Customer', customerPhone: user.phone || '', mode: 'appointment', scheduledDate: draft.date, scheduledTime: draft.startTime, slotEndTime: draft.endTime, numberOfPlayers: draft.players, notes: `${draft.format}; ${draft.pitches} pitch${draft.pitches === 1 ? '' : 'es'}` });
+    const result = await api.createBooking({ salonId: venue.id, customerName: user.name || user.displayName || 'Customer', customerPhone: user.phone || '', mode: 'appointment', scheduledDate: draft.date, scheduledTime: draft.startTime, slotEndTime: draft.endTime, price: draft.price, numberOfPlayers: draft.players, notes: `${draft.format}; ${draft.pitches} pitch${draft.pitches === 1 ? '' : 'es'}`, paymentType: draft.paymentType === 'ADVANCE' ? 'ADVANCE' : 'FULL', advanceAmount: draft.paymentType === 'ADVANCE' ? draft.advanceAmount : 0 });
     setLoading(false);
     if (result.success && result.booking) onPaid(result.booking);
     else setError(result.error || 'This slot is no longer available. Please choose another slot.');
@@ -1191,13 +1233,24 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
           </div>
           
           <div className="border-t border-slate-100 pt-3 pb-3 space-y-2">
+            {draft.paymentType === 'ADVANCE' ? (
+              <div className="flex justify-between text-[13px] text-slate-700">
+                <span>Advance Amount</span>
+                <span className="font-bold text-slate-900">₹{advanceAmount}</span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-[13px] text-slate-700">
+                <span>Subtotal</span>
+                <span className="font-bold text-slate-900">₹{basePrice}</span>
+              </div>
+            )}
             <div className="flex justify-between text-[13px] text-slate-700">
-              <span>Subtotal</span>
-              <span className="font-bold text-slate-900">₹{basePrice}</span>
+              <span>QGo Convenience Fee</span>
+              <span className="font-bold text-slate-900">₹{qgoFee.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-[13px] text-slate-700">
-              <span>GST (18%)</span>
-              <span className="font-bold text-slate-900">₹{gst}</span>
+              <span>GST (18% on Fee)</span>
+              <span className="font-bold text-slate-900">₹{qgoGst.toFixed(2)}</span>
             </div>
           </div>
           
@@ -1297,48 +1350,96 @@ function TicketView({ venue, user, booking, draft, onHome }: { venue: { name: st
         <p className="text-slate-500 font-medium text-sm">Present this ticket at the venue</p>
       </div>
 
-      <div className="w-full max-w-sm bg-white rounded-[2rem] shadow-xl overflow-hidden relative border border-slate-100">
-        {/* Ticket Header */}
-        <div className="bg-[#0f172a] p-6 text-center relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-          <h2 className="text-white font-black text-[22px] mb-1 tracking-tight leading-none uppercase">{venue.name}</h2>
-          <p className="text-slate-400 font-bold text-[10px] tracking-widest uppercase">{draft.format}</p>
-        </div>
-
-        {/* Perforation Line */}
-        <div className="relative flex items-center justify-between px-2 -my-3 z-10">
-          <div className="w-6 h-6 bg-[#f8fafc] rounded-full shrink-0 shadow-inner"></div>
-          <div className="flex-1 border-t-2 border-dashed border-slate-200"></div>
-          <div className="w-6 h-6 bg-[#f8fafc] rounded-full shrink-0 shadow-inner"></div>
-        </div>
-
-        {/* Ticket Body */}
-        <div className="p-6 pt-8 pb-8">
-          <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-8">
-            <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Date</p>
-              <p className="font-black text-slate-900 text-sm">{draft.date}</p>
+      <div className="w-full max-w-sm bg-white rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden border border-slate-100">
+        
+        <div className="p-6 pb-0">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-2">
+              <Ticket className="w-5 h-5 text-slate-800" />
+              <span className="font-bold text-slate-900 text-[15px]">{booking?.id?.slice(0, 8).toUpperCase() || 'QGO-8X92K'}</span>
             </div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Time</p>
-              <p className="font-black text-[var(--qp-primary)] text-[13px]">{draft.startTime} - {draft.endTime}</p>
-            </div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Name</p>
-              <p className="font-black text-slate-900 text-sm line-clamp-1">{user?.name || user?.displayName || 'Customer'}</p>
-            </div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Amount Paid</p>
-              <p className="font-black text-slate-900 text-sm">₹{booking?.amount || draft.price || '1600'}</p>
-            </div>
+            <span className="font-bold text-slate-900 uppercase text-[13px]">{new Date(draft.date || new Date()).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase().replace(',', '')}</span>
           </div>
 
-          <div className="flex flex-col items-center p-5 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden">
-            <div className="absolute inset-0 bg-white opacity-50 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
-            <QrCode size={110} className="text-slate-900 mb-3 relative z-10" strokeWidth={1.5} />
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center relative z-10">Scan at Entrance</p>
-            <p className="text-[9px] font-bold text-slate-400 mt-1 relative z-10">ID: {booking?.id?.slice(0,8).toUpperCase() || 'QGO-8X92K'}</p>
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-slate-600 font-medium text-xs">{venue.name}</span>
+            <span className="text-slate-600 font-medium text-xs">{draft.format}</span>
           </div>
+
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-3xl font-black text-slate-900 tracking-tight">{draft.startTime}</span>
+            <div className="flex-1 px-3 flex items-center justify-center gap-1.5 text-slate-300">
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              <div className="flex-1 border-t-2 border-dashed border-slate-200"></div>
+              <div className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 text-[9px] font-bold whitespace-nowrap">
+                <Clock size={10} /> 
+                {Math.round((new Date(`1970-01-01T${draft.endTime}:00`).getTime() - new Date(`1970-01-01T${draft.startTime}:00`).getTime()) / 60000) || 60}m
+              </div>
+              <div className="flex-1 border-t-2 border-dashed border-slate-200"></div>
+              <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+            </div>
+            <span className="text-3xl font-black text-slate-900 tracking-tight">{draft.endTime}</span>
+          </div>
+
+          <div className="text-center mb-6">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Confirmed
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 pb-5">
+            <div>
+              <p className="text-[11px] text-slate-500 mb-0.5">Player Name</p>
+              <p className="font-bold text-slate-900 text-sm line-clamp-1">{user?.name || user?.displayName || 'Customer'}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-slate-500 mb-0.5">Payment Mode</p>
+              <p className="font-bold text-slate-900 text-sm">{(booking?.balanceAmount || 0) > 0 ? 'Advance Paid' : 'Fully Paid'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#f8fafc] border-t border-slate-100 p-5 flex items-center justify-between">
+          <div className="flex flex-col gap-1.5">
+            <div className="bg-[#e0e7ff] text-[#4338ca] text-[11px] font-bold px-2 py-0.5 rounded flex w-max">
+              Total Slot: ₹{booking?.totalAmount || draft.price || '0'}
+            </div>
+            <p className="text-[13px] font-bold text-slate-900 mt-1">Paid Now: <span className="text-[15px]">₹{booking?.paidAmount || draft.price || '0'}</span></p>
+            <p className="text-[11px] font-bold text-[#F66B0E]">Balance Due: ₹{booking?.balanceAmount || 0}</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 mb-1.5 relative group cursor-pointer" onClick={() => {
+              const el = document.getElementById('full-qr-modal');
+              if(el) el.classList.remove('hidden');
+            }}>
+              <QRCodeSVG 
+                value={JSON.stringify({ bookingId: booking?.id || '', qrCodeId: booking?.qrCodeId || '' })} 
+                size={84} 
+                level="M" 
+                fgColor="#0f172a" 
+              />
+              <div className="absolute inset-0 bg-black/5 rounded-xl group-hover:bg-black/10 transition-colors"></div>
+            </div>
+            <span className="text-[9px] font-medium text-slate-400">Tap to view full QR</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Full QR Modal */}
+      <div id="full-qr-modal" className="hidden fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-6 backdrop-blur-sm transition-opacity" onClick={(e) => {
+        if(e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+      }}>
+        <div className="bg-white p-8 rounded-3xl w-full max-w-sm flex flex-col items-center">
+          <h3 className="font-bold text-slate-900 mb-6 text-lg">Scan at Entrance</h3>
+          <QRCodeSVG 
+            value={JSON.stringify({ bookingId: booking?.id || '', qrCodeId: booking?.qrCodeId || '' })} 
+            size={240} 
+            level="M" 
+            fgColor="#0f172a" 
+          />
+          <button className="mt-8 bg-slate-100 hover:bg-slate-200 text-slate-900 px-6 py-2 rounded-full font-bold text-sm transition-colors" onClick={() => {
+            document.getElementById('full-qr-modal')?.classList.add('hidden');
+          }}>Close</button>
         </div>
       </div>
 
@@ -1389,7 +1490,7 @@ function BookingView() {
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="font-black text-[#0f172a] text-[15px] tracking-tight">{b.salonName || 'Venue'}</h3>
-                <p className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded flex inline-flex items-center gap-1 mt-1"><Clock size={12}/> {new Date(b.date).toLocaleDateString()} • {b.startTime}</p>
+                <p className="text-[11px] font-bold text-emerald-600 bg-[var(--qp-primary-soft)] px-2 py-0.5 rounded flex inline-flex items-center gap-1 mt-1"><Clock size={12}/> {new Date(b.date).toLocaleDateString()} • {b.startTime}</p>
               </div>
               <div className="bg-slate-50 px-2 py-1 rounded-lg text-right">
                 <p className="text-[10px] font-bold text-slate-500 uppercase">Paid</p>
@@ -1397,7 +1498,7 @@ function BookingView() {
               </div>
             </div>
             <div className="flex gap-2">
-               <button className="flex-1 bg-emerald-50 text-[var(--qp-primary)] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-emerald-100">Get Directions</button>
+               <button className="flex-1 bg-[var(--qp-primary-soft)] text-[var(--qp-primary)] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-emerald-100">Get Directions</button>
                <button className="flex-1 bg-white border border-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-slate-50">View Ticket</button>
             </div>
           </article>
@@ -1620,7 +1721,7 @@ function FavoritesView({ venues, favorites, onToggleFavorite, onSelectVenue }: {
                   <p className="text-[10px] text-slate-500 font-medium leading-snug line-clamp-2 pr-4">{venue.address}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full shrink-0">
+              <div className="flex items-center gap-1 bg-[var(--qp-primary-soft)] px-2 py-1 rounded-full shrink-0">
                 <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
                 <span className="text-[11px] font-black text-slate-900">4.0</span>
               </div>

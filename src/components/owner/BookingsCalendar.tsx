@@ -159,7 +159,7 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
 
                   <div>
                     <span className="font-bold text-neutral-900 block">
-                      {b.scheduledTime || new Date(b.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {b.scheduledTime ? `${b.scheduledTime}${b.slotEndTime ? ` - ${b.slotEndTime}` : ''}` : new Date(b.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className="text-[10px] text-neutral-500">{b.mode}</span>
                   </div>
@@ -189,7 +189,7 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
                 <div className="min-w-[80px]">
                   <span className="font-extrabold text-neutral-900 block">
                     {t.rupees}
-                    {b.amount}
+                    {b.totalAmount || b.amount}
                   </span>
                   <span className="text-[10px] text-emerald-600 font-semibold">
                     {b.paymentStatus === 'paid' ? 'Paid' : 'Pay at Shop'}

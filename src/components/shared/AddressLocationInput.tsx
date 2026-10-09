@@ -113,13 +113,13 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
             setQuery(res.address);
             onChange(res.address, lat, lon, res.city || undefined);
           } else {
-            const fallbackAddr = `Location (Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)})`;
+            const fallbackAddr = `Location Selected`;
             setQuery(fallbackAddr);
             onChange(fallbackAddr, lat, lon, undefined);
           }
         } catch (err) {
           console.error('Reverse geocoding failed:', err);
-          const fallbackAddr = `Location (Lat: ${lat.toFixed(4)}, Lng: ${lon.toFixed(4)})`;
+          const fallbackAddr = `Location Selected`;
           setQuery(fallbackAddr);
           onChange(fallbackAddr, lat, lon, undefined);
         } finally {

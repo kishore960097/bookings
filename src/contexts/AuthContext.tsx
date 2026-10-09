@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useTransition } 
 import { User, UserRole, Language } from '../types';
 import { translations } from '../i18n';
 import { api } from '../services/api';
-import { supabase } from '../lib/supabase';
-
+import { auth } from '../lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 interface AuthContextType {
   user: User | null;
   role: UserRole;
@@ -60,20 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Initial session load
     const restoreSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const res = await api.getMe();
-        if (res.success && res.user) {
-          startTransition(() => {
-            setUser(res.user!);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
-          });
-        } else {
-          setUser(null);
-          localStorage.removeItem(STORAGE_KEY);
-        }
+      const res = await api.getMe();
+      if (res.success && res.user) {
+        startTransition(() => {
+          setUser(res.user!);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
+        });
       } else {
         setUser(null);
         localStorage.removeItem(STORAGE_KEY);
@@ -82,28 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     restoreSession();
-
-    // Listen to Supabase auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        const res = await api.getMe();
-        if (res.success && res.user) {
-          startTransition(() => {
-            setUser(res.user!);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
-          });
-        }
-      } else if (event === 'SIGNED_OUT') {
-        startTransition(() => {
-          setUser(null);
-          localStorage.removeItem(STORAGE_KEY);
-        });
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   const loginWithGoogle = async (
@@ -143,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
   };
