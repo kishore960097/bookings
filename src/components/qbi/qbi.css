@@ -304,15 +304,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: grab;
   z-index: 55;
   padding: 0;
   transition: transform 0.15s ease;
-  touch-action: manipulation;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .qbi-helper-btn:active {
-  transform: scale(0.92);
+  cursor: grabbing;
+  transform: scale(0.95);
 }
 
 /* Helper Speech Bubble */

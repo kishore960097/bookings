@@ -226,7 +226,7 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
   }
 
   return (
-    <main className="bg-[var(--qp-bg)] text-[var(--qp-text)] min-h-[100dvh] pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] font-sans relative" aria-label="Customer home">
+    <main className="bg-[var(--qp-bg)] text-[var(--qp-text)] min-h-[100dvh] pb-[calc(8rem+env(safe-area-inset-bottom,0px))] font-sans relative" aria-label="Customer home">
       
       {/* --- HOME TAB --- */}
       {activeTab === 'home' && (
@@ -850,95 +850,77 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
         <div className="bg-[#FFFFFF] w-full flex-1 sm:flex-none sm:max-w-2xl rounded-none sm:rounded-[1.5rem] overflow-hidden flex flex-col shadow-2xl relative animate-in fade-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200">
           
           {/* Header */}
-        <div className="bg-[var(--qp-text)] p-6 text-[#000000] relative rounded-b-[2rem] shadow-sm z-10">
-          <button onClick={onBack} className="absolute top-5 right-5 w-8 h-8 rounded-full bg-[rgba(0,0,0,0.05)] flex items-center justify-center hover:bg-[rgba(0,0,0,0.05)] transition-colors">
-             <span className="sr-only">Close</span>
-             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 1l12 12m0-12L1 13"/></svg>
-          </button>
-          <div className="inline-flex items-center gap-1.5 bg-[var(--qp-primary-hover)] text-[#000000] text-[10px] font-bold px-2 py-1 rounded mb-3">
-             <span>🎫</span> BOOK A TURF SLOT
-          </div>
-          <h2 className="text-2xl font-black mb-1">{venue.name}</h2>
-          <p className="text-xs text-[#000000]/70 leading-relaxed max-w-[85%]">{venue.address || 'Chennai, Tamil Nadu, India'}</p>
-        </div>
-
-        {/* Scrollable Body */}
-        <div className="flex-1 p-5 sm:p-6 space-y-8 bg-[#FFFFFF]">
-          
-          {/* Dates */}
-          <div>
-            <h3 className="text-xs font-bold text-[#000000] mb-3 uppercase tracking-wider">1. Select Date</h3>
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none scroll-smooth">
-              {generateDates().map(d => (
-                <button key={d.iso} onClick={() => { setLocalDraft({ ...localDraft, date: d.iso }); setSelectedSlotIds([]); }} className={`flex-shrink-0 w-[64px] h-[76px] rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all ${d.active ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-[#000000] shadow-md shadow-[var(--qp-primary)]/20' : 'bg-[#FFFFFF] border-[rgba(0,0,0,0.12)] text-[rgba(0,0,0,0.70)] hover:border-[var(--qp-primary-hover)]/50'}`}>
-                  <span className={`text-[10px] font-semibold uppercase ${d.active ? 'text-[#000000]/90' : 'text-[rgba(0,0,0,0.70)]'}`}>{d.label}</span>
-                  <span className="text-lg font-black">{d.day}</span>
-                  <span className={`text-[10px] font-semibold ${d.active ? 'text-[#000000]/90' : 'text-[rgba(0,0,0,0.70)]'}`}>{d.mon}</span>
-                </button>
-              ))}
+          <div className="bg-[#FFFFFF] p-5 sm:p-6 pb-5 text-[#000000] relative rounded-t-[1.5rem] rounded-b-3xl border-b border-[rgba(0,0,0,0.08)] shadow-[0_4px_20px_rgba(0,0,0,0.03)] z-10">
+            <button onClick={onBack} className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[rgba(0,0,0,0.05)] hover:bg-[rgba(0,0,0,0.1)] flex items-center justify-center text-[#000000] transition-colors" aria-label="Close">
+               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M1 1l12 12m0-12L1 13"/></svg>
+            </button>
+            <div className="inline-flex items-center gap-1.5 bg-[#FCA311] text-[#000000] text-[11px] font-black px-3 py-1 rounded-full mb-3 shadow-sm">
+               <span>🎫</span> BOOK A TURF SLOT
             </div>
+            <h2 className="text-2xl sm:text-3xl font-black mb-1.5 tracking-tight text-[#000000]">{venue.name}</h2>
+            <p className="text-xs font-medium text-[rgba(0,0,0,0.70)] leading-relaxed max-w-[85%] flex items-center gap-1.5">
+               <MapPin size={13} className="shrink-0 text-[#FCA311]" /> {venue.address || 'Chennai, Tamil Nadu, India'}
+            </p>
           </div>
 
-          {/* Slots */}
-          <div className="bg-[#FFFFFF] rounded-[1rem] p-4 sm:p-5 border border-[rgba(0,0,0,0.12)] shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-xs font-bold text-[#000000] uppercase tracking-wider mb-0.5">Available Slots (2026-08-29)</h3>
-                <p className="text-[10px] text-[rgba(0,0,0,0.70)]">Slots for {venue.name}</p>
-              </div>
-              <div className="flex items-center gap-1 bg-[#FFFFFF] p-1 rounded-full border border-[rgba(0,0,0,0.12)]">
-                <button onClick={() => setSlotFilter('all')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'all' ? 'bg-[var(--qp-primary-hover)] text-[#000000]' : 'text-[rgba(0,0,0,0.70)] hover:bg-[rgba(0,0,0,0.05)]'}`}>All</button>
-                <button onClick={() => setSlotFilter('morning')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'morning' ? 'bg-[var(--qp-primary-hover)] text-[#000000]' : 'text-[rgba(0,0,0,0.70)] hover:bg-[rgba(0,0,0,0.05)]'}`}>☀️ Morning</button>
-                <button onClick={() => setSlotFilter('evening')} className={`px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${slotFilter === 'evening' ? 'bg-[var(--qp-primary-hover)] text-[#000000]' : 'text-[rgba(0,0,0,0.70)] hover:bg-[rgba(0,0,0,0.05)]'}`}>🌙 Evening</button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {displaySlots.map((slot) => {
-                const isActive = selectedSlotIds.includes(slot.id);
-                const isBooked = !slot.available;
-                // Day vs Night logic
-                const hour = parseInt(slot.startTime.split(':')[0], 10);
-                const isDayTime = hour >= 6 && hour < 18;
-                const timeStr = `${isDayTime ? '☀️' : '🌙'} ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`;
-                
-                const theme = isDayTime ? {
-                  bg: 'bg-[#FFFFFF]',
-                  border: 'border-[rgba(0,0,0,0.12)]',
-                  hover: 'hover:border-[#FCA311]',
-                  text: 'text-[#000000]',
-                  mutedText: 'text-[rgba(0,0,0,0.70)]',
-                  bookedBg: 'bg-[rgba(0,0,0,0.05)]',
-                  bookedBorder: 'border-[rgba(0,0,0,0.12)]/50'
-                } : {
-                  bg: 'bg-[#FFFFFF]',
-                  border: 'border-[rgba(0,0,0,0.12)]',
-                  hover: 'hover:border-[#FCA311]',
-                  text: 'text-[#000000]',
-                  mutedText: 'text-[rgba(0,0,0,0.70)]',
-                  bookedBg: 'bg-[rgba(0,0,0,0.05)]',
-                  bookedBorder: 'border-[rgba(0,0,0,0.12)]/50'
-                };
-                
-                if (isBooked) {
-                  return (
-                    <div key={slot.id} className={`border ${theme.bookedBorder} ${theme.bookedBg} rounded-xl p-2 flex flex-col items-center justify-center opacity-60`}>
-                      <span className={`text-[9px] sm:text-[10px] font-semibold ${theme.mutedText} line-through mb-1.5 leading-tight text-center`}>{timeStr}</span>
-                      <span className="text-[8px] sm:text-[9px] font-black text-[rgba(0,0,0,0.70)] bg-[rgba(0,0,0,0.05)] px-2 py-0.5 rounded uppercase tracking-wider">Booked</span>
-                    </div>
-                  );
-                }
-
-                return (
-                  <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`border rounded-xl p-2 flex flex-col items-start transition-all text-left ${isActive ? 'bg-[var(--qp-primary-hover)] border-[var(--qp-primary-hover)] text-[#000000] shadow-md shadow-[var(--qp-primary)]/20' : `${theme.bg} ${theme.border} ${theme.text} ${theme.hover}`}`}>
-                    <span className="text-[9px] sm:text-[10px] font-bold leading-tight mb-1">{timeStr}</span>
-                    <span className={`text-[9px] font-medium mb-0.5 ${isActive ? 'text-[#000000]/80' : theme.mutedText}`}>{slot.durationMinutes} min</span>
-                    <span className="text-xs sm:text-sm font-black">₹{slot.price}</span>
+          {/* Scrollable Body */}
+          <div className="flex-1 p-5 sm:p-6 space-y-7 bg-[#FFFFFF] pb-36">
+            
+            {/* Dates */}
+            <div>
+              <h3 className="text-xs font-bold text-[#000000] mb-3 uppercase tracking-wider">1. Select Date</h3>
+              <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none scroll-smooth">
+                {generateDates().map(d => (
+                  <button key={d.iso} onClick={() => { setLocalDraft({ ...localDraft, date: d.iso }); setSelectedSlotIds([]); }} className={`flex-shrink-0 w-[66px] h-[80px] rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition-all ${d.active ? 'bg-[#FCA311] border-[#FCA311] text-[#000000] shadow-md shadow-[#FCA311]/25 scale-[1.02]' : 'bg-[#FFFFFF] border-[rgba(0,0,0,0.08)] text-[rgba(0,0,0,0.70)] hover:border-[#FCA311]/40 shadow-sm'}`}>
+                    <span className={`text-[10px] font-semibold uppercase ${d.active ? 'text-[#000000]' : 'text-[rgba(0,0,0,0.70)]'}`}>{d.label}</span>
+                    <span className="text-lg font-black">{d.day}</span>
+                    <span className={`text-[10px] font-semibold ${d.active ? 'text-[#000000]' : 'text-[rgba(0,0,0,0.70)]'}`}>{d.mon}</span>
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
+
+            {/* Slots */}
+            <div className="bg-[#FFFFFF] rounded-2xl p-4 sm:p-5 border border-[rgba(0,0,0,0.08)] shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <h3 className="text-xs font-bold text-[#000000] uppercase tracking-wider mb-0.5">Available Slots ({date})</h3>
+                  <p className="text-[10px] font-medium text-[rgba(0,0,0,0.60)]">Slots for {venue.name}</p>
+                </div>
+                <div className="inline-flex self-start sm:self-auto items-center gap-1 bg-[rgba(0,0,0,0.04)] p-1 rounded-full border border-[rgba(0,0,0,0.06)]">
+                  <button onClick={() => setSlotFilter('all')} className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all ${slotFilter === 'all' ? 'bg-[#FCA311] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`}>All</button>
+                  <button onClick={() => setSlotFilter('morning')} className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all ${slotFilter === 'morning' ? 'bg-[#FCA311] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`}>☀️ Morning</button>
+                  <button onClick={() => setSlotFilter('evening')} className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all ${slotFilter === 'evening' ? 'bg-[#FCA311] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`}>🌙 Evening</button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {displaySlots.map((slot) => {
+                  const isActive = selectedSlotIds.includes(slot.id);
+                  const isBooked = !slot.available;
+                  const hour = parseInt(slot.startTime.split(':')[0], 10);
+                  const isDayTime = hour >= 6 && hour < 18;
+                  const timeStr = `${isDayTime ? '☀️' : '🌙'} ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`;
+                  
+                  if (isBooked) {
+                    return (
+                      <div key={slot.id} className="border border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.03)] rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center opacity-50 select-none">
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-[rgba(0,0,0,0.50)] line-through mb-1.5 leading-tight text-center">{timeStr}</span>
+                        <span className="text-[9px] font-black text-[rgba(0,0,0,0.60)] bg-[rgba(0,0,0,0.06)] px-2.5 py-0.5 rounded-full uppercase tracking-wider">Booked</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`rounded-2xl p-3 sm:p-3.5 flex flex-col items-start transition-all text-left border ${isActive ? 'bg-[#FCA311] border-[#FCA311] text-[#000000] shadow-md shadow-[#FCA311]/25 ring-2 ring-[#FCA311]/40 scale-[1.02]' : 'bg-[#FFFFFF] border-[rgba(0,0,0,0.08)] text-[#000000] hover:border-[#FCA311]/50 hover:shadow-sm'}`}>
+                      <span className="text-[10px] sm:text-[11px] font-bold leading-tight mb-1">{timeStr}</span>
+                      <span className={`text-[10px] font-medium mb-1 ${isActive ? 'text-[#000000]/80' : 'text-[rgba(0,0,0,0.60)]'}`}>{slot.durationMinutes} min</span>
+                      <span className="text-xs sm:text-sm font-black tracking-tight">₹{slot.price}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
           {/* Form */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
@@ -969,7 +951,7 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
               </div>
             </div>
           </div>
-          <button onClick={onContinue} disabled={!isFormValid} className={`w-full sm:w-auto text-[#000000] px-6 py-3.5 rounded-full font-bold text-[13px] flex items-center justify-center gap-2 transition-transform shadow-lg ${isFormValid ? 'bg-[var(--qp-primary-hover)] hover:bg-[var(--qp-primary)] active:scale-95 shadow-[var(--qp-primary-hover)]/30' : 'bg-[#FFFFFF] shadow-none'}`}>
+          <button onClick={onContinue} disabled={!isFormValid} className={`w-full sm:w-auto text-[#000000] px-7 py-3.5 rounded-full font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md ${isFormValid ? 'bg-[#FCA311] hover:bg-[#FCA311]/90 active:scale-95 shadow-[#FCA311]/30 cursor-pointer' : 'bg-[rgba(0,0,0,0.06)] text-[rgba(0,0,0,0.35)] shadow-none cursor-not-allowed'}`}>
             CONFIRM & BOOK SLOT
             <ArrowRight size={16} />
           </button>

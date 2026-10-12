@@ -69,6 +69,62 @@ export const QbiLayerContent: React.FC = () => {
   const primaryBtnRef = useRef<HTMLButtonElement | null>(null);
   const helperBubbleRef = useRef<HTMLDivElement | null>(null);
 
+  // Draggable Qbi helper button state
+  const [btnPos, setBtnPos] = React.useState<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    pointerStartX: number;
+    pointerStartY: number;
+    hasMoved: boolean;
+  } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return;
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    dragRef.current = {
+      startX: rect.left,
+      startY: rect.top,
+      pointerStartX: e.clientX,
+      pointerStartY: e.clientY,
+      hasMoved: false,
+    };
+    try {
+      btn.setPointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current) return;
+    const deltaX = e.clientX - dragRef.current.pointerStartX;
+    const deltaY = e.clientY - dragRef.current.pointerStartY;
+    if (Math.hypot(deltaX, deltaY) > 5) {
+      dragRef.current.hasMoved = true;
+    }
+    if (dragRef.current.hasMoved) {
+      const maxX = window.innerWidth - 60;
+      const maxY = window.innerHeight - 60;
+      const nextX = Math.max(12, Math.min(maxX, dragRef.current.startX + deltaX));
+      const nextY = Math.max(12, Math.min(maxY, dragRef.current.startY + deltaY));
+      setBtnPos({ x: nextX, y: nextY });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current) return;
+    const wasDragging = dragRef.current.hasMoved;
+    dragRef.current = null;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+    if (wasDragging) {
+      return;
+    }
+    if (!hasSeenHelper) markHelperSeen();
+    setHelperOpen(!helperOpen);
+  };
+
   // Focus management for alertdialog
   useEffect(() => {
     if (popup && popup.type === 'notBooked') {
@@ -265,12 +321,22 @@ export const QbiLayerContent: React.FC = () => {
             className={`qbi-helper-btn ${
               !hasSeenHelper ? 'qbi-helper-btn--pulse' : ''
             }`}
+            style={
+              btnPos
+                ? {
+                    left: `${btnPos.x}px`,
+                    top: `${btnPos.y}px`,
+                    right: 'auto',
+                    bottom: 'auto',
+                    touchAction: 'none',
+                  }
+                : { touchAction: 'none' }
+            }
             aria-label="Qbi help"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!hasSeenHelper) markHelperSeen();
-              setHelperOpen(!helperOpen);
-            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onClick={(e) => e.stopPropagation()}
           >
             <Qbi mood="hello" size={40} animate={false} />
           </button>
@@ -279,6 +345,16 @@ export const QbiLayerContent: React.FC = () => {
             <div
               ref={helperBubbleRef}
               className="qbi-helper-bubble"
+              style={
+                btnPos
+                  ? {
+                      left: `${Math.max(12, Math.min(window.innerWidth - 276, btnPos.x > 260 ? btnPos.x - 240 : btnPos.x))}px`,
+                      top: btnPos.y > 180 ? `${btnPos.y - 130}px` : `${btnPos.y + 60}px`,
+                      right: 'auto',
+                      bottom: 'auto',
+                    }
+                  : undefined
+              }
               role="region"
               aria-label="Qbi tips"
               onClick={(e) => e.stopPropagation()}
