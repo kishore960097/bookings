@@ -1225,6 +1225,7 @@ function ReservationConfirmationView({ venue, user, draft, onBack, onBooked }: {
 
 function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: string; name: string; image?: string }; user: any; draft: BookingDraft; onBack: () => void; onPaid: (booking: any) => void }) {
   useQbiScreen('payment');
+  const qbi = useQbi();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'google' | 'phonepe' | 'paytm'>('google');
@@ -1241,12 +1242,26 @@ function PaymentView({ venue, user, draft, onBack, onPaid }: { venue: { id: stri
   const pay = async () => {
     if (!user) { setError('Please sign in again before booking.'); return; }
     if (!draft.date || !draft.startTime || !draft.endTime || (draft.endTime !== '00:00' && draft.endTime <= draft.startTime)) { setError('Complete a valid date and time range before continuing.'); return; }
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) { qbi.notBooked('offline', { onRetry: pay }); return; }
     setLoading(true);
-    
-    const result = await api.createBooking({ salonId: venue.id, customerName: user.name || user.displayName || 'Customer', customerPhone: user.phone || 'Not provided', mode: 'appointment', scheduledDate: draft.date, scheduledTime: draft.startTime, slotEndTime: draft.endTime, price: draft.price, numberOfPlayers: draft.players, notes: `${draft.format}; ${draft.pitches} pitch${draft.pitches === 1 ? '' : 'es'}`, paymentType: draft.paymentType === 'ADVANCE' ? 'ADVANCE' : 'FULL', advanceAmount: draft.paymentType === 'ADVANCE' ? draft.advanceAmount : 0 });
+
+    let result: Awaited<ReturnType<typeof api.createBooking>>;
+    try {
+      result = await api.createBooking({ salonId: venue.id, customerName: user.name || user.displayName || 'Customer', customerPhone: user.phone || 'Not provided', mode: 'appointment', scheduledDate: draft.date, scheduledTime: draft.startTime, slotEndTime: draft.endTime, price: draft.price, numberOfPlayers: draft.players, notes: `${draft.format}; ${draft.pitches} pitch${draft.pitches === 1 ? '' : 'es'}`, paymentType: draft.paymentType === 'ADVANCE' ? 'ADVANCE' : 'FULL', advanceAmount: draft.paymentType === 'ADVANCE' ? draft.advanceAmount : 0 });
+    } catch (e) {
+      setLoading(false);
+      setError('Network problem. Your booking was not confirmed.');
+      qbi.notBooked(classifyBookingFailure(e), { onRetry: pay });
+      return;
+    }
     setLoading(false);
-    if (result.success && result.booking) onPaid(result.booking);
-    else setError(result.error || 'This slot is no longer available. Please choose another slot.');
+    if (result.success && result.booking) {
+      qbi.booked();
+      onPaid(result.booking);
+    } else {
+      setError(result.error || 'This slot is no longer available. Please choose another slot.');
+      qbi.notBooked(classifyBookingFailure(result), { onRetry: pay });
+    }
   };
 
   return (
@@ -1571,6 +1586,7 @@ function BookingView({ onViewTicket }: { onViewTicket?: (b: any) => void }) {
         {loading && <p className="text-center py-8 text-[rgba(0,0,0,0.70)] font-bold text-sm">Loading bookings...</p>}
         {!loading && bookings.length === 0 && (
           <div className="text-center py-12 flex flex-col items-center">
+            <Qbi mood="waiting" size={96} />
             <div className="w-16 h-16 bg-[#FFFFFF] rounded-full flex items-center justify-center mb-4"><CalendarDays size={24} className="text-[rgba(0,0,0,0.70)]" /></div>
             <p className="text-[rgba(0,0,0,0.70)] font-bold text-sm">No {activeTab} bookings found.</p>
           </div>
