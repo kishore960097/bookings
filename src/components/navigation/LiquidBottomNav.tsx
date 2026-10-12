@@ -1,18 +1,19 @@
 import React from 'react';
-import { Home, Ticket, CalendarDays, Heart, UserRound } from 'lucide-react';
+import { Home, CalendarDays, Plus, Heart, UserRound } from 'lucide-react';
 
-export type CustomerTabKey = 'home' | 'turf' | 'booking' | 'favorites' | 'profile';
+export type CustomerTabKey = 'home' | 'turf' | 'booking' | 'add' | 'favorites' | 'profile';
 
 interface TabItem {
   id: CustomerTabKey;
   label: string;
   icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  isCenterAction?: boolean;
 }
 
 const TABS: TabItem[] = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'turf', label: 'Turf', icon: Ticket },
   { id: 'booking', label: 'Booking', icon: CalendarDays },
+  { id: 'add', label: 'Add', icon: Plus, isCenterAction: true },
   { id: 'favorites', label: 'Favorites', icon: Heart },
   { id: 'profile', label: 'Profile', icon: UserRound },
 ];
@@ -20,16 +21,19 @@ const TABS: TabItem[] = [
 interface LiquidBottomNavProps {
   activeTab: CustomerTabKey;
   onTabChange: (tab: CustomerTabKey) => void;
+  onPlusClick?: () => void;
   visible?: boolean;
 }
 
 export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
   activeTab,
   onTabChange,
+  onPlusClick,
   visible = true,
 }) => {
   const activeIndex = TABS.findIndex((tab) => tab.id === activeTab);
   const safeActiveIndex = activeIndex >= 0 ? activeIndex : 0;
+  const isCenterActive = activeTab === 'add';
 
   return (
     <div
@@ -44,13 +48,14 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
     >
       {/* ── Apple-Inspired Liquid Glass Floating Dock ── */}
       <nav
-        className="liquid-glass-dock pointer-events-auto relative w-full max-w-[400px] h-[64px] px-2 py-1.5 flex items-center justify-between"
+        className="liquid-glass-dock pointer-events-auto relative w-full max-w-[420px] h-[64px] px-2 py-1.5 flex items-center justify-between"
         style={{
-          background: 'rgba(255, 255, 255, 0.62)',
+          background: 'rgba(255, 255, 255, 0.65)',
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid rgba(255, 255, 255, 0.9)',
           boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), 0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(0, 0, 0, 0.04)',
+          overflow: 'visible',
         }}
         role="tablist"
         aria-label="Navigation Tabs"
@@ -58,20 +63,51 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
         {/* Inner flex wrapper for 100% pixel-perfect indicator synchronization */}
         <div className="relative w-full h-full flex items-center">
           {/* ── Shared Animated Selection Capsule (280ms fluid ease-out) ── */}
-          <div
-            className="absolute top-0 bottom-0 w-1/5 pointer-events-none liquid-indicator-track z-0 flex items-center justify-center p-1"
-            style={{
-              transform: `translateX(${safeActiveIndex * 100}%)`,
-            }}
-            aria-hidden="true"
-          >
-            <div className="w-full h-full liquid-pill-indicator" />
-          </div>
+          {!isCenterActive && (
+            <div
+              className="absolute top-0 bottom-0 w-1/5 pointer-events-none liquid-indicator-track z-0 flex items-center justify-center p-1"
+              style={{
+                transform: `translateX(${safeActiveIndex * 100}%)`,
+              }}
+              aria-hidden="true"
+            >
+              <div className="w-full h-full liquid-pill-indicator" />
+            </div>
+          )}
 
           {/* ── Five Navigation Items ── */}
-          {TABS.map((tab) => {
+          {TABS.map((tab, idx) => {
             const isActive = tab.id === activeTab;
             const Icon = tab.icon;
+
+            if (tab.isCenterAction) {
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label="Add Turf or Booking"
+                  onClick={() => {
+                    if (onPlusClick) {
+                      onPlusClick();
+                    } else {
+                      onTabChange(tab.id);
+                    }
+                  }}
+                  className="relative z-20 w-1/5 flex-1 h-full min-w-0 flex flex-col items-center justify-center select-none group cursor-pointer focus:outline-none"
+                >
+                  {/* Elevated Plus Button - slightly goes up without hiding label or overriding other features */}
+                  <div className="-translate-y-3.5 w-11 h-11 rounded-full bg-[#FCA311] text-[#000000] border-2 border-white shadow-[0_6px_18px_rgba(252,163,17,0.48)] flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-active:scale-95 group-hover:shadow-[0_8px_24px_rgba(252,163,17,0.65)]">
+                    <Plus size={22} strokeWidth={2.8} className="text-[#000000]" />
+                  </div>
+                  {/* Clean visible label underneath without being hidden */}
+                  <span className="-translate-y-2.5 text-[10px] tracking-tight leading-tight font-black text-[#000000] truncate max-w-full px-1">
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            }
 
             return (
               <button

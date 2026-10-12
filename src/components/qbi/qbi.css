@@ -58,6 +58,22 @@
   98% { transform: translateY(-4px) scale(0.98, 1.02); }
 }
 
+@keyframes qbi-eye-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.08); }
+  96% { transform: scaleY(1); }
+}
+
+@keyframes qbi-ear-left {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(-13deg); }
+}
+
+@keyframes qbi-ear-right {
+  0%, 100% { transform: rotate(8deg); }
+  50% { transform: rotate(13deg); }
+}
+
 /* Animations applied to Mascot wrapper group only */
 @media (prefers-reduced-motion: no-preference) {
   .qbi-anim {
@@ -87,6 +103,21 @@
 
   .qbi-idle {
     animation: qbi-idle-hop 8s ease-in-out infinite;
+  }
+
+  .qbi-eyes {
+    transform-origin: 150px 190px;
+    animation: qbi-eye-blink 3.4s ease-in-out infinite;
+  }
+
+  .qbi-ear-l {
+    transform-origin: 127px 125px;
+    animation: qbi-ear-left 4s ease-in-out infinite;
+  }
+
+  .qbi-ear-r {
+    transform-origin: 173px 126px;
+    animation: qbi-ear-right 4s ease-in-out infinite;
   }
 
   .qbi-popup-card {

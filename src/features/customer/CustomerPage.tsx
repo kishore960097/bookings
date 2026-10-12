@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Bell, CalendarDays, ChevronDown, CircleDollarSign, Globe2, Heart, Home, Info, LockKeyhole, LogOut, MapPin, Search, SlidersHorizontal, Ticket, UserRound, UserCircle, Headphones, ClipboardCheck, Phone, Star, Receipt, Wallet, CreditCard, ShieldCheck, Zap, Clock, Check, ChevronLeft, Crosshair, IndianRupee, Sun, Moon, QrCode, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bell, CalendarDays, ChevronDown, ChevronRight, CircleDollarSign, Globe2, Heart, Home, Info, LockKeyhole, LogOut, MapPin, Search, SlidersHorizontal, Ticket, UserRound, UserCircle, Headphones, ClipboardCheck, Phone, Star, Receipt, Wallet, CreditCard, ShieldCheck, Zap, Clock, Check, ChevronLeft, Crosshair, IndianRupee, Sun, Moon, QrCode, Download } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
@@ -119,34 +119,10 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
   }, [userLocation]);
 
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isPersonalizedModalOpen, setIsPersonalizedModalOpen] = useState(false);
   const [isMapView, setIsMapView] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
-
-  const handleGetCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-          const res = await api.reverseGeocode(position.coords.latitude, position.coords.longitude);
-          if (res.success && res.address) {
-            // Address is already formatted nicely by backend (e.g. "Perundurai, Erode, Tamil Nadu")
-            setUserLocation(res.address.split(' - ')[0]); // Remove pincode if present for header
-          } else {
-            setUserLocation('Current Location');
-          }
-          setIsLocationModalOpen(false);
-          setIsMapView(false);
-        } catch (e) {
-          setUserLocation('Current Location');
-          setIsLocationModalOpen(false);
-          setIsMapView(false);
-        }
-      }, () => {
-        alert("Unable to retrieve your location. Please check browser permissions.");
-      });
-    } else {
-      alert("Geolocation is not supported by your browser.");
-    }
-  };
+  const [isLocating, setIsLocating] = useState(false);
 
   // Extract unique locations from all salons for auto-suggest
   const suggestedLocations = useMemo(() => {
@@ -158,6 +134,71 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
     if (!locationSearch) return all;
     return all.filter(l => l.toLowerCase().includes(locationSearch.toLowerCase()));
   }, [salons, locationSearch]);
+
+  const handleGetCurrentLocation = async () => {
+    setIsLocating(true);
+
+    const resolveWithIP = async () => {
+      try {
+        const ipRes = await fetch('https://ipapi.co/json/');
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.city) {
+            setUserLocation(ipData.city);
+            return true;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return false;
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const res = await api.reverseGeocode(position.coords.latitude, position.coords.longitude);
+            if (res.success && (res.city || res.address)) {
+              const cleanCity = res.city || res.address.split(',')[0].trim();
+              setUserLocation(cleanCity);
+            } else {
+              const ipResolved = await resolveWithIP();
+              if (!ipResolved) setUserLocation('Current Location');
+            }
+          } catch {
+            const ipResolved = await resolveWithIP();
+            if (!ipResolved) setUserLocation('Current Location');
+          } finally {
+            setIsLocating(false);
+            setIsLocationModalOpen(false);
+            setIsMapView(false);
+          }
+        },
+        async () => {
+          // GPS denied or timed out -> silently fallback to IP location
+          const ipResolved = await resolveWithIP();
+          if (!ipResolved) {
+            if (suggestedLocations.length > 0) {
+              setUserLocation(suggestedLocations[0]);
+            } else {
+              setUserLocation('All Locations');
+            }
+          }
+          setIsLocating(false);
+          setIsLocationModalOpen(false);
+          setIsMapView(false);
+        },
+        { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 }
+      );
+    } else {
+      const ipResolved = await resolveWithIP();
+      if (!ipResolved) setUserLocation('All Locations');
+      setIsLocating(false);
+      setIsLocationModalOpen(false);
+      setIsMapView(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -175,21 +216,34 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
         id: salon.id,
         name: salon.name,
         address: fullAddress || 'Address unavailable',
+        city: salon.city || '',
         distance: salon.distanceKm === undefined ? 'Distance unavailable' : `${salon.distanceKm.toFixed(1)} km`,
         image: salon.logoUrl || salon.coverUrl || '',
         sports: salon.category,
       };
     });
 
-    return apiVenues.filter((venue) => {
+    const filtered = apiVenues.filter((venue) => {
       const matchQuery = `${venue.name} ${venue.address} ${venue.sports}`.toLowerCase().includes(query.toLowerCase());
       const matchSport = selectedSport === 'All Sports' || venue.sports.toLowerCase().includes(selectedSport.toLowerCase());
-      // If the user is actively searching, search globally across all locations.
-      // Otherwise, filter strictly by the currently selected userLocation.
-      const matchLocation = query.length > 0 || userLocation === 'All Locations' || venue.address.toLowerCase().includes(userLocation.toLowerCase());
+      // If searching, search globally. Otherwise match user location or show all if All/Current/Map
+      const matchLocation =
+        query.length > 0 ||
+        userLocation === 'All Locations' ||
+        userLocation === 'Current Location' ||
+        userLocation === 'Map Selection' ||
+        venue.address.toLowerCase().includes(userLocation.toLowerCase()) ||
+        (venue.city && userLocation.toLowerCase().includes(venue.city.toLowerCase()));
       
       return matchQuery && matchSport && matchLocation;
     });
+
+    // Resilient fallback: if user's specific city has 0 venues in db, don't leave customer with a blank screen
+    if (filtered.length === 0 && userLocation !== 'All Locations' && query.length === 0) {
+      return apiVenues.filter((venue) => selectedSport === 'All Sports' || venue.sports.toLowerCase().includes(selectedSport.toLowerCase()));
+    }
+
+    return filtered;
   }, [activeTab, salons, query, selectedSport, userLocation]);
 
   useEffect(() => {
@@ -226,134 +280,160 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
   }
 
   return (
-    <main className="bg-[var(--qp-bg)] text-[var(--qp-text)] min-h-[100dvh] pb-[calc(8rem+env(safe-area-inset-bottom,0px))] font-sans relative" aria-label="Customer home">
+    <main className="bg-[#F8F8F9] text-[var(--qp-text)] min-h-[100dvh] pb-[calc(8rem+env(safe-area-inset-bottom,0px))] font-sans relative" aria-label="Customer home">
       
       {/* --- HOME TAB --- */}
       {activeTab === 'home' && (
         <div className="flex flex-col w-full relative">
-          {/* Header Area */}
-          <div className="sticky top-0 z-50 ap-glass-nav px-5 pt-10 pb-6 w-full">
+          {/* Header Area: Sleek Compact Liquid Glass */}
+          <div
+            className="sticky top-0 z-40 px-5 pt-3.5 pb-3 w-full border-b border-black/[0.06] transition-all"
+            style={{
+              background: 'rgba(255, 255, 255, 0.65)',
+              backdropFilter: 'blur(28px) saturate(190%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(190%)',
+              boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.03)',
+            }}
+          >
             {/* Top Bar */}
-            <header className="flex justify-between items-center mb-6">
+            <header className="flex justify-between items-center mb-2.5">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-[var(--qp-primary)] rounded-xl flex items-center justify-center shadow-sm">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <div className="w-9 h-9 bg-[#FCA311] rounded-xl flex items-center justify-center shadow-sm">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                 </div>
-                <span className="text-[22px] font-semibold text-[var(--qp-text)] tracking-tight">QGo</span>
+                <span className="text-[20px] font-bold text-[#000000] tracking-tight">QGo</span>
               </div>
               
-              <div className="flex items-center gap-3">
-                <button type="button" className="relative" onClick={onOpenNotifications}>
-                  <Bell size={22} className="text-[var(--qp-text)] hover:opacity-80 transition-opacity" />
-                  <span className="absolute top-0 right-1 w-2.5 h-2.5 bg-[#FCA311] border-2 border-[var(--qp-bg)] rounded-full"></span>
+              <div className="flex items-center gap-2.5">
+                <button type="button" className="relative p-1.5 rounded-full hover:bg-black/5 transition-colors" onClick={onOpenNotifications} title="Notifications">
+                  <Bell size={20} className="text-[#000000] hover:opacity-80 transition-opacity" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-[#FCA311] border-2 border-white rounded-full"></span>
                 </button>
               </div>
             </header>
 
-            {/* Location & Greeting */}
-            <div className="flex justify-between items-end mb-6">
+            {/* Location & Auto-detect */}
+            <div className="flex justify-between items-center mb-2.5">
               <div>
-                <p className="text-[10px] font-semibold text-[var(--qp-text-sec)] tracking-wider mb-0.5 uppercase">Your Location</p>
+                <p className="text-[10px] font-bold text-[rgba(0,0,0,0.55)] tracking-wider mb-0.5 uppercase">Your Location</p>
                 <div 
                   className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setIsLocationModalOpen(true)}
                   title="Change Location"
                 >
-                  <MapPin size={18} className="text-[var(--qp-primary)]" />
-                  <h2 className="text-[19px] font-semibold text-[var(--qp-text)] tracking-tight">{userLocation}</h2>
-                  <ChevronDown size={16} className="text-[var(--qp-text)] mt-0.5" />
+                  <MapPin size={17} className="text-[#FCA311]" />
+                  <h2 className="text-[17px] font-bold text-[#000000] tracking-tight">{userLocation}</h2>
+                  <ChevronDown size={15} className="text-[#000000] mt-0.5" />
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] font-semibold text-[var(--qp-text-sec)] tracking-wider mb-0.5 uppercase">Welcome Back</p>
-                <p className="text-[14px] font-medium text-[var(--qp-text)]">{user?.name || user?.displayName || 'Customer'}</p>
-              </div>
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={isLocating}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 hover:bg-white text-[11px] font-bold text-[#000000] border border-black/10 shadow-sm transition-all cursor-pointer active:scale-95"
+                title="Fetch current location"
+              >
+                {isLocating ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-[#FCA311] border-t-transparent rounded-full animate-spin"></span>
+                    <span>Locating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Crosshair size={13} className="text-[#FCA311]" />
+                    <span>Auto Detect</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Search Bar */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div className="relative flex-1">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--qp-text-sec)]" />
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(0,0,0,0.55)]" />
                 <input 
                   type="text" 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search venues, sports..." 
-                  className="w-full bg-[var(--qp-surface)] border border-[var(--qp-border)] rounded-[14px] py-3.5 pl-11 pr-4 text-[13px] font-medium text-[var(--qp-text)] focus:outline-none focus:border-[var(--qp-primary)] transition-colors placeholder-[var(--qp-text-sec)]"
+                  className="w-full bg-white/90 backdrop-blur-md border border-black/[0.08] rounded-2xl py-3 pl-11 pr-4 text-[13px] font-medium text-[#000000] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] focus:outline-none focus:border-[#FCA311] transition-all placeholder:text-[rgba(0,0,0,0.50)]"
                 />
               </div>
-              <button type="button" className="w-[50px] h-[50px] bg-[var(--qp-surface)] border border-[var(--qp-border)] rounded-[14px] flex items-center justify-center text-[var(--qp-text)] hover:bg-black/5 transition-colors shrink-0">
-                <SlidersHorizontal size={20} strokeWidth={2} />
+              <button type="button" className="w-[46px] h-[46px] bg-white/90 backdrop-blur-md border border-black/[0.08] rounded-2xl flex items-center justify-center text-[#000000] hover:bg-black/5 transition-colors shrink-0 shadow-sm">
+                <SlidersHorizontal size={18} strokeWidth={2} />
               </button>
             </div>
           </div>
 
-
-
-          {/* Available Venues */}
-          <div className="px-5 mb-6 mt-6">
-            <div className="flex justify-between items-center mb-4">
+          {/* Available Venues Section */}
+          <div className="px-5 mb-6 mt-5">
+            <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-semibold text-[var(--qp-text)] tracking-tight">Available Venues</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#000000] tracking-tight">Available Venues</h2>
               </div>
             </div>
             
             {/* Filter Chips */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-none pb-4 snap-x">
-              <button type="button" className="flex items-center gap-1.5 shrink-0 bg-[var(--qp-primary)] text-[#000000] px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start">
-                <CalendarDays size={14} /> 14 Sep <ChevronDown size={14} />
+            <div className="flex gap-2 overflow-x-auto scrollbar-none pb-3 snap-x">
+              <button type="button" className="flex items-center gap-1.5 shrink-0 bg-[#FCA311] text-[#000000] px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start">
+                <CalendarDays size={14} /> Today <ChevronDown size={14} />
               </button>
-              <button type="button" onClick={() => setSelectedSport('All Sports')} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === 'All Sports' ? 'bg-[var(--qp-primary)] text-[#000000] border-[var(--qp-primary)]' : 'bg-[#FFFFFF] text-[rgba(0,0,0,0.70)] border-[rgba(0,0,0,0.12)] hover:bg-[rgba(0,0,0,0.05)]'}`}>
+              <button type="button" onClick={() => setSelectedSport('All Sports')} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === 'All Sports' ? 'bg-[#FCA311] text-[#000000] border-[#FCA311]' : 'bg-white/90 backdrop-blur-sm text-[rgba(0,0,0,0.70)] border-black/[0.08] hover:bg-white'}`}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> 
                 All Sports <ChevronDown size={14} />
               </button>
               {['Cricket', 'Football', 'Tennis'].map((sport) => (
-                <button key={sport} type="button" onClick={() => setSelectedSport(sport)} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === sport ? 'bg-[var(--qp-primary)] text-[#000000] border-[var(--qp-primary)]' : 'bg-[#FFFFFF] text-[rgba(0,0,0,0.70)] border-[rgba(0,0,0,0.12)] hover:bg-[rgba(0,0,0,0.05)]'}`}>
+                <button key={sport} type="button" onClick={() => setSelectedSport(sport)} className={`flex items-center gap-1.5 shrink-0 px-4 py-2 rounded-full text-xs font-bold shadow-sm snap-start transition-colors border ${selectedSport === sport ? 'bg-[#FCA311] text-[#000000] border-[#FCA311]' : 'bg-white/90 backdrop-blur-sm text-[rgba(0,0,0,0.70)] border-black/[0.08] hover:bg-white'}`}>
                   {sport}
                 </button>
               ))}
             </div>
 
-            {/* Venues List */}
-            <div className="flex flex-col gap-5">
+            {/* Venues List: Liquid Box Cards */}
+            <div className="flex flex-col gap-4">
               {loading && <p className="text-center py-8 text-[rgba(0,0,0,0.70)] font-bold text-sm">Loading venues...</p>}
               {!loading && venues.length === 0 && <p className="text-center py-8 text-[rgba(0,0,0,0.70)] font-bold text-sm">No venues match your search.</p>}
               {venues.map((venue) => (
-                <article key={venue.name} className="bg-[#FFFFFF] rounded-[1.25rem] p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-[rgba(0,0,0,0.12)] cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedVenue(venue)}>
-                  <div className="flex justify-between items-start mb-2.5 px-1">
+                <article
+                  key={venue.name}
+                  className="bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-white/80 hover:border-[#FCA311]/50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.09)] cursor-pointer transition-all duration-300"
+                  onClick={() => setSelectedVenue(venue)}
+                >
+                  <div className="flex justify-between items-start mb-2.5 px-0.5">
                     <div>
-                      <h3 className="font-black text-[#000000] text-[17px] uppercase tracking-tight leading-none mb-1.5">{venue.name}</h3>
+                      <h3 className="font-bold text-[#000000] text-[17px] tracking-tight leading-snug mb-1">{venue.name}</h3>
                       <div className="flex items-start gap-1">
-                        <MapPin size={12} className="text-[rgba(0,0,0,0.70)] mt-[2px] shrink-0" />
-                        <p className="text-[10px] text-[rgba(0,0,0,0.70)] font-medium leading-snug line-clamp-2 pr-4">{venue.address}</p>
+                        <MapPin size={13} className="text-[#FCA311] mt-[2px] shrink-0" />
+                        <p className="text-[11px] text-[rgba(0,0,0,0.65)] font-medium leading-snug line-clamp-2 pr-4">{venue.address}</p>
                       </div>
                       {userLocation !== 'All Locations' && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[10px] font-bold text-[var(--qp-primary)] bg-[var(--qp-primary-soft)] px-1.5 py-0.5 rounded uppercase tracking-wider">{venue.distance || '1.2 km'} Away</span>
+                        <div className="flex items-center gap-1 mt-1.5">
+                          <span className="text-[10px] font-bold text-[#000000] bg-[#FCA311]/25 px-2 py-0.5 rounded-full uppercase tracking-wider">{venue.distance || '1.2 km'} Away</span>
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 bg-[var(--qp-primary-soft)] px-2 py-1 rounded-full shrink-0">
-                      <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
-                      <span className="text-[11px] font-black text-[#000000]">{Math.random() > 0.5 ? '4.0' : '4.5'}</span>
+                    <div className="flex items-center gap-1 bg-[#FCA311]/20 px-2.5 py-1 rounded-full shrink-0 border border-[#FCA311]/30">
+                      <Star size={12} className="fill-[#FCA311] text-[#FCA311]" />
+                      <span className="text-[11px] font-black text-[#000000]">4.5</span>
                     </div>
                   </div>
                   
-                  <div className="relative w-full h-[150px] rounded-xl overflow-hidden mb-3">
-                    <img src={venue.image} alt={venue.name} className="w-full h-full object-cover" />
-                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-[#FFFFFF] rounded-full flex items-center justify-center shadow-md hover:bg-[var(--qp-primary-soft)] transition-colors" onClick={(e) => { e.stopPropagation(); toggleFavorite(venue.name); }}>
+                  <div className="relative w-full h-[155px] rounded-xl overflow-hidden mb-3 shadow-inner">
+                    <img src={venue.image} alt={venue.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                    <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors" onClick={(e) => { e.stopPropagation(); toggleFavorite(venue.name); }}>
                       <Heart size={16} strokeWidth={2.5} className={favorites.includes(venue.name) ? "fill-[#FCA311] text-[#FCA311]" : "text-[rgba(0,0,0,0.70)]"} />
                     </button>
                   </div>
                   
-                  <div className="flex justify-between items-center px-1">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[rgba(0,0,0,0.70)] uppercase tracking-wide">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5E5E5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                      Sports <span className="text-[rgba(0,0,0,0.60)]">•</span> Turf
+                  <div className="flex justify-between items-center px-0.5 pt-1 border-t border-black/[0.05]">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[rgba(0,0,0,0.65)] uppercase tracking-wide">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                      Sports <span className="text-[rgba(0,0,0,0.40)]">•</span> Turf
                     </div>
-                    <div className="flex gap-2 text-[var(--qp-primary)]">
-                      <button type="button" className="p-1.5 hover:bg-[var(--qp-primary-soft)] rounded-full transition-colors"><MapPin size={18} strokeWidth={2.5} /></button>
-                      <button type="button" className="p-1.5 hover:bg-[var(--qp-primary-soft)] rounded-full transition-colors"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4L22 2z"/></svg></button>
+                    <div className="flex items-center gap-2 text-[#000000]">
+                      <span className="text-xs font-bold text-[#FCA311] bg-black px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-[#FCA311] hover:text-black transition-colors">
+                        Book Slot →
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -447,8 +527,109 @@ export function CustomerPage({ onOpenNotifications, onLogout }: { onOpenNotifica
             setSelectedSport('All Sports');
           }
         }}
+        onPlusClick={() => setIsPersonalizedModalOpen(true)}
         visible={showBottomNav}
       />
+
+      {/* --- PERSONALIZED TURF HUB (CENTER PLUS BUTTON MODAL) --- */}
+      {isPersonalizedModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/50 backdrop-blur-sm animate-in fade-in"
+          onClick={() => setIsPersonalizedModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg mx-auto bg-white rounded-t-[2rem] p-5 sm:p-6 shadow-2xl border-t border-black/10 flex flex-col animate-in slide-in-from-bottom-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Grab Handle */}
+            <div className="w-12 h-1.5 bg-black/15 rounded-full mx-auto mb-4" />
+
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#000000] bg-[#FCA311] px-2.5 py-0.5 rounded-full">
+                  Quick Actions
+                </span>
+                <h3 className="text-xl font-black text-[#000000] tracking-tight mt-1.5">Personalized Turf Hub</h3>
+              </div>
+              <button
+                onClick={() => setIsPersonalizedModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-black font-bold text-sm transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-[rgba(0,0,0,0.65)] mb-4 font-medium leading-relaxed">
+              Book a slot instantly, add your favorite home turf, or explore sports activities in one tap.
+            </p>
+
+            <div className="space-y-3 mb-5">
+              {/* Option 1: Quick Book Turf */}
+              <button
+                onClick={() => {
+                  setIsPersonalizedModalOpen(false);
+                  if (venues.length > 0) {
+                    setSelectedVenue(venues[0]);
+                    setBookingStep('slot');
+                  }
+                }}
+                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#FCA311] hover:bg-[#FCA311]/90 text-black text-left shadow-md transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-black text-[#FCA311] flex items-center justify-center shrink-0">
+                  <Ticket size={20} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-black text-sm text-[#000000]">Quick Book Turf Slot</h4>
+                  <p className="text-[11px] font-semibold text-black/80 truncate">
+                    Instant slot booking at {venues[0]?.name || 'top venue'}
+                  </p>
+                </div>
+                <ArrowRight size={18} className="text-black shrink-0" />
+              </button>
+
+              {/* Option 2: Explore & Add All Turfs */}
+              <button
+                onClick={() => {
+                  setIsPersonalizedModalOpen(false);
+                  setActiveTab('turf');
+                }}
+                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl bg-white hover:bg-black/5 text-black border border-black/10 text-left shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FCA311]/20 text-[#000000] flex items-center justify-center shrink-0 border border-[#FCA311]/30">
+                  <Search size={20} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-sm text-[#000000]">Browse & Add Turfs</h4>
+                  <p className="text-[11px] text-[rgba(0,0,0,0.60)] font-medium">
+                    Filter by sport, location, distance, and rating
+                  </p>
+                </div>
+                <ChevronRight size={18} className="text-[rgba(0,0,0,0.50)] shrink-0" />
+              </button>
+
+              {/* Option 3: Pin Favorite / Set Home Turf */}
+              <button
+                onClick={() => {
+                  setIsPersonalizedModalOpen(false);
+                  setActiveTab('favorites');
+                }}
+                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl bg-white hover:bg-black/5 text-black border border-black/10 text-left shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#FCA311]/20 text-[#000000] flex items-center justify-center shrink-0 border border-[#FCA311]/30">
+                  <Heart size={20} strokeWidth={2.5} className="fill-[#FCA311] text-[#FCA311]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-sm text-[#000000]">My Pinned & Saved Turfs</h4>
+                  <p className="text-[11px] text-[rgba(0,0,0,0.60)] font-medium">
+                    {favorites.length} saved turf{favorites.length !== 1 ? 's' : ''} in your collection
+                  </p>
+                </div>
+                <ChevronRight size={18} className="text-[rgba(0,0,0,0.50)] shrink-0" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* --- LOCATION SELECTOR MODAL --- */}
       {isLocationModalOpen && (
@@ -912,10 +1093,38 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
                   }
 
                   return (
-                    <button key={slot.id} onClick={() => toggleSlot(slot.id)} className={`rounded-2xl p-3 sm:p-3.5 flex flex-col items-start transition-all text-left border ${isActive ? 'bg-[#FCA311] border-[#FCA311] text-[#000000] shadow-md shadow-[#FCA311]/25 ring-2 ring-[#FCA311]/40 scale-[1.02]' : 'bg-[#FFFFFF] border-[rgba(0,0,0,0.08)] text-[#000000] hover:border-[#FCA311]/50 hover:shadow-sm'}`}>
-                      <span className="text-[10px] sm:text-[11px] font-bold leading-tight mb-1">{timeStr}</span>
-                      <span className={`text-[10px] font-medium mb-1 ${isActive ? 'text-[#000000]/80' : 'text-[rgba(0,0,0,0.60)]'}`}>{slot.durationMinutes} min</span>
-                      <span className="text-xs sm:text-sm font-black tracking-tight">₹{slot.price}</span>
+                    <button
+                      key={slot.id}
+                      onClick={() => toggleSlot(slot.id)}
+                      className={`rounded-2xl p-3 sm:p-3.5 flex flex-col items-start transition-all duration-200 text-left border relative overflow-hidden ${
+                        isActive
+                          ? 'bg-[#FCA311] border-2 border-[#000000] text-[#000000] shadow-[0_6px_22px_rgba(252,163,17,0.50)] ring-2 ring-[#FCA311] scale-[1.03]'
+                          : 'bg-[#FFFFFF] border-[rgba(0,0,0,0.08)] text-[#000000] hover:border-[#FCA311]/50 hover:bg-[#FCA311]/10 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-1">
+                        <span className={`text-[10px] sm:text-[11px] font-black leading-tight ${isActive ? 'text-[#000000]' : 'text-[#000000]'}`}>
+                          {timeStr}
+                        </span>
+                        {isActive && (
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-black text-[#FCA311] tracking-wider uppercase shrink-0">
+                            ✓ ADDED
+                          </span>
+                        )}
+                      </div>
+                      <span className={`text-[10px] font-bold mb-1 ${isActive ? 'text-[#000000]/90' : 'text-[rgba(0,0,0,0.60)]'}`}>
+                        ⏱ {slot.durationMinutes} min
+                      </span>
+                      <div className="flex items-center justify-between w-full mt-auto">
+                        <span className={`text-xs sm:text-sm font-black tracking-tight ${isActive ? 'text-[#000000]' : 'text-[#000000]'}`}>
+                          ₹{slot.price}
+                        </span>
+                        {isActive && (
+                          <span className="text-[9px] font-black text-[#000000] bg-white/70 px-1.5 py-0.5 rounded">
+                            Selected
+                          </span>
+                        )}
+                      </div>
                     </button>
                   );
                 })}
@@ -941,13 +1150,21 @@ function SlotSelectionView({ venue, draft, onBack, onContinue: onContinueDraft }
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[rgba(0,0,0,0.12)] bg-[#FFFFFF] p-4 pb-6 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center justify-between rounded-none sm:rounded-b-[1.5rem]">
+        <div className="border-t border-[rgba(0,0,0,0.08)] bg-[#FFFFFF] p-4 pb-6 sm:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center justify-between rounded-none sm:rounded-b-[1.5rem]">
           <div className="flex justify-between items-center sm:block w-full sm:w-auto">
             <div>
-              <div className="text-[10px] font-black text-[rgba(0,0,0,0.70)] uppercase tracking-widest mb-0.5">Total Payable</div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-black text-[#000000] tracking-tight">₹{totalPayable}</span>
-                <span className="text-[11px] font-semibold text-[rgba(0,0,0,0.70)]">(Pay at Venue)</span>
+              <div className="text-[10px] font-black text-[rgba(0,0,0,0.60)] uppercase tracking-widest mb-0.5">Total Payable</div>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-2xl font-black tracking-tight ${selectedSlotIds.length > 0 ? 'text-[#000000]' : 'text-[rgba(0,0,0,0.50)]'}`}>
+                  ₹{totalPayable}
+                </span>
+                {selectedSlotIds.length > 0 ? (
+                  <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#FCA311] text-[#000000] border border-[#000000]/20 shadow-sm animate-pulse">
+                    {selectedSlotIds.length} slot{selectedSlotIds.length > 1 ? 's' : ''} added
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold text-[rgba(0,0,0,0.50)]">(Select a slot)</span>
+                )}
               </div>
             </div>
           </div>
@@ -1556,12 +1773,12 @@ function BookingView({ onViewTicket }: { onViewTicket?: (b: any) => void }) {
   }, []);
 
   return (
-    <div className="flex flex-col w-full min-h-[100dvh] bg-[#FFFFFF] px-5 pt-8 pb-32">
+    <div className="flex flex-col w-full min-h-[100dvh] bg-[#F8F8F9] px-5 pt-8 pb-32">
       <h2 className="text-2xl font-black text-[#000000] tracking-tight mb-6">My Bookings</h2>
       
-      <div className="flex bg-[#FFFFFF] rounded-full p-1 shadow-sm border border-[rgba(0,0,0,0.12)] mb-6 relative z-10">
-        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'upcoming' ? 'bg-[var(--qp-primary)] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
-        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'past' ? 'bg-[var(--qp-primary)] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`} onClick={() => setActiveTab('past')}>Past</button>
+      <div className="flex bg-white/90 backdrop-blur-md rounded-full p-1 shadow-sm border border-[rgba(0,0,0,0.08)] mb-6 relative z-10">
+        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'upcoming' ? 'bg-[#FCA311] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
+        <button className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-colors ${activeTab === 'past' ? 'bg-[#FCA311] text-[#000000] shadow-sm' : 'text-[rgba(0,0,0,0.70)] hover:text-[#000000]'}`} onClick={() => setActiveTab('past')}>Past</button>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -1569,25 +1786,25 @@ function BookingView({ onViewTicket }: { onViewTicket?: (b: any) => void }) {
         {!loading && bookings.length === 0 && (
           <div className="text-center py-12 flex flex-col items-center">
             <Qbi mood="waiting" size={96} />
-            <div className="w-16 h-16 bg-[#FFFFFF] rounded-full flex items-center justify-center mb-4"><CalendarDays size={24} className="text-[rgba(0,0,0,0.70)]" /></div>
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm"><CalendarDays size={24} className="text-[#FCA311]" /></div>
             <p className="text-[rgba(0,0,0,0.70)] font-bold text-sm">No {activeTab} bookings found.</p>
           </div>
         )}
         {!loading && bookings.map(b => (
-          <article key={b.id} className="bg-[#FFFFFF] rounded-[1.25rem] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-[rgba(0,0,0,0.12)]">
+          <article key={b.id} className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-white/80">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="font-black text-[#000000] text-[15px] tracking-tight">{b.salonName || 'Venue'}</h3>
-                <p className="text-[11px] font-bold text-[#FCA311] bg-[var(--qp-primary-soft)] px-2 py-0.5 rounded flex inline-flex items-center gap-1 mt-1"><Clock size={12}/> {b.scheduledDate ? new Date(b.scheduledDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Unknown Date'} • {b.scheduledTime || b.startTime}</p>
+                <p className="text-[11px] font-bold text-[#000000] bg-[#FCA311]/25 px-2 py-0.5 rounded flex inline-flex items-center gap-1 mt-1"><Clock size={12}/> {b.scheduledDate ? new Date(b.scheduledDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Unknown Date'} • {b.scheduledTime || b.startTime}</p>
               </div>
-              <div className="bg-[#FFFFFF] px-2 py-1 rounded-lg text-right">
+              <div className="bg-[#F8F8F9] px-2 py-1 rounded-lg text-right border border-black/5">
                 <p className="text-[10px] font-bold text-[rgba(0,0,0,0.70)] uppercase">{b.paymentStatus === 'paid' ? 'Paid' : 'Due'}</p>
                 <p className="text-xs font-black text-[#000000]">₹{b.totalAmount || b.price || b.amount || '0'}</p>
               </div>
             </div>
             <div className="flex gap-2">
-               <button onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(b.salonName || 'Turf')}`, '_blank')} className="flex-1 bg-[var(--qp-primary-soft)] text-[var(--qp-primary)] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-[rgba(252,163,17,0.15)]">Get Directions</button>
-               <button onClick={() => onViewTicket && onViewTicket(b)} className="flex-1 bg-[#FFFFFF] border border-[rgba(0,0,0,0.12)] text-[rgba(0,0,0,0.70)] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-[rgba(0,0,0,0.05)]">View Ticket</button>
+               <button onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(b.salonName || 'Turf')}`, '_blank')} className="flex-1 bg-[#FCA311]/15 text-black py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-[#FCA311]/25">Get Directions</button>
+               <button onClick={() => onViewTicket && onViewTicket(b)} className="flex-1 bg-white border border-[rgba(0,0,0,0.12)] text-[#000000] py-2.5 rounded-xl text-xs font-bold transition-colors hover:bg-black/5">View Ticket</button>
             </div>
           </article>
         ))}
@@ -1792,42 +2009,42 @@ function FavoritesView({ venues, favorites, onToggleFavorite, onSelectVenue }: {
   const favVenues = venues.filter(v => favorites.includes(v.name));
 
   return (
-    <div className="flex flex-col w-full min-h-[100dvh] bg-[#FFFFFF] px-5 pt-8 pb-32">
+    <div className="flex flex-col w-full min-h-[100dvh] bg-[#F8F8F9] px-5 pt-8 pb-32">
       <h2 className="text-2xl font-black text-[#000000] tracking-tight mb-6">Favourite Venues</h2>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         {favVenues.length === 0 && (
           <div className="text-center py-12 flex flex-col items-center">
-            <div className="w-16 h-16 bg-[#FFFFFF] border border-[rgba(0,0,0,0.12)] rounded-full flex items-center justify-center mb-4"><Heart size={24} className="text-[#FCA311]" /></div>
+            <div className="w-16 h-16 bg-white border border-[rgba(0,0,0,0.08)] rounded-full flex items-center justify-center mb-4 shadow-sm"><Heart size={24} className="text-[#FCA311]" /></div>
             <p className="text-[rgba(0,0,0,0.70)] font-bold text-sm">You haven't saved any venues yet.</p>
           </div>
         )}
         {favVenues.map((venue) => (
-          <article key={venue.name} className="bg-[#FFFFFF] rounded-[1.25rem] p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-[rgba(0,0,0,0.12)] cursor-pointer hover:shadow-md transition-shadow" onClick={() => onSelectVenue(venue)}>
+          <article key={venue.name} className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-white/80 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onSelectVenue(venue)}>
             <div className="flex justify-between items-start mb-2.5 px-1">
               <div>
-                <h3 className="font-black text-[#000000] text-[17px] uppercase tracking-tight leading-none mb-1.5">{venue.name}</h3>
+                <h3 className="font-bold text-[#000000] text-[17px] tracking-tight leading-snug mb-1">{venue.name}</h3>
                 <div className="flex items-start gap-1">
-                  <MapPin size={12} className="text-[rgba(0,0,0,0.70)] mt-[2px] shrink-0" />
-                  <p className="text-[10px] text-[rgba(0,0,0,0.70)] font-medium leading-snug line-clamp-2 pr-4">{venue.address}</p>
+                  <MapPin size={13} className="text-[#FCA311] mt-[2px] shrink-0" />
+                  <p className="text-[11px] text-[rgba(0,0,0,0.65)] font-medium leading-snug line-clamp-2 pr-4">{venue.address}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-[var(--qp-primary-soft)] px-2 py-1 rounded-full shrink-0">
-                <Star size={12} className="fill-[var(--qp-primary)] text-[var(--qp-primary)]" />
-                <span className="text-[11px] font-black text-[#000000]">4.0</span>
+              <div className="flex items-center gap-1 bg-[#FCA311]/20 px-2 py-1 rounded-full shrink-0 border border-[#FCA311]/30">
+                <Star size={12} className="fill-[#FCA311] text-[#FCA311]" />
+                <span className="text-[11px] font-black text-[#000000]">4.5</span>
               </div>
             </div>
             
-            <div className="relative w-full h-[150px] rounded-xl overflow-hidden mb-3">
+            <div className="relative w-full h-[150px] rounded-xl overflow-hidden mb-3 shadow-inner">
               <img src={venue.image} alt={venue.name} className="w-full h-full object-cover" />
-              <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-[#FFFFFF] rounded-full flex items-center justify-center shadow-md hover:bg-[rgba(0,0,0,0.05)] transition-colors" onClick={(e) => { e.stopPropagation(); onToggleFavorite(venue.name); }}>
+              <button type="button" className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors" onClick={(e) => { e.stopPropagation(); onToggleFavorite(venue.name); }}>
                 <Heart size={16} strokeWidth={2.5} className="fill-[#FCA311] text-[#FCA311]" />
               </button>
             </div>
             
             <div className="flex justify-between items-center px-1">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[rgba(0,0,0,0.70)] uppercase tracking-wide">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[rgba(0,0,0,0.65)] uppercase tracking-wide">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E5E5E5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                Sports <span className="text-[rgba(0,0,0,0.60)]">•</span> Turf
+                Sports <span className="text-[rgba(0,0,0,0.40)]">•</span> Turf
               </div>
             </div>
           </article>

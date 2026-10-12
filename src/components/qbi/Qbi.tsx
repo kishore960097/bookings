@@ -45,6 +45,7 @@ export const Qbi: React.FC<QbiProps> = ({
         {mood === 'hello' && (
           <>
             <rect
+              className={animate ? "qbi-ear-l" : undefined}
               x="112"
               y="30"
               width="30"
@@ -54,6 +55,7 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(-8 127 125)"
             />
             <rect
+              className={animate ? "qbi-ear-r" : undefined}
               x="158"
               y="34"
               width="30"
@@ -63,20 +65,22 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(8 173 126)"
             />
             <path d={BODY} fill={color} />
-            <path
-              d="M100 190 Q115 210 130 190"
-              fill="none"
-              stroke={QBI_INK}
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
-            <path
-              d="M170 190 Q185 210 200 190"
-              fill="none"
-              stroke={QBI_INK}
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
+            <g className={animate ? "qbi-eyes" : undefined}>
+              <path
+                d="M100 190 Q115 210 130 190"
+                fill="none"
+                stroke={QBI_INK}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+              <path
+                d="M170 190 Q185 210 200 190"
+                fill="none"
+                stroke={QBI_INK}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+            </g>
             <path
               d="M135 222 Q150 238 165 222"
               fill="none"
@@ -92,6 +96,7 @@ export const Qbi: React.FC<QbiProps> = ({
         {mood === 'waiting' && (
           <>
             <rect
+              className={animate ? "qbi-ear-l" : undefined}
               x="112"
               y="40"
               width="30"
@@ -101,6 +106,7 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(-18 127 125)"
             />
             <rect
+              className={animate ? "qbi-ear-r" : undefined}
               x="158"
               y="34"
               width="30"
@@ -110,20 +116,22 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(6 173 126)"
             />
             <path d={BODY} fill={color} />
-            <path
-              d="M100 194 H130"
-              fill="none"
-              stroke={QBI_INK}
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
-            <path
-              d="M170 194 H200"
-              fill="none"
-              stroke={QBI_INK}
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
+            <g className={animate ? "qbi-eyes" : undefined}>
+              <path
+                d="M100 194 H130"
+                fill="none"
+                stroke={QBI_INK}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+              <path
+                d="M170 194 H200"
+                fill="none"
+                stroke={QBI_INK}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+            </g>
             <ellipse
               cx="150"
               cy="226"
@@ -172,6 +180,7 @@ export const Qbi: React.FC<QbiProps> = ({
               fill={QBI_SPARK}
             />
             <rect
+              className={animate ? "qbi-ear-l" : undefined}
               x="112"
               y="30"
               width="30"
@@ -181,6 +190,7 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(-12 127 125)"
             />
             <rect
+              className={animate ? "qbi-ear-r" : undefined}
               x="158"
               y="34"
               width="30"
@@ -190,20 +200,22 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(12 173 126)"
             />
             <path d={BODY} fill={color} />
-            <path
-              d="M100 192 Q115 172 130 192"
-              fill="none"
-              stroke={QBI_INK}
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
-            <path
-              d="M170 192 Q185 172 200 192"
-              fill="none"
-              stroke={QBI_INK}
-              strokeWidth="7"
-              strokeLinecap="round"
-            />
+            <g className={animate ? "qbi-eyes" : undefined}>
+              <path
+                d="M100 192 Q115 172 130 192"
+                fill="none"
+                stroke={QBI_INK}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+              <path
+                d="M170 192 Q185 172 200 192"
+                fill="none"
+                stroke={QBI_INK}
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+            </g>
             <path
               d="M128 212 Q150 244 172 212 Z"
               fill={QBI_MOUTH}
@@ -219,6 +231,7 @@ export const Qbi: React.FC<QbiProps> = ({
         {mood === 'oops' && (
           <>
             <rect
+              className={animate ? "qbi-ear-l" : undefined}
               x="112"
               y="44"
               width="30"
@@ -228,6 +241,7 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(-22 127 125)"
             />
             <rect
+              className={animate ? "qbi-ear-r" : undefined}
               x="158"
               y="48"
               width="30"
@@ -237,8 +251,10 @@ export const Qbi: React.FC<QbiProps> = ({
               transform="rotate(22 173 126)"
             />
             <path d={BODY} fill={color} />
-            <circle cx="115" cy="190" r="8" fill={QBI_INK} />
-            <circle cx="185" cy="190" r="8" fill={QBI_INK} />
+            <g className={animate ? "qbi-eyes" : undefined}>
+              <circle cx="115" cy="190" r="8" fill={QBI_INK} />
+              <circle cx="185" cy="190" r="8" fill={QBI_INK} />
+            </g>
             <path
               d="M100 168 Q115 160 130 168"
               fill="none"
