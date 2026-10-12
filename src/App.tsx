@@ -15,6 +15,7 @@ import { CustomerPage } from './features/customer/CustomerPage';
 import { OwnerDashboard } from './components/owner/OwnerDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { MobileFrameWrapper } from './components/common/MobileFrameWrapper';
+import { QbiProvider, QbiLayer } from './components/qbi';
 
 import { Salon, Service, Booking } from './types';
 
@@ -91,9 +92,9 @@ function AppContent() {
 
   if (isLoadingSession) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white animate-in fade-in duration-500">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFFFF] text-[#000000] animate-in fade-in duration-500">
         <QGoLogo size="xl" className="animate-pulse mb-6" />
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Loading QGo...</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-[rgba(0,0,0,0.70)]">Loading QGo...</p>
       </div>
     );
   }
@@ -121,11 +122,11 @@ function AppContent() {
 
   if (isAdminPath && currentRole !== 'admin') {
     return (
-      <div className="min-h-screen grid place-items-center bg-[#FFF8F3] px-5 text-center text-[#0F172A]">
+      <div className="min-h-screen grid place-items-center bg-[#FFFFFF] px-5 text-center text-[#000000]">
         <div className="ap-glass-panel max-w-md p-8">
           <QGoLogo size="lg" className="mx-auto mb-5" />
           <h1 className="text-2xl font-bold">Admin access restricted</h1>
-          <p className="mt-3 text-sm text-slate-600">Admin access is restricted to the authorized QGo administrator.</p>
+          <p className="mt-3 text-sm text-[rgba(0,0,0,0.70)]">Admin access is restricted to the authorized QGo administrator.</p>
           <button className="btn-primary mt-6" onClick={() => { logout(); setPage('login'); }}>Sign in with another account</button>
         </div>
       </div>
@@ -143,7 +144,7 @@ function AppContent() {
       )}
 
       {currentRole === 'owner' && (
-        <div className="min-h-screen flex flex-col font-sans" style={{ background: '#F1F5F9', color: '#1E293B' }}>
+        <div className="min-h-screen flex flex-col font-sans" style={{ background: '#FFFFFF', color: '#000000' }}>
           <main className="flex-1">
             <OwnerDashboard
               onBackToLanding={() => {
@@ -181,9 +182,12 @@ export function App() {
   const content = (
     <AuthProvider>
       <QueueProvider>
-        <MobileFrameWrapper>
-          <AppContent />
-        </MobileFrameWrapper>
+        <QbiProvider>
+          <MobileFrameWrapper>
+            <AppContent />
+          </MobileFrameWrapper>
+          <QbiLayer />
+        </QbiProvider>
       </QueueProvider>
     </AuthProvider>
   );

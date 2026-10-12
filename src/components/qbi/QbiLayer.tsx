@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { Component, useContext, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { QbiContext } from './QbiProvider';
 import { Qbi } from './Qbi';
@@ -6,24 +6,27 @@ import { t, getTips } from './qbiCopy';
 import { useAuth } from '../../context/AuthContext';
 
 // Self-contained Error Boundary so a render error in Qbi never white-screens the app
-export class QbiBoundary extends React.Component<
+export class QbiBoundary extends Component<
   { children: React.ReactNode },
   { hasError: boolean }
 > {
+  props: { children: React.ReactNode };
+  state: { hasError: boolean } = { hasError: false };
+
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.props = props;
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(): { hasError: boolean } {
     return { hasError: true };
   }
 
-  componentDidCatch(error: unknown, info: unknown) {
+  componentDidCatch(error: unknown, info: unknown): void {
     console.error('[Qbi] UI render error caught by boundary:', error, info);
   }
 
-  render() {
+  render(): React.ReactNode {
     if (this.state.hasError) {
       return null;
     }
