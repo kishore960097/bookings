@@ -1,0 +1,371 @@
+/* ==========================================================================
+   Qbi Mascot Styles & Keyframes
+   Strictly scoped under .qbi-* and @keyframes qbi-*
+   All surfaces self-contained: #ffffff card, #2B1A17 ink
+   ========================================================================== */
+
+/* Keyframe definitions */
+@keyframes qbi-hop {
+  0% { transform: translateY(0); }
+  20% { transform: translateY(-16px) scale(0.96, 1.04); }
+  40% { transform: translateY(0) scale(1.05, 0.95); }
+  60% { transform: translateY(-8px) scale(0.98, 1.02); }
+  80% { transform: translateY(0) scale(1.02, 0.98); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+@keyframes qbi-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes qbi-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px) rotate(-2deg); }
+  40% { transform: translateX(6px) rotate(2deg); }
+  60% { transform: translateX(-4px) rotate(-1deg); }
+  80% { transform: translateX(4px) rotate(1deg); }
+}
+
+@keyframes qbi-zfloat {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 0.8; }
+  80% { transform: translateY(-16px); opacity: 0.7; }
+  100% { transform: translateY(-24px); opacity: 0; }
+}
+
+@keyframes qbi-pop-in {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes qbi-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes qbi-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(232, 52, 42, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(232, 52, 42, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 52, 42, 0); }
+}
+
+@keyframes qbi-idle-hop {
+  0%, 90%, 100% { transform: translateY(0); }
+  93% { transform: translateY(-10px) scale(0.96, 1.04); }
+  96% { transform: translateY(0) scale(1.04, 0.96); }
+  98% { transform: translateY(-4px) scale(0.98, 1.02); }
+}
+
+/* Animations applied to Mascot wrapper group only */
+@media (prefers-reduced-motion: no-preference) {
+  .qbi-anim {
+    will-change: transform;
+    transform-origin: 150px 250px;
+  }
+
+  .qbi-anim--hello {
+    animation: qbi-bob 3s ease-in-out infinite;
+  }
+
+  .qbi-anim--booked {
+    animation: qbi-hop 0.8s ease-out 1;
+  }
+
+  .qbi-anim--oops {
+    animation: qbi-shake 0.5s ease-in-out 1;
+  }
+
+  .qbi-anim--waiting .qbi-z1 {
+    animation: qbi-zfloat 2.4s ease-in-out infinite;
+  }
+
+  .qbi-anim--waiting .qbi-z2 {
+    animation: qbi-zfloat 2.4s ease-in-out infinite 1.2s;
+  }
+
+  .qbi-idle {
+    animation: qbi-idle-hop 8s ease-in-out infinite;
+  }
+
+  .qbi-popup-card {
+    animation: qbi-pop-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .qbi-scrim {
+    animation: qbi-fade-in 0.2s ease-out forwards;
+  }
+
+  .qbi-helper-btn--pulse {
+    animation: qbi-pulse-ring 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  }
+}
+
+/* Z letters initial state */
+.qbi-z {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Base self-contained card surfaces (always crisp white + dark ink) */
+.qbi-surface {
+  background: #ffffff !important;
+  color: #2b1a17 !important;
+  border: 1px solid rgba(43, 26, 23, 0.08);
+  box-shadow: 0 16px 36px -6px rgba(43, 26, 23, 0.16), 0 4px 14px rgba(43, 26, 23, 0.08);
+  border-radius: 24px;
+}
+
+/* Scrim / Backdrop */
+.qbi-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 12, 10, 0.42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 140;
+}
+
+/* Popup layout */
+.qbi-popup-card {
+  width: 100%;
+  max-width: 340px;
+  background: #ffffff;
+  color: #2b1a17;
+  border-radius: 24px;
+  border: 1px solid rgba(43, 26, 23, 0.08);
+  box-shadow: 0 20px 45px -8px rgba(43, 26, 23, 0.22), 0 6px 18px rgba(43, 26, 23, 0.08);
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.qbi-popup-title {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #2b1a17;
+  margin: 14px 0 6px;
+}
+
+.qbi-popup-sub {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(43, 26, 23, 0.72);
+  margin: 0 0 20px;
+}
+
+.qbi-btn-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.qbi-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.qbi-btn:active {
+  transform: scale(0.97);
+}
+
+.qbi-btn--primary {
+  background: #e8342a;
+  color: #ffffff;
+}
+
+.qbi-btn--primary:hover {
+  opacity: 0.92;
+}
+
+.qbi-btn--secondary {
+  background: rgba(43, 26, 23, 0.06);
+  color: #2b1a17;
+}
+
+.qbi-btn--secondary:hover {
+  background: rgba(43, 26, 23, 0.1);
+}
+
+/* Offline Banner */
+.qbi-offline-banner {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 130;
+  pointer-events: none;
+  background: #ffffff;
+  color: #2b1a17;
+  border: 1px solid rgba(43, 26, 23, 0.1);
+  box-shadow: 0 8px 24px -4px rgba(43, 26, 23, 0.18);
+  border-radius: 9999px;
+  padding: 6px 14px 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.qbi-offline-banner--online {
+  border-color: rgba(0, 168, 112, 0.3);
+  color: #00875a;
+}
+
+/* Welcome Card (First Launch) */
+.qbi-welcome-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 135;
+  background: rgba(20, 12, 10, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  cursor: pointer;
+}
+
+.qbi-welcome-card {
+  width: 100%;
+  max-width: 320px;
+  background: #ffffff;
+  color: #2b1a17;
+  border-radius: 28px;
+  border: 1px solid rgba(43, 26, 23, 0.08);
+  box-shadow: 0 24px 50px -10px rgba(43, 26, 23, 0.25);
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: default;
+}
+
+/* Welcome Bubble (Later Launches) */
+.qbi-welcome-bubble-wrap {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 104px);
+  left: 16px;
+  z-index: 135;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.qbi-welcome-bubble {
+  background: #ffffff;
+  color: #2b1a17;
+  border-radius: 18px;
+  border: 1px solid rgba(43, 26, 23, 0.08);
+  box-shadow: 0 10px 28px -4px rgba(43, 26, 23, 0.16);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Helper Bot Button */
+.qbi-helper-btn {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 112px);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 8px 22px rgba(43, 26, 23, 0.2), 0 2px 6px rgba(43, 26, 23, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 55;
+  padding: 0;
+  transition: transform 0.15s ease;
+  touch-action: manipulation;
+}
+
+.qbi-helper-btn:active {
+  transform: scale(0.92);
+}
+
+/* Helper Speech Bubble */
+.qbi-helper-bubble {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 172px);
+  width: 256px;
+  background: #ffffff;
+  color: #2b1a17;
+  border-radius: 20px;
+  border: 1px solid rgba(43, 26, 23, 0.08);
+  box-shadow: 0 14px 34px -6px rgba(43, 26, 23, 0.2), 0 4px 12px rgba(43, 26, 23, 0.08);
+  padding: 14px 16px 12px;
+  z-index: 55;
+  box-sizing: border-box;
+}
+
+.qbi-helper-step-indicator {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #e8342a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.qbi-helper-text {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #2b1a17;
+  margin: 0 0 10px;
+}
+
+.qbi-helper-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.qbi-helper-action {
+  background: #2b1a17;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.qbi-helper-action:hover {
+  opacity: 0.88;
+}
