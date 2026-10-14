@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenActiveTicket || (() => handleNav('ticket'))}
             className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[rgba(232,52,42,0.10)] border border-[rgba(232,52,42,0.25)] text-[#E8342A] hover:bg-[rgba(232,52,42,0.15)] transition-colors duration-150 shadow-xs cursor-pointer"
           >
-            <div className="w-2 h-2 rounded-full bg-[#E8342A] animate-ping" />
+            <div className="w-2 h-2 rounded-full bg-[#E8342A] animate-pulse" />
             <Ticket className="w-3.5 h-3.5 text-[#E8342A]" />
             <span className="text-xs font-black font-mono">#{activeBooking.tokenNumber?.split('-').pop()}</span>
             <span className="text-xs text-[rgba(11,11,11,0.70)]">
@@ -225,7 +225,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex flex-col items-center justify-center -mt-4 bg-[#0B0B0B] text-[#FFF4E8] rounded-2xl px-3.5 py-2 shadow-lg ring-4 ring-white transition-colors duration-150 transform cursor-pointer"
             >
               <div className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#E8342A] animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-[#E8342A] animate-pulse" />
                 <span className="text-xs font-black font-mono">#{activeBooking.tokenNumber?.split('-').pop()}</span>
               </div>
               <span className="text-[11px] font-bold text-[#E8342A]">Live Turn</span>

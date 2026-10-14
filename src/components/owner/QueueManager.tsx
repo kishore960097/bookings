@@ -222,13 +222,13 @@ export const QueueManager: React.FC<QueueManagerProps> = ({ salon, onOpenScanner
 
       {/* Currently In Chair / Calling Section */}
       {callingEntries.length > 0 && (
-        <div className="bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] rounded-2xl p-5 shadow-xs space-y-3 animate-in fade-in">
+        <div className="bg-[rgba(232,52,42,0.08)] border border-[rgba(232,52,42,0.25)] rounded-2xl p-5 shadow-xs space-y-3 animate-in fade-in">
           <div className="flex items-center justify-between">
-            <h3 className="font-black text-xs uppercase tracking-widest text-[#FF9F1C] flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FF9F1C] animate-ping" />
+            <h3 className="font-black text-xs uppercase tracking-widest text-[#E8342A] flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#E8342A] animate-pulse" />
               Now Calling to Chair
             </h3>
-            <span className="text-xs text-[#FF9F1C] font-bold font-mono">
+            <span className="text-xs text-[#E8342A] font-bold font-mono">
               {callingEntries.length} in progress
             </span>
           </div>
