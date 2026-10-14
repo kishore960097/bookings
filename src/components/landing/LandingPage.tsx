@@ -110,8 +110,8 @@ const Navbar: React.FC<{ onSignIn: () => void; onGetStarted: () => void }> = ({ 
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'backdrop-blur-xl border-b' : ''
+      className={`fixed top-0 left-0 right-0 z-50 transition-opacity duration-150 ${
+        scrolled ? ' border-b' : ''
       }`}
       style={{
         background: scrolled ? 'rgba(255,255,255,0.92)' : 'transparent',
@@ -215,7 +215,7 @@ const HeroBookingCard: React.FC = () => (
 
     {/* Floating mini cards — back layer (hidden on very narrow screens to prevent overflow) */}
     <div
-      className="hidden sm:block animate-float-slow absolute top-8 -left-4 glass rounded-2xl p-3 shadow-xl"
+      className="hidden sm:block absolute top-8 -left-4 glass rounded-2xl p-3 shadow-xl"
       style={{ width: 150, animationDelay: '0s', border: '1px solid #0B0B0B' }}
     >
       <div className="flex items-center gap-2 mb-2">
@@ -227,25 +227,25 @@ const HeroBookingCard: React.FC = () => (
       <div className="text-xs font-bold" style={{ color: 'var(--qp-text)' }}>Token #36</div>
       <div className="flex items-center gap-1 mt-1">
         <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--qp-success)' }} />
-        <span className="text-[10px]" style={{ color: 'var(--qp-success)' }}>Now serving</span>
+        <span className="text-[11px]" style={{ color: 'var(--qp-success)' }}>Now serving</span>
       </div>
     </div>
 
     <div
-      className="hidden sm:block animate-float absolute top-4 -right-2 glass rounded-2xl p-3 shadow-xl"
+      className="hidden sm:block absolute top-4 -right-2 glass rounded-2xl p-3 shadow-xl"
       style={{ width: 140, animationDelay: '1s', border: '1px solid #0B0B0B' }}
     >
       <div className="flex items-center gap-1.5 mb-1">
         <MapPin size={11} color="var(--qp-accent)" />
-        <span className="text-[10px] font-semibold" style={{ color: 'var(--qp-accent)' }}>2.1 km away</span>
+        <span className="text-[11px] font-semibold" style={{ color: 'var(--qp-accent)' }}>2.1 km away</span>
       </div>
       <div className="text-xs font-bold" style={{ color: 'var(--qp-text)' }}>Grand Salon</div>
-      <div className="text-[10px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>0 waiting · 0m</div>
+      <div className="text-[11px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>0 waiting · 0m</div>
     </div>
 
     {/* Central QGo Ticket Card */}
     <div
-      className="relative sm:absolute inset-x-0 mx-auto animate-float rounded-3xl shadow-2xl overflow-hidden animate-pulse-glow"
+      className="relative sm:absolute inset-x-0 mx-auto rounded-3xl shadow-lg overflow-hidden"
       style={{
         width: '100%',
         maxWidth: 280,
@@ -259,7 +259,7 @@ const HeroBookingCard: React.FC = () => (
         <div className="flex items-center justify-between mb-3">
           <QGoLogo size="sm" />
           <div
-            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
             style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}
           >
             LIVE QUEUE
@@ -282,18 +282,18 @@ const HeroBookingCard: React.FC = () => (
       <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--qp-text-muted)' }}>Now Serving</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--qp-text-muted)' }}>Now Serving</div>
             <div className="text-base sm:text-lg font-black" style={{ color: 'var(--qp-text)' }}>#A036</div>
           </div>
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--qp-text-muted)' }}>Est. Wait</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--qp-text-muted)' }}>Est. Wait</div>
             <div className="text-base sm:text-lg font-black" style={{ color: 'var(--qp-warning)' }}>28 min</div>
           </div>
         </div>
 
         {/* Progress bar */}
         <div>
-          <div className="flex justify-between text-[10px] mb-1" style={{ color: 'var(--qp-text-muted)' }}>
+          <div className="flex justify-between text-[11px] mb-1" style={{ color: 'var(--qp-text-muted)' }}>
             <span>Queue Progress</span>
             <span style={{ color: 'var(--qp-accent)' }}>6 ahead</span>
           </div>
@@ -308,13 +308,13 @@ const HeroBookingCard: React.FC = () => (
         {/* QR + Info */}
         <div className="flex items-end justify-between">
           <div>
-            <div className="text-[10px] font-medium mb-1" style={{ color: 'var(--qp-text-muted)' }}>Scan to check in</div>
+            <div className="text-[11px] font-medium mb-1" style={{ color: 'var(--qp-text-muted)' }}>Scan to check in</div>
             <MiniQR size={56} />
           </div>
           <div className="text-right">
-            <div className="text-[10px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--qp-text-muted)' }}>Booked for</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'var(--qp-text-muted)' }}>Booked for</div>
             <div className="text-xs sm:text-sm font-bold" style={{ color: 'var(--qp-text)' }}>10:30 AM</div>
-            <div className="text-[10px]" style={{ color: 'var(--qp-success)' }}>Token Active</div>
+            <div className="text-[11px]" style={{ color: 'var(--qp-success)' }}>Token Active</div>
           </div>
         </div>
       </div>
@@ -325,7 +325,7 @@ const HeroBookingCard: React.FC = () => (
 /* ─── Business Dashboard Preview ─── */
 const DashboardPreview: React.FC = () => (
   <div
-    className="rounded-2xl overflow-hidden shadow-2xl"
+    className="rounded-2xl overflow-hidden shadow-lg"
     style={{ background: 'var(--qp-surface-el)', border: '1px solid var(--qp-border)' }}
   >
     {/* Header */}
@@ -346,7 +346,7 @@ const DashboardPreview: React.FC = () => (
         { label: 'Revenue', value: '₹24,500', color: 'var(--qp-primary)' },
       ].map(({ label, value, color }) => (
         <div key={label} className="p-4" style={{ background: 'var(--qp-surface-el)' }}>
-          <div className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--qp-text-muted)' }}>
+          <div className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'var(--qp-text-muted)' }}>
             {label}
           </div>
           <div className="text-2xl font-black" style={{ color }}>
@@ -358,7 +358,7 @@ const DashboardPreview: React.FC = () => (
 
     {/* Chart Bar (decorative) */}
     <div className="p-4">
-      <div className="text-[10px] font-semibold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: 'var(--qp-text-muted)' }}>
+      <div className="text-[11px] font-semibold uppercase tracking-wider mb-3 flex items-center gap-2" style={{ color: 'var(--qp-text-muted)' }}>
         <BarChart3 size={12} />
         Hourly Queue Traffic
       </div>
@@ -366,7 +366,7 @@ const DashboardPreview: React.FC = () => (
         {[30, 50, 70, 45, 85, 60, 90, 75, 40, 65, 80, 55].map((h, i) => (
           <div
             key={i}
-            className="flex-1 rounded-sm transition-all"
+            className="flex-1 rounded-sm transition-colors duration-150"
             style={{
               height: `${h}%`,
               background: i === 6
@@ -379,7 +379,7 @@ const DashboardPreview: React.FC = () => (
       </div>
       <div className="flex justify-between mt-1.5">
         {['9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm'].map(t => (
-          <div key={t} className="text-[8px] flex-1 text-center" style={{ color: 'var(--qp-text-muted)' }}>{t.replace('am','').replace('pm','')}</div>
+          <div key={t} className="text-[11px] flex-1 text-center" style={{ color: 'var(--qp-text-muted)' }}>{t.replace('am','').replace('pm','')}</div>
         ))}
       </div>
     </div>
@@ -507,7 +507,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             ].map(({ step, Icon, title, desc, color }) => (
               <div
                 key={step}
-                className="group relative rounded-2xl p-6 transition-all duration-300 cursor-default"
+                className="group relative rounded-2xl p-6 transition-opacity duration-150 cursor-default"
                 style={{ background: 'var(--qp-surface-el)', border: '1px solid var(--qp-border)' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}60`; e.currentTarget.style.transform = 'translateY(-4px)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--qp-border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -541,7 +541,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {USE_CASES.map(({ Icon, label, desc }) => (
               <div
                 key={label}
-                className="group rounded-2xl p-5 transition-all duration-300 cursor-default"
+                className="group rounded-2xl p-5 transition-opacity duration-150 cursor-default"
                 style={{ background: 'var(--qp-surface)', border: '1px solid var(--qp-border)' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(11,11,11,0.3)'; e.currentTarget.style.background = 'var(--qp-surface-el)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--qp-border)'; e.currentTarget.style.background = 'var(--qp-surface)'; }}
@@ -588,14 +588,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {/* Live Queue Card */}
             <div>
               <div
-                className="rounded-3xl overflow-hidden shadow-2xl max-w-sm mx-auto"
+                className="rounded-3xl overflow-hidden shadow-lg max-w-sm mx-auto"
                 style={{ background: '#FFFFFF', border: '1px solid #0B0B0B' }}
               >
                 {/* Header */}
                 <div className="p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[#FFF4E8] font-semibold text-sm">City Medical Clinic</span>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold"
                       style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}>
                       <div className="w-1.5 h-1.5 rounded-full bg-[#E8342A] animate-pulse" />
                       LIVE
@@ -624,14 +624,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                     <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'var(--qp-surface)' }}>
                       <Users size={14} color="var(--qp-text-muted)" />
                       <div>
-                        <div className="text-[10px]" style={{ color: 'var(--qp-text-muted)' }}>Ahead</div>
+                        <div className="text-[11px]" style={{ color: 'var(--qp-text-muted)' }}>Ahead</div>
                         <div className="text-sm font-bold" style={{ color: 'var(--qp-text)' }}>5 people</div>
                       </div>
                     </div>
                     <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'var(--qp-surface)' }}>
                       <Clock size={14} color="var(--qp-accent)" />
                       <div>
-                        <div className="text-[10px]" style={{ color: 'var(--qp-text-muted)' }}>Est. Wait</div>
+                        <div className="text-[11px]" style={{ color: 'var(--qp-text-muted)' }}>Est. Wait</div>
                         <div className="text-sm font-bold" style={{ color: 'var(--qp-accent)' }}>28 min</div>
                       </div>
                     </div>
@@ -672,7 +672,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {/* QR Visual */}
             <div className="flex justify-center">
               <div
-                className="relative rounded-3xl p-8 shadow-2xl"
+                className="relative rounded-3xl p-8 shadow-lg"
                 style={{ background: 'var(--qp-surface-el)', border: '1px solid var(--qp-border)', maxWidth: 340 }}
               >
                 <div className="text-center mb-6">
@@ -685,7 +685,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   <div className="relative">
                     <MiniQR size={160} />
                     {/* Shimmer overlay */}
-                    <div className="absolute inset-0 animate-shimmer rounded-lg opacity-50" />
+                    <div className="absolute inset-0 rounded-lg opacity-50" />
                   </div>
                 </div>
 
@@ -698,7 +698,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 <div className="mt-6 space-y-2">
                   {['Scan QR', 'View Services', 'Book / Join Queue', 'Get Token'].map((step, i) => (
                     <div key={step} className="flex items-center gap-3">
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
                         style={{ background: 'var(--qp-primary)', color: 'white' }}>
                         {i + 1}
                       </div>
@@ -794,7 +794,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {TRUST_ITEMS.map(({ Icon, label, desc }) => (
               <div
                 key={label}
-                className="rounded-2xl p-6 transition-all duration-300"
+                className="rounded-2xl p-6 transition-opacity duration-150"
                 style={{ background: 'var(--qp-surface)', border: '1px solid var(--qp-border)' }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"

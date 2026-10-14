@@ -7,8 +7,8 @@ interface QGoLogoProps {
 }
 
 const sizes = {
-  sm: { icon: 24, text: 'text-lg', badge: 'text-[9px] px-1.5 py-0.5' },
-  md: { icon: 32, text: 'text-xl', badge: 'text-[10px] px-2 py-0.5' },
+  sm: { icon: 24, text: 'text-lg', badge: 'text-[11px] px-1.5 py-0.5' },
+  md: { icon: 32, text: 'text-xl', badge: 'text-[11px] px-2 py-0.5' },
   lg: { icon: 40, text: 'text-2xl', badge: 'text-xs px-2 py-0.5' },
   xl: { icon: 52, text: 'text-3xl', badge: 'text-sm px-2.5 py-1' },
 };

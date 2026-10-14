@@ -32,7 +32,7 @@ const RealGoogleButton: React.FC<GoogleAuthButtonProps> = ({ loading, onSuccess,
         if (!loading) loginOAuth();
       }}
       disabled={loading}
-      className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-all rounded-xl shadow-lg hover:bg-[rgba(11,11,11,0.05)] cursor-pointer"
+      className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-colors duration-150 rounded-xl shadow-lg hover:bg-[rgba(11,11,11,0.05)] cursor-pointer"
       style={{
         height: 52,
         background: '#FFF4E8',
@@ -73,7 +73,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = (props) => {
           }
         }}
         disabled={props.loading}
-        className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-all rounded-xl shadow-lg hover:bg-[rgba(11,11,11,0.05)] cursor-pointer"
+        className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-colors duration-150 rounded-xl shadow-lg hover:bg-[rgba(11,11,11,0.05)] cursor-pointer"
         style={{
           height: 52,
           background: '#FFF4E8',

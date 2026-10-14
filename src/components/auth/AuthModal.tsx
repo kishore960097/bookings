@@ -48,13 +48,13 @@ export const AuthModal: React.FC = () => {
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="fixed inset-0 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 transition-opacity"
           style={{ background: 'rgba(11,11,11,0.40)' }}
           onClick={() => setIsAuthModalOpen(false)}
         />
 
         <div
-          className="relative w-full max-w-md rounded-2xl z-10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-[#0B0B0B] bg-[#FFFFFF]"
+          className="relative w-full max-w-md rounded-2xl z-10 shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-[#0B0B0B] bg-[#FFFFFF]"
         >
           {/* Header */}
           <div className="px-6 pt-6 pb-4 border-b border-[rgba(11,11,11,0.12)]">
@@ -111,7 +111,7 @@ export const AuthModal: React.FC = () => {
                 <label className="text-xs font-bold uppercase tracking-wider text-[rgba(11,11,11,0.70)]">
                   Select your role
                 </label>
-                <span className="text-[10px] text-[rgba(11,11,11,0.70)]">
+                <span className="text-[11px] text-[rgba(11,11,11,0.70)]">
                   Determines authorized access
                 </span>
               </div>
@@ -136,7 +136,7 @@ export const AuthModal: React.FC = () => {
                         setRole(id);
                         setError(null);
                       }}
-                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all duration-150 ${
+                      className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-colors duration-150 duration-150 ${
                         isSelected
                           ? 'bg-[#0B0B0B] text-[#FFF4E8] shadow-md ring-1 ring-[#0B0B0B]'
                           : 'text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] hover:bg-[rgba(11,11,11,0.05)]'

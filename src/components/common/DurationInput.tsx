@@ -142,7 +142,7 @@ function Drum<T>({
             <div
               key={i}
               style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
-              className={`flex items-center justify-center cursor-pointer transition-all duration-150
+              className={`flex items-center justify-center cursor-pointer transition-colors duration-150 duration-150
                 ${isSelected
                   ? 'text-[#0B0B0B] font-black text-3xl tracking-tight'
                   : 'text-[#6B665F] font-bold text-xl'
@@ -226,9 +226,9 @@ function DurationDrumPickerModal({ value, onChange, onClose }: DurationDrumPicke
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-[#0B0B0B]/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-[#0B0B0B]/50" />
       <div
-        className="relative w-full max-w-sm bg-[#FFFFFF] sm:rounded-[32px] rounded-t-[32px] shadow-2xl pb-safe overflow-hidden border border-[#0B0B0B] m-0 sm:m-4"
+        className="relative w-full max-w-sm bg-[#FFFFFF] sm:rounded-[32px] rounded-t-[32px] shadow-lg pb-safe overflow-hidden border border-[#0B0B0B] m-0 sm:m-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}

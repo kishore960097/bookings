@@ -55,15 +55,15 @@ const LeftPanel: React.FC = () => {
 
       {/* Center: Live Ticket Card */}
       <div className="relative flex justify-center py-10">
-        <div className="animate-float-slow" style={{ animationDuration: '5s' }}>
+        <div className="" style={{ animationDuration: '5s' }}>
           {/* Main ticket */}
           <div
-            className="rounded-3xl overflow-hidden shadow-2xl animate-pulse-glow"
+            className="rounded-3xl overflow-hidden shadow-lg"
             style={{ width: 280, background: '#FFFFFF', border: '1px solid #0B0B0B' }}
           >
             <div className="p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold"
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-bold"
                   style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}>
                   <div className="w-1.5 h-1.5 rounded-full bg-[#E8342A] animate-pulse" />
                   LIVE QUEUE
@@ -87,15 +87,15 @@ const LeftPanel: React.FC = () => {
             <div className="p-5">
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="text-center">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Serving</div>
-                  <div className="text-lg font-black transition-all" style={{ color: 'var(--qp-success)' }}>#{tick}</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Serving</div>
+                  <div className="text-lg font-black transition-colors duration-150" style={{ color: 'var(--qp-success)' }}>#{tick}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Ahead</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Ahead</div>
                   <div className="text-lg font-black" style={{ color: 'var(--qp-text)' }}>{42 - tick}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Wait</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Wait</div>
                   <div className="text-lg font-black" style={{ color: 'var(--qp-accent)' }}>
                     {Math.max((42 - tick) * 5, 0)}m
                   </div>
@@ -105,14 +105,14 @@ const LeftPanel: React.FC = () => {
               {/* Progress */}
               <div className="rounded-full overflow-hidden" style={{ height: 6, background: 'var(--qp-border)' }}>
                 <div
-                  className="h-full rounded-full transition-all duration-1000"
+                  className="h-full rounded-full transition-colors duration-150 duration-1000"
                   style={{
                     width: `${Math.min(((tick - 30) / 12) * 100, 100)}%`,
                     background: 'linear-gradient(90deg, #0B0B0B, var(--qp-accent))',
                   }}
                 />
               </div>
-              <div className="text-[10px] text-right mt-1" style={{ color: 'var(--qp-text-muted)' }}>
+              <div className="text-[11px] text-right mt-1" style={{ color: 'var(--qp-text-muted)' }}>
                 {Math.round(((tick - 30) / 12) * 100)}% through queue
               </div>
             </div>
@@ -120,27 +120,27 @@ const LeftPanel: React.FC = () => {
 
           {/* Floating mini chips */}
           <div
-            className="absolute -top-6 -right-8 rounded-2xl p-3 shadow-xl animate-float"
+            className="absolute -top-6 -right-8 rounded-2xl p-3 shadow-xl"
             style={{ width: 140, background: '#FFFFFF', border: '1px solid #0B0B0B', animationDelay: '0.5s' }}
           >
             <div className="flex items-center gap-1.5 mb-1">
               <CheckCircle2 size={11} color="var(--qp-success)" />
-              <span className="text-[10px] font-semibold" style={{ color: 'var(--qp-success)' }}>Confirmed</span>
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--qp-success)' }}>Confirmed</span>
             </div>
             <div className="text-xs font-bold" style={{ color: 'var(--qp-text)' }}>Blood Test</div>
-            <div className="text-[10px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>10:30 AM · Today</div>
+            <div className="text-[11px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>10:30 AM · Today</div>
           </div>
 
           <div
-            className="absolute -bottom-6 -left-8 rounded-2xl p-3 shadow-xl animate-float-delay"
+            className="absolute -bottom-6 -left-8 rounded-2xl p-3 shadow-xl"
             style={{ width: 148, background: '#FFFFFF', border: '1px solid #0B0B0B' }}
           >
             <div className="flex items-center gap-1.5 mb-1">
               <MapPin size={11} color="var(--qp-accent)" />
-              <span className="text-[10px] font-semibold" style={{ color: 'var(--qp-accent)' }}>1.4 km away</span>
+              <span className="text-[11px] font-semibold" style={{ color: 'var(--qp-accent)' }}>1.4 km away</span>
             </div>
             <div className="text-xs font-bold" style={{ color: 'var(--qp-text)' }}>City Dental Clinic</div>
-            <div className="text-[10px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>0 waiting · 0m</div>
+            <div className="text-[11px] mt-0.5" style={{ color: 'var(--qp-text-muted)' }}>0 waiting · 0m</div>
           </div>
         </div>
       </div>
@@ -362,7 +362,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                         setRole(id);
                         setError(null);
                       }}
-                      className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all duration-150 ${
+                      className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-colors duration-150 duration-150 ${
                         isSelected
                           ? 'bg-[#0B0B0B] text-[#FFF4E8] shadow-md ring-1 ring-[#0B0B0B]'
                           : 'text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] hover:bg-[rgba(11,11,11,0.05)]'
@@ -403,7 +403,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                 <label className="text-xs font-bold uppercase tracking-wider text-[rgba(11,11,11,0.70)]">
                   Local OTP Preview
                 </label>
-                <span className="text-[10px] text-[rgba(11,11,11,0.70)]">Development only</span>
+                <span className="text-[11px] text-[rgba(11,11,11,0.70)]">Development only</span>
               </div>
 
               <input

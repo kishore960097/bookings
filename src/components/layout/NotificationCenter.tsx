@@ -21,7 +21,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     <>
       {/* Real-time Toast Banner (Floating Pop) */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-[#FFFFFF] text-[#0B0B0B] rounded-xl p-4 shadow-2xl border border-[rgba(11,11,11,0.12)] flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-[#FFFFFF] text-[#0B0B0B] rounded-xl p-4 shadow-lg border border-[rgba(11,11,11,0.12)] flex items-start gap-3 animate-in slide-in-from-bottom-5 duration-300">
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
               toastMessage.type === 'alert'
@@ -55,12 +55,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-[#0B0B0B]/40 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-[#0B0B0B]/50 transition-opacity"
             onClick={onClose}
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-full max-w-md bg-[#FFFFFF] h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200 border-l border-[rgba(11,11,11,0.12)]">
+          <div className="relative w-full max-w-md bg-[#FFFFFF] h-full shadow-lg flex flex-col z-10 animate-in slide-in-from-right duration-200 border-l border-[rgba(11,11,11,0.12)]">
             {/* Header */}
             <div className="p-4 border-b border-[rgba(11,11,11,0.12)] flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -110,7 +110,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                         onClose();
                       }
                     }}
-                    className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-xl border transition-colors duration-150 cursor-pointer ${
                       notif.read
                         ? 'bg-[#FFFFFF] border-[rgba(11,11,11,0.12)] opacity-80'
                         : 'bg-[rgba(232,52,42,0.08)] border-[rgba(232,52,42,0.25)] shadow-xs'
@@ -118,7 +118,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <h4 className={`text-sm font-bold ${notif.read ? 'text-[#0B0B0B]' : 'text-[#E8342A]'}`}>{notif.title}</h4>
-                      <span className="text-[10px] text-[#6B665F] flex items-center gap-1 shrink-0 font-mono">
+                      <span className="text-[11px] text-[#6B665F] flex items-center gap-1 shrink-0 font-mono">
                         <Clock className="w-3 h-3" />
                         {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>

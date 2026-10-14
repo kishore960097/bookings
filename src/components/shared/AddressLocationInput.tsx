@@ -198,7 +198,7 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
       {/* Autocomplete Dropdown */}
       {isOpen && suggestions.length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#FFFFFF] rounded-2xl shadow-xl border border-[#0B0B0B] z-50 overflow-hidden divide-y divide-[rgba(11,11,11,0.06)] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-3 py-1.5 bg-[#FFFFFF] text-[10px] font-bold uppercase tracking-wider text-[#6B665F]">
+          <div className="px-3 py-1.5 bg-[#FFFFFF] text-[11px] font-bold uppercase tracking-wider text-[#6B665F]">
             Suggested Locations
           </div>
           {suggestions.map((item) => (
