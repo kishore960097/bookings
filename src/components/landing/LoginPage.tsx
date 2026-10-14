@@ -29,12 +29,12 @@ const LeftPanel: React.FC = () => {
   return (
     <div
       className="relative flex flex-col justify-between p-10 lg:p-12 overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #0a1628 0%, #080C14 50%, #050810 100%)' }}
+      style={{ background: 'linear-gradient(160deg, #FFFFFF 0%, #FFF4E8 50%, #FFF4E8 100%)' }}
     >
       {/* Background radial */}
       <div
         className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 80% 60% at 30% 30%, rgba(37,99,235,0.18) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 30% 30%, rgba(232,52,42,0.06) 0%, transparent 70%)' }}
       />
       {/* Grid */}
       <div
@@ -59,18 +59,18 @@ const LeftPanel: React.FC = () => {
           {/* Main ticket */}
           <div
             className="rounded-3xl overflow-hidden shadow-2xl animate-pulse-glow"
-            style={{ width: 280, background: 'var(--qp-surface-el)', border: '1px solid rgba(37,99,235,0.35)' }}
+            style={{ width: 280, background: '#FFFFFF', border: '1px solid #0B0B0B' }}
           >
-            <div className="p-5" style={{ background: 'linear-gradient(135deg, #2563EB 0%, #1e40af 100%)' }}>
+            <div className="p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold"
-                  style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#E8342A] animate-pulse" />
                   LIVE QUEUE
                 </div>
-                <div className="text-white/60 text-xs font-mono">QGo</div>
+                <div className="text-[#FFF4E8]/60 text-xs font-mono">QGo</div>
               </div>
-              <div className="text-white">
+              <div className="text-[#FFF4E8]">
                 <div className="text-xs font-medium opacity-70 mb-1">Apex Diagnostic Lab</div>
                 <div className="text-4xl font-black tracking-tight">#A042</div>
                 <div className="text-xs opacity-60 mt-1">Your token number</div>
@@ -96,7 +96,7 @@ const LeftPanel: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--qp-text-muted)' }}>Wait</div>
-                  <div className="text-lg font-black" style={{ color: 'var(--qp-warning)' }}>
+                  <div className="text-lg font-black" style={{ color: 'var(--qp-accent)' }}>
                     {Math.max((42 - tick) * 5, 0)}m
                   </div>
                 </div>
@@ -108,7 +108,7 @@ const LeftPanel: React.FC = () => {
                   className="h-full rounded-full transition-all duration-1000"
                   style={{
                     width: `${Math.min(((tick - 30) / 12) * 100, 100)}%`,
-                    background: 'linear-gradient(90deg, var(--qp-primary), var(--qp-accent))',
+                    background: 'linear-gradient(90deg, #0B0B0B, var(--qp-accent))',
                   }}
                 />
               </div>
@@ -121,7 +121,7 @@ const LeftPanel: React.FC = () => {
           {/* Floating mini chips */}
           <div
             className="absolute -top-6 -right-8 rounded-2xl p-3 shadow-xl animate-float"
-            style={{ width: 140, background: 'var(--qp-surface-el)', border: '1px solid rgba(16,185,129,0.3)', animationDelay: '0.5s' }}
+            style={{ width: 140, background: '#FFFFFF', border: '1px solid #0B0B0B', animationDelay: '0.5s' }}
           >
             <div className="flex items-center gap-1.5 mb-1">
               <CheckCircle2 size={11} color="var(--qp-success)" />
@@ -133,7 +133,7 @@ const LeftPanel: React.FC = () => {
 
           <div
             className="absolute -bottom-6 -left-8 rounded-2xl p-3 shadow-xl animate-float-delay"
-            style={{ width: 148, background: 'var(--qp-surface-el)', border: '1px solid rgba(37,99,235,0.3)' }}
+            style={{ width: 148, background: '#FFFFFF', border: '1px solid #0B0B0B' }}
           >
             <div className="flex items-center gap-1.5 mb-1">
               <MapPin size={11} color="var(--qp-accent)" />
@@ -172,16 +172,14 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onClose, onSuccess }) => {
-  const { loginWithGoogle, loginWithOtp, loginAsDemo, switchRole } = useAuth();
+  const { loginWithGoogle, loginWithOtp, requestOtp, switchRole } = useAuth();
 
   const [role, setRole] = useState<'consumer' | 'owner'>('consumer');
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const [error, setError] = useState<{ message: string; code?: string } | null>(null);
   const [otpPhone, setOtpPhone] = useState('');
   const [otpName, setOtpName] = useState('');
   const [otpCode, setOtpCode] = useState('');
-  const [devOtp, setDevOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
 
   const handleGoogleSuccess = async (tokenResponse: any) => {
@@ -224,17 +222,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
 
     setOtpLoading(true);
     setError(null);
-    setDevOtp('');
     try {
-      const res = await api.requestOtp(otpPhone.trim());
+      const res = await requestOtp(otpPhone.trim());
       if (!res.success) {
         setError({ message: res.error || 'Could not send OTP.' });
         return;
       }
-      if (res.devOtp) {
-        setDevOtp(res.devOtp);
-        setOtpCode(res.devOtp);
-      }
+      setOtpCode('123456');
     } catch (e: any) {
       setError({ message: e?.message || 'Could not request OTP.' });
     } finally {
@@ -278,10 +272,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
         className="flex flex-col justify-center min-h-screen relative"
         style={{ background: 'var(--qp-bg)', borderLeft: '1px solid var(--qp-border)' }}
       >
+        <div id="qgo-phone-recaptcha" />
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+            className="absolute top-6 right-6 p-2 rounded-xl text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] hover:bg-[rgba(11,11,11,0.05)] transition-colors"
             title="Back to home"
           >
             <X size={20} />
@@ -310,22 +305,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
 
             {/* Error Banner with Role Mismatch Resolution */}
             {error && (
-              <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="mb-6 p-4 rounded-2xl bg-[rgba(179,38,30,0.10)] border border-[rgba(179,38,30,0.20)] text-[#B3261E] text-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="flex items-start gap-2.5">
-                  <X size={18} className="mt-0.5 shrink-0 text-red-400" />
-                  <span className="font-medium text-red-200">{error.message}</span>
+                  <X size={18} className="mt-0.5 shrink-0 text-[#B3261E]" />
+                  <span className="font-medium text-[#B3261E]">{error.message}</span>
                 </div>
                 {(error.code === 'OWNER_ACCESS_DENIED' || error.code === 'STAFF_ACCESS_DENIED' || error.message.includes('access')) && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-red-500/20">
+                  <div className="flex items-center gap-2 pt-2 border-t border-[rgba(11,11,11,0.12)]">
                     <button
                       onClick={() => setError(null)}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-[rgba(11,11,11,0.05)] hover:bg-[rgba(11,11,11,0.08)] text-xs font-bold text-[#0B0B0B] transition-colors"
                     >
                       Try Again
                     </button>
                     <button
                       onClick={handleSwitchToCustomer}
-                      className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white transition-colors flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-lg bg-[#0B0B0B] hover:bg-[#262626] text-xs font-bold text-[#FFF4E8] transition-colors flex items-center gap-1"
                     >
                       <User size={13} />
                       <span>Use Customer Login</span>
@@ -338,10 +333,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
             {/* ── ROLE SELECTOR (Customer | Owner) ── */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <label className="text-xs font-bold uppercase tracking-wider text-[rgba(11,11,11,0.70)]">
                   Select your role
                 </label>
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-[rgba(11,11,11,0.70)]">
                   Role is locked after login
                 </span>
               </div>
@@ -350,7 +345,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
               <div
                 role="radiogroup"
                 aria-label="User role selection"
-                className="p-1 rounded-xl bg-slate-800/80 border border-slate-700/60 grid grid-cols-2 gap-1 shadow-inner"
+                className="p-1 rounded-xl bg-[#FFFFFF] border border-[rgba(11,11,11,0.12)] grid grid-cols-2 gap-1 shadow-inner"
               >
                 {([
                   { id: 'consumer', label: 'Customer', icon: User },
@@ -369,13 +364,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                       }}
                       className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all duration-150 ${
                         isSelected
-                          ? 'bg-white text-slate-900 shadow-md shadow-black/20 ring-1 ring-slate-200/50'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40'
+                          ? 'bg-[#0B0B0B] text-[#FFF4E8] shadow-md ring-1 ring-[#0B0B0B]'
+                          : 'text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] hover:bg-[rgba(11,11,11,0.05)]'
                       }`}
                     >
                       <Icon
                         size={15}
-                        className={isSelected ? 'text-blue-600' : 'text-slate-400'}
+                        className={isSelected ? 'text-[#FFF4E8]' : 'text-[rgba(11,11,11,0.70)]'}
                       />
                       <span>{label}</span>
                     </button>
@@ -394,7 +389,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
               />
 
               <div className="text-center">
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-[rgba(11,11,11,0.70)]">
                   Secured with Google OAuth 2.0 & OpenID Connect
                 </p>
               </div>
@@ -403,12 +398,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
             </div>
 
             {/* Local development OTP login */}
-            <form onSubmit={handleOtpLogin} className="mt-6 pt-6 border-t border-slate-800/80 space-y-3">
+            <form onSubmit={handleOtpLogin} className="mt-6 pt-6 border-t border-[rgba(11,11,11,0.12)] space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <label className="text-xs font-bold uppercase tracking-wider text-[rgba(11,11,11,0.70)]">
                   Local OTP Preview
                 </label>
-                <span className="text-[10px] text-slate-500">Development only</span>
+                <span className="text-[10px] text-[rgba(11,11,11,0.70)]">Development only</span>
               </div>
 
               <input
@@ -416,7 +411,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                 value={otpName}
                 onChange={(e) => setOtpName(e.target.value)}
                 placeholder="Your name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[rgba(11,11,11,0.12)] bg-[#FFFFFF] text-[#0B0B0B] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B0B0B]"
               />
 
               <div className="flex gap-2">
@@ -425,24 +420,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                   value={otpPhone}
                   onChange={(e) => setOtpPhone(e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-[rgba(11,11,11,0.12)] bg-[#FFFFFF] text-[#0B0B0B] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B0B0B]"
                 />
                 <button
                   type="button"
                   onClick={handleRequestOtp}
                   disabled={otpLoading}
-                  className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5"
+                  className="px-3.5 py-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(11,11,11,0.05)] border border-[rgba(11,11,11,0.12)] disabled:opacity-50 text-[#0B0B0B] font-bold text-xs flex items-center gap-1.5"
                 >
                   <Smartphone size={14} />
                   <span>OTP</span>
                 </button>
               </div>
-
-              {devOtp && (
-                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-xs text-emerald-200">
-                  Dev OTP: <strong className="font-mono text-white">{devOtp}</strong>
-                </div>
-              )}
 
               <div className="flex gap-2">
                 <input
@@ -451,12 +440,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                   onChange={(e) => setOtpCode(e.target.value)}
                   placeholder="Enter OTP"
                   inputMode="numeric"
-                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-xl border border-[rgba(11,11,11,0.12)] bg-[#FFFFFF] text-[#0B0B0B] text-xs focus:outline-none focus:ring-2 focus:ring-[#0B0B0B]"
                 />
                 <button
                   type="submit"
                   disabled={otpLoading}
-                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5"
+                  className="px-4 py-2.5 rounded-xl bg-[#0B0B0B] hover:bg-[#262626] disabled:opacity-50 text-[#FFF4E8] font-bold text-xs flex items-center gap-1.5"
                 >
                   <KeyRound size={14} />
                   <span>Enter</span>
@@ -465,14 +454,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
             </form>
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-slate-800/80 text-center">
-              <p className="text-[11px] text-slate-500">
+            <div className="mt-8 pt-6 border-t border-[rgba(11,11,11,0.12)] text-center">
+              <p className="text-[11px] text-[rgba(11,11,11,0.70)]">
                 By continuing, you agree to our{' '}
-                <a href="#" className="text-slate-400 hover:text-white underline">
+                <a href="#" className="text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] underline">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-slate-400 hover:text-white underline">
+                <a href="#" className="text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] underline">
                   Privacy Policy
                 </a>
                 .

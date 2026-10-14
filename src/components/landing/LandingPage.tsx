@@ -4,10 +4,8 @@ import {
   CheckCircle2, ChevronRight, ArrowRight, Stethoscope,
   Hotel, UtensilsCrossed, Scissors, FlaskConical, Car,
   Dumbbell, Scale, Ticket, Star, TrendingUp, Lock,
-  Bell, BarChart3, Menu, X, Scan, Building2, Activity,
-  User} from 'lucide-react';
+  Bell, BarChart3, Menu, X, Scan, Building2, Activity} from 'lucide-react';
 import { QGoLogo } from './QGoLogo';
-import { useAuth } from '../../context/AuthContext';
 
 /* ─── QR Code Visual (CSS-generated) ─── */
 const QR_PATTERN = [
@@ -43,7 +41,7 @@ const MiniQR: React.FC<{ size?: number }> = ({ size = 80 }) => (
         <div
           key={`${ri}-${ci}`}
           style={{
-            background: cell ? '#080C14' : 'transparent',
+            background: cell ? '#0B0B0B' : 'transparent',
             borderRadius: 1,
           }}
         />
@@ -116,7 +114,7 @@ const Navbar: React.FC<{ onSignIn: () => void; onGetStarted: () => void }> = ({ 
         scrolled ? 'backdrop-blur-xl border-b' : ''
       }`}
       style={{
-        background: scrolled ? 'rgba(8,12,20,0.92)' : 'transparent',
+        background: scrolled ? 'rgba(255,255,255,0.92)' : 'transparent',
         borderColor: scrolled ? 'var(--qp-border)' : 'transparent',
       }}
     >
@@ -212,13 +210,13 @@ const HeroBookingCard: React.FC = () => (
     {/* Background glow */}
     <div
       className="absolute inset-0 rounded-3xl pointer-events-none"
-      style={{ background: 'radial-gradient(ellipse at center, rgba(37,99,235,0.15) 0%, transparent 70%)' }}
+      style={{ background: 'radial-gradient(ellipse at center, rgba(232,52,42,0.06) 0%, transparent 70%)' }}
     />
 
     {/* Floating mini cards — back layer (hidden on very narrow screens to prevent overflow) */}
     <div
       className="hidden sm:block animate-float-slow absolute top-8 -left-4 glass rounded-2xl p-3 shadow-xl"
-      style={{ width: 150, animationDelay: '0s', border: '1px solid rgba(37,99,235,0.3)' }}
+      style={{ width: 150, animationDelay: '0s', border: '1px solid #0B0B0B' }}
     >
       <div className="flex items-center gap-2 mb-2">
         <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--qp-success-soft)' }}>
@@ -235,7 +233,7 @@ const HeroBookingCard: React.FC = () => (
 
     <div
       className="hidden sm:block animate-float absolute top-4 -right-2 glass rounded-2xl p-3 shadow-xl"
-      style={{ width: 140, animationDelay: '1s', border: '1px solid rgba(6,182,212,0.25)' }}
+      style={{ width: 140, animationDelay: '1s', border: '1px solid #0B0B0B' }}
     >
       <div className="flex items-center gap-1.5 mb-1">
         <MapPin size={11} color="var(--qp-accent)" />
@@ -253,21 +251,21 @@ const HeroBookingCard: React.FC = () => (
         maxWidth: 280,
         top: 20,
         background: 'linear-gradient(145deg, var(--qp-surface-el) 0%, var(--qp-surface) 100%)',
-        border: '1px solid rgba(37,99,235,0.4)',
+        border: '1px solid #0B0B0B',
       }}
     >
       {/* Card Header */}
-      <div className="p-4 sm:p-5" style={{ background: 'linear-gradient(135deg, var(--qp-primary) 0%, #1e40af 100%)' }}>
+      <div className="p-4 sm:p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
         <div className="flex items-center justify-between mb-3">
           <QGoLogo size="sm" />
           <div
             className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}
+            style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}
           >
             LIVE QUEUE
           </div>
         </div>
-        <div className="text-white">
+        <div className="text-[#FFF4E8]">
           <div className="text-xs font-medium opacity-75 mb-0.5">Apex Diagnostic Lab</div>
           <div className="text-2xl sm:text-3xl font-black tracking-tight">#A042</div>
         </div>
@@ -406,8 +404,6 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => {
-  const { loginAsDemo } = useAuth();
-
   return (
     <div className="min-h-screen" style={{ background: 'var(--qp-bg)' }}>
       <Navbar onSignIn={onSignIn} onGetStarted={onGetStarted} />
@@ -418,7 +414,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(37,99,235,0.18) 0%, transparent 60%)',
+            background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(232,52,42,0.06) 0%, transparent 60%)',
           }}
         />
         {/* Grid overlay */}
@@ -440,7 +436,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
               <h1 className="font-black leading-none tracking-tight" style={{ fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', color: 'var(--qp-text)' }}>
                 Book Before<br />
-                <span style={{ background: 'linear-gradient(90deg, #2563EB, #06B6D4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <span style={{ color: '#E8342A' }}>
                   You Go.
                 </span>
               </h1>
@@ -460,30 +456,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 <button onClick={onSignIn} className="btn-secondary" style={{ fontSize: '1rem', padding: '14px 28px' }}>
                   Sign In
                 </button>
-              </div>
-
-              {/* 1-Click Instant Demo Launch Bar */}
-              <div className="mt-6 p-4 rounded-2xl bg-slate-900/90 border border-blue-500/30 backdrop-blur-md">
-                <div className="flex items-center gap-1.5 mb-2.5 text-xs font-black text-blue-400 uppercase tracking-wider">
-                  
-                  <span>Explore App Directly (Instant Demo Mode):</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    onClick={() => loginAsDemo('consumer')}
-                    className="px-3.5 py-3 rounded-xl bg-blue-600/20 hover:bg-blue-600 text-blue-200 hover:text-white border border-blue-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                  >
-                    <User size={14} />
-                    <span>Customer View</span>
-                  </button>
-                  <button
-                    onClick={() => loginAsDemo('owner')}
-                    className="px-3.5 py-3 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-200 hover:text-white border border-purple-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                  >
-                    <Building2 size={14} />
-                    <span>Owner View</span>
-                  </button>
-                </div>
               </div>
 
               {/* Trust chips */}
@@ -528,10 +500,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { step: '01', Icon: MapPin, title: 'Discover', desc: 'Find nearby businesses and services. Filter by category, wait time, or location.', color: '#2563EB' },
-              { step: '02', Icon: Calendar, title: 'Book', desc: 'Reserve your appointment, slot, table, or room. Or simply join the live queue.', color: '#06B6D4' },
-              { step: '03', Icon: Activity, title: 'Track', desc: 'Follow your token in real-time. Know exactly how many people are ahead of you.', color: '#F59E0B' },
-              { step: '04', Icon: Scan, title: 'Arrive', desc: 'Head over when your turn is near. Scan the QR code for instant check-in.', color: '#10B981' },
+              { step: '01', Icon: MapPin, title: 'Discover', desc: 'Find nearby businesses and services. Filter by category, wait time, or location.', color: '#E8342A' },
+              { step: '02', Icon: Calendar, title: 'Book', desc: 'Reserve your appointment, slot, table, or room. Or simply join the live queue.', color: '#E8342A' },
+              { step: '03', Icon: Activity, title: 'Track', desc: 'Follow your token in real-time. Know exactly how many people are ahead of you.', color: '#E8342A' },
+              { step: '04', Icon: Scan, title: 'Arrive', desc: 'Head over when your turn is near. Scan the QR code for instant check-in.', color: '#E8342A' },
             ].map(({ step, Icon, title, desc, color }) => (
               <div
                 key={step}
@@ -571,7 +543,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 key={label}
                 className="group rounded-2xl p-5 transition-all duration-300 cursor-default"
                 style={{ background: 'var(--qp-surface)', border: '1px solid var(--qp-border)' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(37,99,235,0.4)'; e.currentTarget.style.background = 'var(--qp-surface-el)'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(11,11,11,0.3)'; e.currentTarget.style.background = 'var(--qp-surface-el)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--qp-border)'; e.currentTarget.style.background = 'var(--qp-surface)'; }}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors"
@@ -617,19 +589,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <div>
               <div
                 className="rounded-3xl overflow-hidden shadow-2xl max-w-sm mx-auto"
-                style={{ background: 'var(--qp-surface-el)', border: '1px solid var(--qp-border)' }}
+                style={{ background: '#FFFFFF', border: '1px solid #0B0B0B' }}
               >
                 {/* Header */}
-                <div className="p-5" style={{ background: 'linear-gradient(135deg, var(--qp-primary) 0%, #1e40af 100%)' }}>
+                <div className="p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-white font-semibold text-sm">City Medical Clinic</span>
+                    <span className="text-[#FFF4E8] font-semibold text-sm">City Medical Clinic</span>
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                      style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}>
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#E8342A] animate-pulse" />
                       LIVE
                     </div>
                   </div>
-                  <div className="text-white/70 text-xs">General Medicine · Dr. Priya S.</div>
+                  <div className="text-[#FFF4E8]/70 text-xs">General Medicine · Dr. Priya S.</div>
                 </div>
 
                 <div className="p-5 space-y-4">
@@ -641,7 +613,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                         #<AnimatedCounter from={30} to={36} />
                       </div>
                     </div>
-                    <div className="rounded-xl p-4 text-center" style={{ background: 'var(--qp-primary-soft)', border: '1px solid rgba(37,99,235,0.4)' }}>
+                    <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(232,52,42,0.08)', border: '1px solid rgba(232,52,42,0.20)' }}>
                       <div className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--qp-accent)' }}>Your Token</div>
                       <div className="text-3xl font-black" style={{ color: 'var(--qp-text)' }}>#42</div>
                     </div>
@@ -657,10 +629,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                       </div>
                     </div>
                     <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'var(--qp-surface)' }}>
-                      <Clock size={14} color="var(--qp-warning)" />
+                      <Clock size={14} color="var(--qp-accent)" />
                       <div>
                         <div className="text-[10px]" style={{ color: 'var(--qp-text-muted)' }}>Est. Wait</div>
-                        <div className="text-sm font-bold" style={{ color: 'var(--qp-warning)' }}>28 min</div>
+                        <div className="text-sm font-bold" style={{ color: 'var(--qp-accent)' }}>28 min</div>
                       </div>
                     </div>
                   </div>
@@ -674,15 +646,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                     <div className="rounded-full overflow-hidden" style={{ height: 8, background: 'var(--qp-border)' }}>
                       <div
                         className="h-full rounded-full animate-progress"
-                        style={{ background: 'linear-gradient(90deg, var(--qp-primary), var(--qp-accent))' }}
+                        style={{ background: 'linear-gradient(90deg, #0B0B0B, var(--qp-accent))' }}
                       />
                     </div>
                   </div>
 
                   {/* Notification */}
-                  <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)' }}>
-                    <Bell size={14} color="var(--qp-warning)" />
-                    <span className="text-xs font-medium" style={{ color: 'var(--qp-warning)' }}>
+                  <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(232,52,42,0.08)', border: '1px solid rgba(232,52,42,0.20)' }}>
+                    <Bell size={14} color="var(--qp-accent)" />
+                    <span className="text-xs font-medium" style={{ color: 'var(--qp-accent)' }}>
                       You'll be notified when 3 people remain.
                     </span>
                   </div>
@@ -844,18 +816,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             className="rounded-3xl p-12 lg:p-16 relative overflow-hidden"
             style={{
               background: 'linear-gradient(135deg, var(--qp-primary-soft) 0%, var(--qp-surface-el) 60%)',
-              border: '1px solid rgba(37,99,235,0.3)',
+              border: '1px solid #0B0B0B',
             }}
           >
             <div
               className="pointer-events-none absolute inset-0"
-              style={{ background: 'radial-gradient(ellipse at top, rgba(37,99,235,0.15) 0%, transparent 70%)' }}
+              style={{ background: 'radial-gradient(ellipse at top, rgba(232,52,42,0.06) 0%, transparent 70%)' }}
             />
             <div className="relative">
               <div className="section-tag mb-6">Start Today</div>
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight mb-6" style={{ color: 'var(--qp-text)' }}>
                 Ready to stop<br />
-                <span style={{ background: 'linear-gradient(90deg, #2563EB, #06B6D4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <span style={{ color: '#E8342A' }}>
                   unnecessary waiting?
                 </span>
               </h2>

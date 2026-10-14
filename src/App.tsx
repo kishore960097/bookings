@@ -7,6 +7,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { LandingPage } from './components/landing/LandingPage';
 import { LoginPage } from './components/landing/LoginPage';
 import { QGoLogo } from './components/landing/QGoLogo';
+import { QGoIntro } from './components/intro/QGoIntro';
 
 // Consumer — redesigned green/white theme
 import { CustomerPage } from './features/customer/CustomerPage';
@@ -25,6 +26,8 @@ function AppContent() {
   const { user, currentRole, logout, isLoadingSession } = useAuth();
   const { activeBooking } = useQueue();
   const isAdminPath = window.location.pathname.replace(/\/+$/, '') === '/admin';
+  const [isIntroComplete, setIsIntroComplete] = useState(false);
+  const handleIntroDone = React.useCallback(() => setIsIntroComplete(true), []);
 
   // Page routing — landing for unauthenticated, app for authenticated
   const [page, setPage] = useState<AppPage>(user ? 'app' : isAdminPath ? 'login' : 'landing');
@@ -34,6 +37,15 @@ function AppContent() {
     if (user && page !== 'app') setPage('app');
     if (!user && page === 'app') setPage('landing');
   }, [user]);
+
+  const withIntro = (content: React.ReactNode) => (
+    <>
+      <div aria-hidden={!isIntroComplete} inert={!isIntroComplete}>
+        {content}
+      </div>
+      {!isIntroComplete && <QGoIntro ready={!isLoadingSession} onDone={handleIntroDone} />}
+    </>
+  );
 
   // Navigation states for consumer app
   const [currentView, setCurrentView] = useState<'home' | 'salon_detail' | 'ticket' | 'bookings'>(() => (sessionStorage.getItem('qgo_cv') as any) || 'home');
@@ -90,18 +102,9 @@ function AppContent() {
     setIsReviewModalOpen(true);
   };
 
-  if (isLoadingSession) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFFFFF] text-[#000000] animate-in fade-in duration-500">
-        <QGoLogo size="xl" className="animate-pulse mb-6" />
-        <p className="text-xs font-bold uppercase tracking-widest text-[rgba(0,0,0,0.70)]">Loading QGo...</p>
-      </div>
-    );
-  }
-
   // ─── Landing Page ───
   if (page === 'landing') {
-    return (
+    return withIntro(
       <LandingPage
         onGetStarted={() => setPage('register')}
         onSignIn={() => setPage('login')}
@@ -111,7 +114,7 @@ function AppContent() {
 
   // ─── Login / Register Page ───
   if (page === 'login' || page === 'register') {
-    return (
+    return withIntro(
       <LoginPage
         defaultView={page === 'register' ? 'register' : 'login'}
         onClose={() => setPage('landing')}
@@ -121,12 +124,12 @@ function AppContent() {
   }
 
   if (isAdminPath && currentRole !== 'admin') {
-    return (
-      <div className="min-h-screen grid place-items-center bg-[#FFFFFF] px-5 text-center text-[#000000]">
-        <div className="ap-glass-panel max-w-md p-8">
+    return withIntro(
+      <div className="min-h-screen grid place-items-center bg-[#FFF4E8] px-5 text-center text-[#0B0B0B]">
+        <div className="ap-glass-panel max-w-md p-8 border border-[#0B0B0B]">
           <QGoLogo size="lg" className="mx-auto mb-5" />
           <h1 className="text-2xl font-bold">Admin access restricted</h1>
-          <p className="mt-3 text-sm text-[rgba(0,0,0,0.70)]">Admin access is restricted to the authorized QGo administrator.</p>
+          <p className="mt-3 text-sm text-[rgba(11,11,11,0.70)]">Admin access is restricted to the authorized QGo administrator.</p>
           <button className="btn-primary mt-6" onClick={() => { logout(); setPage('login'); }}>Sign in with another account</button>
         </div>
       </div>
@@ -134,7 +137,7 @@ function AppContent() {
   }
 
   // ─── Main App (Authenticated) ───
-  return (
+  return withIntro(
     <>
       {currentRole === 'consumer' && (
         <CustomerPage
@@ -144,7 +147,7 @@ function AppContent() {
       )}
 
       {currentRole === 'owner' && (
-        <div className="min-h-screen flex flex-col font-sans" style={{ background: '#FFFFFF', color: '#000000' }}>
+        <div className="min-h-screen flex flex-col font-sans" style={{ background: '#FFF4E8', color: '#0B0B0B' }}>
           <main className="flex-1">
             <OwnerDashboard
               onBackToLanding={() => {

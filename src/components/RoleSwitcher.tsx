@@ -30,7 +30,7 @@ export const RoleSwitcher: React.FC = () => {
         type="button"
         onClick={handleSwitch}
         disabled={isSwitching}
-        className="h-9 px-2.5 sm:px-3 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-60 transition-colors flex items-center gap-1.5 text-[11px] sm:text-xs font-bold"
+        className="h-9 px-2.5 sm:px-3 rounded-lg border border-[rgba(11,11,11,0.12)] bg-[#FFFFFF] text-[rgba(11,11,11,0.70)] hover:bg-[rgba(11,11,11,0.05)] disabled:opacity-60 transition-colors flex items-center gap-1.5 text-[11px] sm:text-xs font-bold"
         title={`Switch to ${ROLE_LABELS[nextRole]} View`}
       >
         {isSwitching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArrowLeftRight className="w-3.5 h-3.5" />}
@@ -38,7 +38,7 @@ export const RoleSwitcher: React.FC = () => {
         <span className="sm:hidden">{ROLE_LABELS[nextRole]}</span>
       </button>
       {error && (
-        <div className="absolute right-0 top-10 w-56 rounded-lg border border-red-200 bg-white p-2 text-[11px] font-semibold text-red-700 shadow-lg">
+        <div className="absolute right-0 top-10 w-56 rounded-lg border border-[rgba(11,11,11,0.12)] bg-[#FFFFFF] p-2 text-[11px] font-semibold text-[#B3261E] shadow-lg">
           {error}
         </div>
       )}

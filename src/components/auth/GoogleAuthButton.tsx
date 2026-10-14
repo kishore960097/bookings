@@ -32,18 +32,18 @@ const RealGoogleButton: React.FC<GoogleAuthButtonProps> = ({ loading, onSuccess,
         if (!loading) loginOAuth();
       }}
       disabled={loading}
-      className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-all rounded-xl shadow-lg hover:bg-slate-50 cursor-pointer"
+      className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-all rounded-xl shadow-lg hover:bg-[rgba(11,11,11,0.05)] cursor-pointer"
       style={{
         height: 52,
-        background: loading ? '#1e293b' : '#ffffff',
-        color: loading ? '#94a3b8' : '#0f172a',
-        border: '1px solid rgba(255,255,255,0.15)',
+        background: '#FFF4E8',
+        color: loading ? 'rgba(11,11,11,0.40)' : '#0B0B0B',
+        border: '1px solid rgba(11,11,11,0.12)',
         cursor: loading ? 'not-allowed' : 'pointer',
       }}
     >
       {loading ? (
         <>
-          <div className="w-4 h-4 border-2 border-slate-500 border-t-blue-500 rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-[rgba(11,11,11,0.12)] border-t-[#0B0B0B] rounded-full animate-spin" />
           <span>Connecting to Google...</span>
         </>
       ) : (
@@ -73,12 +73,12 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = (props) => {
           }
         }}
         disabled={props.loading}
-        className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-all rounded-xl shadow-lg hover:bg-slate-50 cursor-pointer"
+        className="w-full flex items-center justify-center gap-3 font-bold text-sm transition-all rounded-xl shadow-lg hover:bg-[rgba(11,11,11,0.05)] cursor-pointer"
         style={{
           height: 52,
-          background: props.loading ? '#1e293b' : '#ffffff',
-          color: props.loading ? '#94a3b8' : '#0f172a',
-          border: '1px solid rgba(255,255,255,0.15)',
+          background: '#FFF4E8',
+          color: props.loading ? 'rgba(11,11,11,0.40)' : '#0B0B0B',
+          border: '1px solid rgba(11,11,11,0.12)',
         }}
       >
         <GoogleIcon size={20} />

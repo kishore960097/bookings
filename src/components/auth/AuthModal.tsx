@@ -5,10 +5,9 @@ import { QGoLogo } from '../landing/QGoLogo';
 import { GoogleAuthButton } from './GoogleAuthButton';
 
 export const AuthModal: React.FC = () => {
-  const { isAuthModalOpen, setIsAuthModalOpen, loginWithGoogle, loginAsDemo } = useAuth();
+  const { isAuthModalOpen, setIsAuthModalOpen, loginWithGoogle } = useAuth();
   const [role, setRole] = useState<'consumer' | 'owner'>('consumer');
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const [error, setError] = useState<{ message: string; code?: string } | null>(null);
 
   if (!isAuthModalOpen) return null;
@@ -50,30 +49,29 @@ export const AuthModal: React.FC = () => {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
           className="fixed inset-0 backdrop-blur-sm transition-opacity"
-          style={{ background: 'rgba(8,12,20,0.8)' }}
+          style={{ background: 'rgba(11,11,11,0.40)' }}
           onClick={() => setIsAuthModalOpen(false)}
         />
 
         <div
-          className="relative w-full max-w-md rounded-2xl z-10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-          style={{ background: 'var(--qp-surface-el)', border: '1px solid var(--qp-border)' }}
+          className="relative w-full max-w-md rounded-2xl z-10 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-[#0B0B0B] bg-[#FFFFFF]"
         >
           {/* Header */}
-          <div className="px-6 pt-6 pb-4" style={{ borderBottom: '1px solid var(--qp-border)' }}>
+          <div className="px-6 pt-6 pb-4 border-b border-[rgba(11,11,11,0.12)]">
             <div className="flex items-center justify-between mb-3">
               <QGoLogo size="sm" />
               <button
                 onClick={() => setIsAuthModalOpen(false)}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-lg text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] hover:bg-[rgba(11,11,11,0.05)] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="text-center mt-2">
-              <h2 className="text-xl font-black tracking-tight text-white">
+              <h2 className="text-xl font-black tracking-tight text-[#0B0B0B]">
                 Sign in to QGo
               </h2>
-              <p className="text-xs mt-1 text-slate-400">
+              <p className="text-xs mt-1 text-[rgba(11,11,11,0.70)]">
                 Select your role before continuing
               </p>
             </div>
@@ -82,22 +80,22 @@ export const AuthModal: React.FC = () => {
           {/* Body */}
           <div className="px-6 py-6">
             {error && (
-              <div className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs space-y-2.5">
+              <div className="mb-5 p-3.5 rounded-xl bg-[rgba(179,38,30,0.10)] border border-[rgba(179,38,30,0.20)] text-[#B3261E] text-xs space-y-2.5">
                 <div className="flex items-start gap-2">
-                  <X size={15} className="mt-0.5 shrink-0 text-red-400" />
+                  <X size={15} className="mt-0.5 shrink-0 text-[#B3261E]" />
                   <span className="font-medium">{error.message}</span>
                 </div>
                 {(error.code === 'OWNER_ACCESS_DENIED' || error.code === 'STAFF_ACCESS_DENIED' || error.message.includes('access')) && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-red-500/20">
+                  <div className="flex items-center gap-2 pt-2 border-t border-[rgba(11,11,11,0.12)]">
                     <button
                       onClick={() => setError(null)}
-                      className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-[11px] font-bold text-white transition-colors"
+                      className="px-2.5 py-1 rounded bg-[rgba(11,11,11,0.05)] hover:bg-[rgba(11,11,11,0.08)] text-[11px] font-bold text-[#0B0B0B] transition-colors"
                     >
                       Try Again
                     </button>
                     <button
                       onClick={handleSwitchToCustomer}
-                      className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-[11px] font-bold text-white transition-colors flex items-center gap-1"
+                      className="px-2.5 py-1 rounded bg-[#0B0B0B] hover:bg-[#262626] text-[11px] font-bold text-[#FFF4E8] transition-colors flex items-center gap-1"
                     >
                       <UserIcon size={11} />
                       <span>Use Customer Login</span>
@@ -110,10 +108,10 @@ export const AuthModal: React.FC = () => {
             {/* ── ROLE SELECTOR (Customer | Owner) ── */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <label className="text-xs font-bold uppercase tracking-wider text-[rgba(11,11,11,0.70)]">
                   Select your role
                 </label>
-                <span className="text-[10px] text-slate-500">
+                <span className="text-[10px] text-[rgba(11,11,11,0.70)]">
                   Determines authorized access
                 </span>
               </div>
@@ -121,7 +119,7 @@ export const AuthModal: React.FC = () => {
               <div
                 role="radiogroup"
                 aria-label="User role selection"
-                className="p-1 rounded-xl bg-slate-800/80 border border-slate-700/60 grid grid-cols-2 gap-1 shadow-inner"
+                className="p-1 rounded-xl bg-[#FFFFFF] border border-[rgba(11,11,11,0.12)] grid grid-cols-2 gap-1 shadow-inner"
               >
                 {([
                   { id: 'consumer', label: 'Customer', icon: UserIcon },
@@ -140,13 +138,13 @@ export const AuthModal: React.FC = () => {
                       }}
                       className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all duration-150 ${
                         isSelected
-                          ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-200/50'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40'
+                          ? 'bg-[#0B0B0B] text-[#FFF4E8] shadow-md ring-1 ring-[#0B0B0B]'
+                          : 'text-[rgba(11,11,11,0.70)] hover:text-[#0B0B0B] hover:bg-[rgba(11,11,11,0.05)]'
                       }`}
                     >
                       <Icon
                         size={14}
-                        className={isSelected ? 'text-blue-600' : 'text-slate-400'}
+                        className={isSelected ? 'text-[#FFF4E8]' : 'text-[rgba(11,11,11,0.70)]'}
                       />
                       <span>{label}</span>
                     </button>
