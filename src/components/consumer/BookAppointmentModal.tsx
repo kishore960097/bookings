@@ -242,41 +242,41 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs" onClick={onClose} />
+      <div className="fixed inset-0 bg-[#FFFFFF]" onClick={onClose} />
 
-      <div className="relative w-full max-w-xl max-h-[92dvh] bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 border border-slate-200 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+      <div className="relative w-full max-w-xl max-h-[92dvh] bg-[#FFFFFF] rounded-t-3xl sm:rounded-3xl shadow-lg z-10 border border-[rgba(23,23,23,0.12)] overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
         {/* Header Banner */}
         <div
-          className={`p-5 sm:p-6 text-white relative ${
+          className={`p-5 sm:p-6 text-[#171717] relative ${
             isTurf
-              ? 'bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900'
-              : 'bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900'
+              ? 'bg-gradient-to-r from-[#FF9F1C] via-[#FF9F1C]/90 to-[#FAF8F4]'
+              : 'bg-gradient-to-r from-[#FF9F1C] via-[#FF9F1C]/90 to-[#FF9F1C]/80'
           }`}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[rgba(23,23,23,0.05)] hover:bg-[rgba(23,23,23,0.05)] flex items-center justify-center text-[#171717] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
 
           <div className="pr-8">
             <span
-              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider mb-1.5 ${
-                isTurf ? 'bg-emerald-500 text-slate-950' : 'bg-indigo-500 text-white'
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider mb-1.5 ${
+                isTurf ? 'bg-[#FF9F1C] text-[#171717]' : 'bg-[#FF9F1C] text-[#171717]'
               }`}
             >
               {isTurf ? '🏟️ Book a Turf Slot' : '📅 Book Appointment'}
             </span>
             <h2 className="text-xl sm:text-2xl font-black tracking-tight">{salon.name}</h2>
-            <p className="text-xs text-slate-300 mt-0.5">{salon.address}</p>
+            <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">{salon.address}</p>
           </div>
         </div>
 
         {/* Scrollable Form Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
           {error && (
-            <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-2 animate-in shake">
+            <div className="p-3.5 rounded-2xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] text-xs font-bold text-[#FF9F1C] flex items-center gap-2 animate-in shake">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -285,7 +285,7 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
           {/* ── TURF SELECTOR (When Turf has multiple grounds) ── */}
           {isTurf && turfResources.length > 1 && (
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
+              <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-2 uppercase tracking-wider">
                 1. Select Turf / Ground
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -296,14 +296,14 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                       key={t.id}
                       type="button"
                       onClick={() => setSelectedTurfId(t.id)}
-                      className={`p-3 rounded-2xl border text-left transition-all ${
+                      className={`p-3 rounded-2xl border text-left transition-colors duration-150 ${
                         isSelected
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/40'
-                          : 'bg-slate-50 border-slate-200 text-slate-800 hover:border-emerald-300'
+                          ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-sm ring-2 ring-[#FF9F1C]'
+                          : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] text-[#171717] hover:border-[rgba(23,23,23,0.12)]'
                       }`}
                     >
                       <p className="font-black text-xs">{t.name}</p>
-                      <p className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                      <p className={`text-[11px] ${isSelected ? 'text-[#FF9F1C]' : 'text-[rgba(23,23,23,0.70)]'}`}>
                         {t.type}
                       </p>
                     </button>
@@ -317,7 +317,7 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
           {!isTurf && (
             <>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-2 uppercase tracking-wider">
                   1. Select Service
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
@@ -326,19 +326,19 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                       key={srv.id}
                       type="button"
                       onClick={() => setSelectedServiceId(srv.id)}
-                      className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                      className={`p-3 rounded-xl border text-left flex items-center justify-between transition-colors duration-150 ${
                         selectedServiceId === srv.id
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                          : 'bg-white border-slate-200 text-slate-800 hover:border-indigo-300'
+                          ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-xs'
+                          : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] text-[#171717] hover:border-[rgba(23,23,23,0.12)]'
                       }`}
                     >
                       <div>
                         <p className="font-bold text-xs">{srv.name}</p>
-                        <p className={`text-[10px] ${selectedServiceId === srv.id ? 'text-indigo-200' : 'text-slate-400'}`}>
+                        <p className={`text-[11px] ${selectedServiceId === srv.id ? 'text-[#FF9F1C]' : 'text-[rgba(23,23,23,0.70)]'}`}>
                           {srv.durationMinutes} min · {srv.category}
                         </p>
                       </div>
-                      <span className={`text-xs font-black ${selectedServiceId === srv.id ? 'text-white' : 'text-indigo-600'}`}>
+                      <span className={`text-xs font-black ${selectedServiceId === srv.id ? 'text-[#171717]' : 'text-[#FF9F1C]'}`}>
                         ₹{srv.price}
                       </span>
                     </button>
@@ -347,17 +347,17 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-2 uppercase tracking-wider">
                   2. Specialist
                 </label>
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                   <button
                     type="button"
                     onClick={() => setSelectedStaffId('any')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold whitespace-nowrap transition-all ${
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold whitespace-nowrap transition-colors duration-150 ${
                       selectedStaffId === 'any'
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-xs'
+                        : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)]'
                     }`}
                   >
                     ✨ Any Specialist
@@ -367,10 +367,10 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                       key={st.id}
                       type="button"
                       onClick={() => setSelectedStaffId(st.id)}
-                      className={`py-2 px-3 rounded-xl border text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                      className={`py-2 px-3 rounded-xl border text-xs font-bold whitespace-nowrap transition-colors duration-150 flex items-center gap-1.5 ${
                         selectedStaffId === st.id
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                          ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-xs'
+                          : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)]'
                       }`}
                     >
                       <span>{st.name}</span>
@@ -383,7 +383,7 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
 
           {/* ── DATE SELECTION PILLS ── */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-2 uppercase tracking-wider">
               {isTurf ? (turfResources.length > 1 ? '2. Select Date' : '1. Select Date') : '3. Select Date'}
             </label>
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
@@ -394,19 +394,19 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                     key={d.dateStr}
                     type="button"
                     onClick={() => setSelectedDate(d.dateStr)}
-                    className={`min-w-[56px] py-2.5 px-2 rounded-2xl border text-center transition-all shrink-0 ${
+                    className={`min-w-[56px] py-2.5 px-2 rounded-2xl border text-center transition-colors duration-150 shrink-0 ${
                       isSelected
                         ? isTurf
-                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/40'
-                          : 'bg-indigo-600 border-indigo-600 text-white shadow-sm ring-2 ring-indigo-400/40'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                          ? 'bg-[#FF9F1C] border-[#FF9F1C] text-[#171717] shadow-sm ring-2 ring-[#FF9F1C]'
+                          : 'bg-[#FF9F1C] border-[#FF9F1C] text-[#171717] shadow-sm ring-2 ring-[#FF9F1C]'
+                        : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] hover:border-[rgba(23,23,23,0.12)]'
                     }`}
                   >
-                    <span className="block text-[9px] font-black uppercase tracking-wider opacity-80">
+                    <span className="block text-[11px] font-black uppercase tracking-wider opacity-80">
                       {d.dayName}
                     </span>
                     <span className="block text-base font-black leading-tight my-0.5">{d.dayNum}</span>
-                    <span className="block text-[9px] font-bold opacity-75">{d.month}</span>
+                    <span className="block text-[11px] font-bold opacity-75">{d.month}</span>
                   </button>
                 );
               })}
@@ -414,28 +414,28 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
           </div>
 
           {/* ── TIME SLOTS GRID ── */}
-          <div className="bg-slate-50 p-4 sm:p-5 rounded-3xl border border-slate-200/90 space-y-3">
+          <div className="bg-[#FFFFFF] p-4 sm:p-5 rounded-3xl border border-[rgba(23,23,23,0.12)]/90 space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                <h3 className="text-xs font-black text-[#171717] uppercase tracking-wider">
                   Available Slots ({selectedDate})
                 </h3>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-[rgba(23,23,23,0.70)]">
                   {isTurf ? `Slots for ${currentTurf?.name || 'Turf'}` : 'Select a start time'}
                 </p>
               </div>
 
               {/* Morning vs Evening Filter */}
-              <div className="flex items-center bg-white border border-slate-200 p-0.5 rounded-xl text-[11px] font-bold">
+              <div className="flex items-center bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] p-0.5 rounded-xl text-[11px] font-bold">
                 <button
                   type="button"
                   onClick={() => setTimePeriod('all')}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                  className={`px-2.5 py-1 rounded-lg transition-colors duration-150 ${
                     timePeriod === 'all'
                       ? isTurf
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-indigo-600 text-white'
-                      : 'text-slate-600'
+                        ? 'bg-[#FF9F1C] text-[#171717]'
+                        : 'bg-[#FF9F1C] text-[#171717]'
+                      : 'text-[rgba(23,23,23,0.70)]'
                   }`}
                 >
                   All
@@ -443,41 +443,41 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setTimePeriod('morning')}
-                  className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-lg transition-colors duration-150 flex items-center gap-1 ${
                     timePeriod === 'morning'
                       ? isTurf
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-indigo-600 text-white'
-                      : 'text-slate-600'
+                        ? 'bg-[#FF9F1C] text-[#171717]'
+                        : 'bg-[#FF9F1C] text-[#171717]'
+                      : 'text-[rgba(23,23,23,0.70)]'
                   }`}
                 >
-                  <Sun size={11} className="text-amber-500" />
+                  <Sun size={11} className="text-[#FF9F1C]" />
                   <span>Morning</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setTimePeriod('evening')}
-                  className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-lg transition-colors duration-150 flex items-center gap-1 ${
                     timePeriod === 'evening'
                       ? isTurf
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-indigo-600 text-white'
-                      : 'text-slate-600'
+                        ? 'bg-[#FF9F1C] text-[#171717]'
+                        : 'bg-[#FF9F1C] text-[#171717]'
+                      : 'text-[rgba(23,23,23,0.70)]'
                   }`}
                 >
-                  <Moon size={11} className="text-indigo-400" />
+                  <Moon size={11} className="text-[#FF9F1C]" />
                   <span>Evening</span>
                 </button>
               </div>
             </div>
 
             {loadingSlots ? (
-              <div className="py-8 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-slate-300 border-t-emerald-600 rounded-full animate-spin" />
+              <div className="py-8 text-center text-xs text-[rgba(23,23,23,0.70)] flex flex-col items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-[rgba(23,23,23,0.12)] border-t-emerald-600 rounded-full animate-spin" />
                 <span>Checking real-time turf availability...</span>
               </div>
             ) : filteredSlots.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-dashed border-slate-200">
+              <div className="py-8 text-center text-xs text-[rgba(23,23,23,0.70)] bg-[#FFFFFF] rounded-2xl border border-dashed border-[rgba(23,23,23,0.12)]">
                 No available slots for this date/time range. Please pick another date or period.
               </div>
             ) : (
@@ -492,13 +492,13 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                     return (
                       <div
                         key={startTimeStr}
-                        className="p-3 rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-left opacity-70 cursor-not-allowed"
+                        className="p-3 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] text-left opacity-70 cursor-not-allowed"
                       >
                         <p className="text-xs font-black line-through">
                           {formatSlotTime(startTimeStr)}
                           {endTimeStr ? ` – ${formatSlotTime(endTimeStr)}` : ''}
                         </p>
-                        <span className="inline-block text-[9px] font-black uppercase tracking-wider bg-red-100 text-red-700 px-1.5 py-0.5 rounded mt-1">
+                        <span className="inline-block text-[11px] font-black uppercase tracking-wider bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] px-1.5 py-0.5 rounded mt-1">
                           Booked
                         </span>
                       </div>
@@ -513,12 +513,12 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                         setSelectedSlot(s);
                         setSelectedTime(startTimeStr);
                       }}
-                      className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                      className={`p-3 rounded-2xl border text-left transition-colors duration-150 flex flex-col justify-between ${
                         isSelected
                           ? isTurf
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md ring-2 ring-emerald-400/40'
-                            : 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-400/40'
-                          : 'bg-white border-slate-200 hover:border-emerald-400 text-slate-800'
+                            ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-md ring-2 ring-[#FF9F1C]'
+                            : 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-md ring-2 ring-[#FF9F1C]'
+                          : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] hover:border-[#FF9F1C] text-[#171717]'
                       }`}
                     >
                       <div>
@@ -528,12 +528,12 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                         </p>
                         <div className="flex items-center gap-1 mt-1 flex-wrap">
                           {s.durationMinutes && (
-                            <span className={`text-[9px] font-bold ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
+                            <span className={`text-[11px] font-bold ${isSelected ? 'text-[#FF9F1C]' : 'text-[rgba(23,23,23,0.70)]'}`}>
                               {s.durationMinutes} min
                             </span>
                           )}
                           {s.isPeak && (
-                            <span className="text-[8px] font-black uppercase tracking-wider bg-amber-300 text-amber-950 px-1 rounded">
+                            <span className="text-[11px] font-black uppercase tracking-wider bg-[#FF9F1C] text-[#FF9F1C] px-1 rounded">
                               Peak
                             </span>
                           )}
@@ -541,7 +541,7 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
                       </div>
 
                       {s.price && (
-                        <p className={`text-xs font-black mt-2 ${isSelected ? 'text-white' : 'text-emerald-700'}`}>
+                        <p className={`text-xs font-black mt-2 ${isSelected ? 'text-[#171717]' : 'text-[#FF9F1C]'}`}>
                           ₹{s.price}
                         </p>
                       )}
@@ -556,25 +556,25 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
           <div className="space-y-3 pt-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Your Name *</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Your Name *</label>
                 <input
                   type="text"
                   required
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Full Name"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] bg-[#FAF8F4]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Phone Number *</label>
                 <input
                   type="tel"
                   required
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="+91 98765 00000"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] bg-[#FAF8F4]"
                 />
               </div>
             </div>
@@ -582,25 +582,25 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
 
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Notes (Optional)</label>
+              <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Notes (Optional)</label>
               <input
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g. Football bibs needed, 5v5 friendly match"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] bg-[#FAF8F4]"
               />
             </div>
           </div>
         </div>
 
         {/* Bottom Booking Summary & Action */}
-        <div className="p-4 sm:p-5 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div className="p-4 sm:p-5 bg-[#FFFFFF] border-t border-[rgba(23,23,23,0.12)] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           <div className="text-left w-full sm:w-auto">
-            <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Payable</span>
-            <span className="text-xl font-black text-slate-900">
+            <span className="text-[11px] uppercase font-bold text-[rgba(23,23,23,0.70)] block">Total Payable</span>
+            <span className="text-xl font-black text-[#171717]">
               ₹{currentPrice}{' '}
-              <span className="text-[11px] font-normal text-slate-500 font-sans">
+              <span className="text-[11px] font-normal text-[rgba(23,23,23,0.70)] font-sans">
                 (Pay at Venue)
               </span>
             </span>
@@ -610,10 +610,10 @@ export const BookAppointmentModal: React.FC<BookAppointmentModalProps> = ({
             type="button"
             onClick={handleSubmit}
             disabled={submitting || !selectedTime}
-            className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+            className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider shadow-md transition-colors duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
               isTurf
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-amber-400 hover:bg-amber-500 text-slate-950'
+                ? 'bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717]'
+                : 'bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717]'
             }`}
           >
             <span>{submitting ? 'Confirming Slot…' : 'Confirm & Book Slot'}</span>
