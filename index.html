@@ -12,7 +12,20 @@
     <meta property="og:description" content="Find a salon, book or join the queue, and track your turn with QGo." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#080C14" />
+    <meta name="theme-color" content="#FFF4E8" />
+    <script>
+      (() => {
+        try {
+          const intro = new URLSearchParams(window.location.search).get('intro');
+          const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+          const useRed = intro === 'full' || (!intro && !reduced);
+          document.documentElement.dataset.qgoIntroBackground = useRed ? 'red' : 'white';
+          const themeMeta = document.querySelector('meta[name="theme-color"]');
+          document.documentElement.dataset.qgoIntroThemeRestore = themeMeta?.getAttribute('content') || '';
+          themeMeta?.setAttribute('content', useRed ? '#E8342A' : '#FFF4E8');
+        } catch { /* A cream first paint is the safe fallback when storage is unavailable. */ }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

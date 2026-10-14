@@ -29,15 +29,15 @@ export const QGoLogo: React.FC<QGoLogoProps> = ({
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* Outer Q shape */}
-      <rect width="40" height="40" rx="10" fill="#2563EB" />
+      <rect width="40" height="40" rx="10" fill="#0B0B0B" />
       {/* Q circle */}
-      <circle cx="19" cy="19" r="10" stroke="white" strokeWidth="2.5" fill="none" />
+      <circle cx="19" cy="19" r="10" stroke="#FFF4E8" strokeWidth="2.5" fill="none" />
       {/* Q tail — location pin style */}
-      <line x1="26" y1="26" x2="31" y2="31" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+      <line x1="26" y1="26" x2="31" y2="31" stroke="#FFF4E8" strokeWidth="2.5" strokeLinecap="round" />
       {/* Inner dot — ticket perforation */}
-      <circle cx="19" cy="19" r="3" fill="white" opacity="0.9" />
+      <circle cx="19" cy="19" r="3" fill="#FFF4E8" opacity="0.9" />
       {/* Ticket notch at bottom */}
-      <path d="M14 34 Q19 36 24 34" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M14 34 Q19 36 24 34" stroke="#FFF4E8" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.6" />
     </svg>
   );
 
@@ -51,8 +51,8 @@ export const QGoLogo: React.FC<QGoLogoProps> = ({
 
   if (variant === 'wordmark') {
     return (
-      <span className={`font-black tracking-tight text-white ${s.text} ${className}`}>
-        Q<span style={{ color: '#06B6D4' }}>Go</span>
+      <span className={`font-black tracking-tight text-[#0B0B0B] ${s.text} ${className}`}>
+        Q<span style={{ color: '#E8342A' }}>Go</span>
       </span>
     );
   }
@@ -60,8 +60,8 @@ export const QGoLogo: React.FC<QGoLogoProps> = ({
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
       <Icon />
-      <span className={`font-black tracking-tight text-white ${s.text}`}>
-        Q<span style={{ color: '#06B6D4' }}>Go</span>
+      <span className={`font-black tracking-tight text-[#0B0B0B] ${s.text}`}>
+        Q<span style={{ color: '#E8342A' }}>Go</span>
       </span>
     </div>
   );

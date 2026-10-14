@@ -1,0 +1,83 @@
+.qgo-intro-active { overflow: hidden; }
+html[data-qgo-intro-background="red"] body { background-color: #E8342A; }
+
+.qgo-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #E8342A;
+  cursor: default;
+  touch-action: none;
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.qgo-intro--exiting { opacity: 0; transform: scale(1.02); pointer-events: none; }
+
+.qgo-intro__scene { position: absolute; inset: 0; will-change: clip-path, opacity; }
+.qgo-intro__scene--red { background: #E8342A; }
+.qgo-intro__scene--black { background: #0B0B0B; clip-path: circle(0 at 60% 52%); }
+.qgo-intro__scene--white { background: #FFF4E8; clip-path: circle(0 at 50% 50%); }
+
+.qgo-intro__art {
+  position: relative;
+  z-index: 1;
+  width: min(72vw, 74dvh);
+  aspect-ratio: 734 / 278;
+  transform: translateY(-3dvh);
+}
+
+.qgo-intro__wordmark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.qgo-intro__wordmark--cream { color: #FFF4E8; }
+.qgo-intro__wordmark--final { color: #0B0B0B; opacity: 0; }
+.qgo-intro__letter, .qgo-intro__object, .qgo-intro__clock-hand { transform-box: fill-box; transform-origin: center; will-change: transform, opacity; }
+
+.qgo-intro__tagline {
+  position: absolute;
+  z-index: 2;
+  top: calc(50% + min(15vw, 15dvh));
+  margin: 0;
+  color: #0B0B0B;
+  font-size: clamp(14px, calc(1.6vw + 8px), 22px);
+  font-weight: 500;
+  letter-spacing: .02em;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.qgo-intro__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 600px) {
+  .qgo-intro__art { width: min(46vw, 74dvh); }
+}
+
+@media (min-width: 1024px) {
+  .qgo-intro__art { width: min(30vw, 74dvh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qgo-intro, .qgo-intro__scene { transition-duration: 300ms; }
+}
