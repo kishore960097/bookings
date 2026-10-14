@@ -54,7 +54,7 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
           backdropFilter: 'blur(28px) saturate(200%)',
           WebkitBackdropFilter: 'blur(28px) saturate(200%)',
           border: '1px solid rgba(255, 255, 255, 0.9)',
-          boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), 0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(0, 0, 0, 0.04)',
+          boxShadow: 'inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), 0 8px 32px -4px rgba(11, 11, 11, 0.12), 0 2px 10px rgba(11, 11, 11, 0.04)',
           overflow: 'visible',
         }}
         role="tablist"
@@ -98,11 +98,11 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                   className="relative z-20 w-1/5 flex-1 h-full min-w-0 flex flex-col items-center justify-center select-none group cursor-pointer focus:outline-none"
                 >
                   {/* Elevated Plus Button - slightly goes up without hiding label or overriding other features */}
-                  <div className="-translate-y-3.5 w-11 h-11 rounded-full bg-[#FCA311] text-[#000000] border-2 border-white shadow-[0_6px_18px_rgba(252,163,17,0.48)] flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-active:scale-95 group-hover:shadow-[0_8px_24px_rgba(252,163,17,0.65)]">
-                    <Plus size={22} strokeWidth={2.8} className="text-[#000000]" />
+                  <div className="-translate-y-3.5 w-11 h-11 rounded-full bg-[#0B0B0B] text-[#FFF4E8] border-2 border-white shadow-[0_6px_18px_rgba(11,11,11,0.25)] flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-active:scale-95 group-hover:shadow-[0_8px_24px_rgba(11,11,11,0.30)]">
+                    <Plus size={22} strokeWidth={2.8} className="text-[#FFF4E8]" />
                   </div>
                   {/* Clean visible label underneath without being hidden */}
-                  <span className="-translate-y-2.5 text-[10px] tracking-tight leading-tight font-black text-[#000000] truncate max-w-full px-1">
+                  <span className="-translate-y-2.5 text-[10px] tracking-tight leading-tight font-black text-[#0B0B0B] truncate max-w-full px-1">
                     {tab.label}
                   </span>
                 </button>
@@ -117,12 +117,12 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                 aria-selected={isActive}
                 aria-label={tab.label}
                 onClick={() => onTabChange(tab.id)}
-                className="relative z-10 w-1/5 flex-1 h-full min-w-0 flex flex-col items-center justify-center gap-0.5 liquid-tab-item rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FCA311]/40 select-none"
+                className="relative z-10 w-1/5 flex-1 h-full min-w-0 flex flex-col items-center justify-center gap-0.5 liquid-tab-item rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B0B0B]/40 select-none"
               >
                 {/* Icon (Consistent Size & Alignment) */}
                 <div
                   className={`transition-colors duration-200 flex items-center justify-center ${
-                    isActive ? 'text-[#000000]' : 'text-[#000000]'
+                    isActive ? 'text-[#FFF4E8]' : 'text-[rgba(11,11,11,0.70)]'
                   }`}
                 >
                   <Icon
@@ -134,7 +134,7 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                 {/* Refined Label Typography */}
                 <span
                   className={`text-[10px] tracking-tight leading-tight transition-colors duration-200 truncate max-w-full px-1 ${
-                    isActive ? 'text-[#000000] font-bold' : 'text-[rgba(0,0,0,0.70)] font-medium'
+                    isActive ? 'text-[#FFF4E8] font-bold' : 'text-[rgba(11,11,11,0.70)] font-medium'
                   }`}
                 >
                   {tab.label}

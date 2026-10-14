@@ -25,10 +25,10 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
               toastMessage.type === 'alert'
-                ? 'bg-red-500/20 text-red-400'
+                ? 'bg-[rgba(179,38,30,0.12)] text-[#B3261E]'
                 : toastMessage.type === 'success'
-                ? 'bg-emerald-500/20 text-emerald-400'
-                : 'bg-amber-500/20 text-amber-400'
+                ? 'bg-[rgba(22,132,91,0.14)] text-[#16845B]'
+                : 'bg-[rgba(232,52,42,0.10)] text-[#E8342A]'
             }`}
           >
             {toastMessage.type === 'alert' ? (
@@ -55,7 +55,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
         <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-[#0B0B0B]/40 backdrop-blur-xs transition-opacity"
             onClick={onClose}
           />
 
@@ -64,7 +64,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             {/* Header */}
             <div className="p-5 border-b border-[var(--qp-border)] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-primary)] shadow-sm">
+                <div className="p-2.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[#0B0B0B] shadow-sm">
                   <Bell className="w-5 h-5" />
                 </div>
                 <div>
@@ -76,7 +76,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                 {notifications.length > 0 && (
                   <button
                     onClick={markAllNotificationsRead}
-                    className="text-[11px] text-[var(--qp-primary)] hover:opacity-80 font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full bg-[var(--qp-surface)] border border-[var(--qp-border)] shadow-sm transition-all"
+                    className="text-[11px] text-[#0B0B0B] hover:opacity-80 font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full bg-[var(--qp-surface)] border border-[var(--qp-border)] shadow-sm transition-all"
                   >
                     Mark read
                   </button>
@@ -113,11 +113,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                     className={`p-4 rounded-[20px] transition-all cursor-pointer ${
                       notif.read
                         ? 'bg-[var(--qp-surface)] border border-[var(--qp-border)] opacity-80'
-                        : 'ap-glass-card border border-[var(--qp-primary)]/20'
+                        : 'ap-glass-card border border-[rgba(232,52,42,0.25)]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <h4 className={`text-sm font-semibold tracking-tight ${notif.read ? 'text-[var(--qp-text)]' : 'text-[var(--qp-primary)]'}`}>{notif.title}</h4>
+                      <h4 className={`text-sm font-semibold tracking-tight ${notif.read ? 'text-[var(--qp-text)]' : 'text-[#E8342A]'}`}>{notif.title}</h4>
                       <span className="text-[10px] text-[var(--qp-text-sec)] flex items-center gap-1 shrink-0 font-medium">
                         <Clock className="w-3 h-3" />
                         {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
