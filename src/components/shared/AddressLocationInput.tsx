@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../services/api';
 import { MapPin, Navigation, Loader2, Check } from 'lucide-react';
+import { Geolocation } from '@capacitor/geolocation';
 
 interface AddressLocationInputProps {
   value: string;
@@ -93,68 +94,66 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
     onChange(item.displayName, item.lat, item.lon, item.city || undefined);
   };
 
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser.');
-      return;
-    }
-
+  const handleUseCurrentLocation = async () => {
     setIsLocating(true);
     setLocationError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+    try {
+      let lat: number;
+      let lon: number;
 
-        try {
-          const res = await api.reverseGeocode(lat, lon);
-          if (res && res.success && res.address) {
-            setQuery(res.address);
-            onChange(res.address, lat, lon, res.city || undefined);
-          } else {
-            const fallbackAddr = `Location Selected`;
-            setQuery(fallbackAddr);
-            onChange(fallbackAddr, lat, lon, undefined);
-          }
-        } catch (err) {
-          console.error('Reverse geocoding failed:', err);
-          const fallbackAddr = `Location Selected`;
-          setQuery(fallbackAddr);
-          onChange(fallbackAddr, lat, lon, undefined);
-        } finally {
-          setIsLocating(false);
+      try {
+        const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+      } catch (capError) {
+        console.warn('Capacitor Geolocation failed, trying web fallback:', capError);
+        if (!navigator.geolocation) {
+          throw new Error('Geolocation is not supported by your browser.');
         }
-      },
-      (error) => {
-        setIsLocating(false);
-        if (error.code === error.PERMISSION_DENIED) {
-          setLocationError('Location permission denied. Please search or enter address manually.');
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          setLocationError('GPS position unavailable. Please search or enter address manually.');
-        } else {
-          setLocationError('Unable to access your location. Please enter address manually.');
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        const pos: GeolocationPosition = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          });
+        });
+        lat = pos.coords.latitude;
+        lon = pos.coords.longitude;
       }
-    );
+
+      const res = await api.reverseGeocode(lat, lon);
+      if (res && res.success && res.address) {
+        setQuery(res.address);
+        onChange(res.address, lat, lon, res.city || undefined);
+      } else {
+        setLocationError('Unable to detect your location address. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Location error:', error);
+      if (error.code === 1 || error?.message?.toLowerCase().includes('permission') || error?.code?.toLowerCase() === 'permission_denied') {
+        setLocationError('Location permission is required. Please enable it in your device settings.');
+      } else if (error.code === 2 || error?.message?.toLowerCase().includes('unavailable') || error?.code?.toLowerCase() === 'position_unavailable') {
+        setLocationError('GPS position unavailable. Please ensure your device location services are turned on.');
+      } else {
+        setLocationError('Unable to access your location. Please try again or enter manually.');
+      }
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   return (
     <div className="relative" ref={containerRef}>
       <div className="flex items-center justify-between mb-1">
-        <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+        <label className="block text-xs font-bold uppercase tracking-wider text-[#6B665F]">
           Address &amp; Location *
         </label>
         <button
           type="button"
           onClick={handleUseCurrentLocation}
           disabled={isLocating}
-          className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors disabled:opacity-50"
+          className="text-[11px] font-bold text-[#E8342A] hover:opacity-80 flex items-center gap-1 transition-colors disabled:opacity-50"
         >
           {isLocating ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -178,12 +177,12 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
           }}
           placeholder={placeholder}
           required={required}
-          className="w-full px-4 py-3 pr-10 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-900 bg-white"
+          className="w-full px-4 py-3 pr-10 rounded-xl border border-[rgba(11,11,11,0.12)] focus:outline-none focus:ring-2 focus:ring-[#0B0B0B] font-semibold text-[#0B0B0B] bg-[#FFFFFF]"
         />
 
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B665F]">
           {isSearching ? (
-            <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+            <Loader2 className="w-4 h-4 animate-spin text-[#0B0B0B]" />
           ) : (
             <MapPin className="w-4 h-4" />
           )}
@@ -191,15 +190,15 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
       </div>
 
       {locationError && (
-        <p className="text-[11px] font-semibold text-amber-700 mt-1 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+        <p className="text-[11px] font-semibold text-[#B3261E] mt-1 bg-[rgba(179,38,30,0.10)] px-2.5 py-1 rounded-lg border border-[rgba(179,38,30,0.20)]">
           {locationError}
         </p>
       )}
 
       {/* Autocomplete Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden divide-y divide-slate-100 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#FFFFFF] rounded-2xl shadow-xl border border-[#0B0B0B] z-50 overflow-hidden divide-y divide-[rgba(11,11,11,0.06)] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+          <div className="px-3 py-1.5 bg-[#FFFFFF] text-[10px] font-bold uppercase tracking-wider text-[#6B665F]">
             Suggested Locations
           </div>
           {suggestions.map((item) => (
@@ -207,9 +206,9 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
               key={item.placeId}
               type="button"
               onClick={() => handleSelectSuggestion(item)}
-              className="w-full px-3.5 py-2.5 text-left flex items-start gap-2.5 hover:bg-indigo-50/70 transition-colors text-xs text-slate-800"
+              className="w-full px-3.5 py-2.5 text-left flex items-start gap-2.5 hover:bg-[rgba(11,11,11,0.05)] transition-colors text-xs text-[#0B0B0B]"
             >
-              <MapPin className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+              <MapPin className="w-4 h-4 text-[#E8342A] shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <span className="font-semibold block leading-tight">{item.displayName}</span>
               </div>

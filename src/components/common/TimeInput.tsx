@@ -157,8 +157,8 @@ function Drum<T>({
               style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
               className={`flex items-center justify-center cursor-pointer transition-all duration-150
                 ${isSelected
-                  ? 'text-white font-black text-3xl tracking-tight'
-                  : 'text-[#48484a] font-bold text-xl'
+                  ? 'text-[#0B0B0B] font-black text-3xl tracking-tight'
+                  : 'text-[#6B665F] font-bold text-xl'
                 }`}
               onClick={() => commitIndex(i)}
             >
@@ -175,14 +175,14 @@ function Drum<T>({
         className="pointer-events-none absolute inset-x-0 top-0"
         style={{
           height: padTop,
-          background: 'linear-gradient(to bottom, rgba(28,28,30,1), rgba(28,28,30,0))',
+          background: 'linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0))',
         }}
       />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0"
         style={{
           height: padTop,
-          background: 'linear-gradient(to top, rgba(28,28,30,1), rgba(28,28,30,0))',
+          background: 'linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))',
         }}
       />
 
@@ -192,8 +192,8 @@ function Drum<T>({
         style={{
           top: padTop,
           height: ITEM_H,
-          borderTop: '1px solid #38383a',
-          borderBottom: '1px solid #38383a',
+          borderTop: '1px solid rgba(11,11,11,0.12)',
+          borderBottom: '1px solid rgba(11,11,11,0.12)',
         }}
       />
     </div>
@@ -227,27 +227,27 @@ function DrumTimePickerModal({ value, onChange, onClose }: DrumTimePickerProps) 
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-[#0B0B0B]/60 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-sm bg-[#1c1c1e] sm:rounded-[32px] rounded-t-[32px] shadow-2xl pb-safe overflow-hidden border border-[#2c2c2e] m-0 sm:m-4"
+        className="relative w-full max-w-sm bg-[#FFFFFF] sm:rounded-[32px] rounded-t-[32px] shadow-2xl pb-safe overflow-hidden border border-[#0B0B0B] m-0 sm:m-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-12 h-1.5 rounded-full bg-[#38383a]" />
+          <div className="w-12 h-1.5 rounded-full bg-[rgba(11,11,11,0.12)]" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4">
           <button
             onClick={onClose}
-            className="text-base font-semibold text-[#8e8e93] hover:text-white transition-colors"
+            className="text-base font-semibold text-[#6B665F] hover:text-[#0B0B0B] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="text-base font-bold text-blue-500 hover:text-blue-400 transition-colors"
+            className="text-base font-bold text-[#E8342A] hover:opacity-80 transition-colors"
           >
             Done
           </button>
