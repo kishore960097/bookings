@@ -113,19 +113,19 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
   return (
     <div className="space-y-8">
       {/* 1. SERVICES MANAGEMENT */}
-      <div className="bg-white rounded-3xl border border-neutral-200 shadow-sm p-5 sm:p-6 space-y-4">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-base text-neutral-900 flex items-center gap-2">
-              <Scissors className="w-4 h-4 text-amber-600" />
+            <h3 className="font-extrabold text-base text-[#171717] flex items-center gap-2">
+              <Scissors className="w-4 h-4 text-[#FF9F1C]" />
               <span>Services Menu ({services.length})</span>
             </h3>
-            <p className="text-xs text-neutral-500">Configure catalog, pricing, and duration</p>
+            <p className="text-xs text-[rgba(23,23,23,0.70)]">Configure catalog, pricing, and duration</p>
           </div>
 
           <button
             onClick={() => setIsAddServiceOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[#171717] font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Add Service</span>
@@ -133,7 +133,7 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
         </div>
 
         {services.length === 0 ? (
-          <div className="py-8 text-center text-neutral-400 text-xs">
+          <div className="py-8 text-center text-[rgba(23,23,23,0.70)] text-xs">
             No services added yet. Click <strong>+ Add Service</strong> above to define your salon offerings.
           </div>
         ) : (
@@ -141,24 +141,24 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
             {services.map((srv) => (
               <div
                 key={srv.id}
-                className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/50 hover:bg-white hover:border-neutral-300 transition-all flex items-center justify-between gap-3"
+                className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] hover:border-[rgba(23,23,23,0.12)] transition-colors duration-150 flex items-center justify-between gap-3"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-neutral-900">{srv.name}</span>
+                    <span className="font-bold text-xs text-[#171717]">{srv.name}</span>
                     {srv.nameTa && (
-                      <span className="text-[10px] text-neutral-500 bg-neutral-200/60 px-1.5 py-0.2 rounded font-medium">
+                      <span className="text-[11px] text-[rgba(23,23,23,0.70)] bg-[#FFFFFF] px-1.5 py-0.2 rounded font-medium">
                         {srv.nameTa}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-neutral-500 mt-0.5">
+                  <div className="flex items-center gap-2 text-[11px] text-[rgba(23,23,23,0.70)] mt-0.5">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-neutral-400" />
+                      <Clock className="w-3 h-3 text-[rgba(23,23,23,0.70)]" />
                       <span>{srv.durationMinutes} mins</span>
                     </span>
                     <span>•</span>
-                    <span className="font-bold text-neutral-800">
+                    <span className="font-bold text-[#171717]">
                       {t.rupees}
                       {srv.price}
                     </span>
@@ -168,7 +168,7 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => handleDeleteService(srv.id)}
-                    className="p-2 text-neutral-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    className="p-2 text-[rgba(23,23,23,0.70)] hover:text-[#FF9F1C] rounded-lg hover:bg-[rgba(255,159,28,0.15)] transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -180,19 +180,19 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
       </div>
 
       {/* 2. STAFF ROSTER & LIVE CHAIR STATUS */}
-      <div className="bg-white rounded-3xl border border-neutral-200 shadow-sm p-5 sm:p-6 space-y-4">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-base text-neutral-900 flex items-center gap-2">
-              <Users className="w-4 h-4 text-emerald-600" />
+            <h3 className="font-extrabold text-base text-[#171717] flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#FF9F1C]" />
               <span>Stylists & Staff ({staffList.length})</span>
             </h3>
-            <p className="text-xs text-neutral-500">Live chair status and shift assignment</p>
+            <p className="text-xs text-[rgba(23,23,23,0.70)]">Live chair status and shift assignment</p>
           </div>
 
           <button
             onClick={() => setIsAddStaffOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[#171717] font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Add Stylist</span>
@@ -200,7 +200,7 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
         </div>
 
         {staffList.length === 0 ? (
-          <div className="py-8 text-center text-neutral-400 text-xs">
+          <div className="py-8 text-center text-[rgba(23,23,23,0.70)] text-xs">
             No staff members added yet. Click <strong>+ Add Stylist</strong> to add team members.
           </div>
         ) : (
@@ -208,67 +208,67 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
             {staffList.map((st) => (
               <div
                 key={st.id}
-                className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50/60 flex items-start justify-between gap-3"
+                className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] flex items-start justify-between gap-3"
               >
                 <div className="flex items-center gap-3">
                   {st.photoUrl ? (
                     <img
                       src={st.photoUrl}
                       alt={st.name}
-                      className="w-12 h-12 rounded-xl object-cover bg-neutral-200"
+                      className="w-12 h-12 rounded-xl object-cover bg-[#FFFFFF]"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+                    <div className="w-12 h-12 rounded-xl bg-[#FF9F1C] text-[#171717] flex items-center justify-center font-bold text-sm">
                       {st.name.charAt(0)}
                     </div>
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-xs text-neutral-900">{st.name}</h4>
+                      <h4 className="font-bold text-xs text-[#171717]">{st.name}</h4>
                       {st.rating > 0 && (
-                        <div className="flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                          <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                        <div className="flex items-center gap-0.5 text-[11px] font-bold text-[#FF9F1C] bg-[rgba(255,159,28,0.15)] px-1.5 py-0.5 rounded">
+                          <Star className="w-3 h-3 fill-[#FF9F1C] text-[#FF9F1C]" />
                           <span>{st.rating.toFixed(1)}</span>
                         </div>
                       )}
                     </div>
-                    <span className="text-[11px] text-neutral-500 block">{st.title}</span>
+                    <span className="text-[11px] text-[rgba(23,23,23,0.70)] block">{st.title}</span>
                     {st.phone && (
-                      <span className="text-[10px] text-neutral-400 font-mono">{st.phone}</span>
+                      <span className="text-[11px] text-[rgba(23,23,23,0.70)] font-mono">{st.phone}</span>
                     )}
                   </div>
                 </div>
 
                 {/* Status Switcher Buttons */}
                 <div className="flex flex-col gap-1 text-right">
-                  <span className="text-[10px] uppercase font-bold text-neutral-400">Chair Status</span>
+                  <span className="text-[11px] uppercase font-bold text-[rgba(23,23,23,0.70)]">Chair Status</span>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleUpdateStaffStatus(st.id, 'available')}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-colors duration-150 ${
                         st.status === 'available'
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100'
+                          ? 'bg-[#FF9F1C] text-[#171717]'
+                          : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] border border-[rgba(23,23,23,0.12)] hover:bg-[rgba(23,23,23,0.05)]'
                       }`}
                     >
                       Available
                     </button>
                     <button
                       onClick={() => handleUpdateStaffStatus(st.id, 'busy')}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-colors duration-150 ${
                         st.status === 'busy'
-                          ? 'bg-amber-500 text-neutral-950'
-                          : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100'
+                          ? 'bg-[#FF9F1C] text-[#171717]'
+                          : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] border border-[rgba(23,23,23,0.12)] hover:bg-[rgba(23,23,23,0.05)]'
                       }`}
                     >
                       In Chair
                     </button>
                     <button
                       onClick={() => handleUpdateStaffStatus(st.id, 'break')}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                      className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-colors duration-150 ${
                         st.status === 'break'
-                          ? 'bg-neutral-800 text-white'
-                          : 'bg-white text-neutral-600 border border-neutral-200 hover:bg-neutral-100'
+                          ? 'bg-[#FFFFFF] text-[#171717]'
+                          : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] border border-[rgba(23,23,23,0.12)] hover:bg-[rgba(23,23,23,0.05)]'
                       }`}
                     >
                       Break
@@ -284,62 +284,62 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
       {/* Add Service Modal */}
       {isAddServiceOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-neutral-950/60" onClick={() => setIsAddServiceOpen(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl z-10 border border-neutral-200 animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-neutral-900 mb-3">Add New Service</h3>
+          <div className="fixed inset-0 bg-[#FFFFFF]" onClick={() => setIsAddServiceOpen(false)} />
+          <div className="relative w-full max-w-md bg-[#FFFFFF] rounded-3xl p-6 shadow-lg z-10 border border-[rgba(23,23,23,0.12)] animate-in zoom-in-95">
+            <h3 className="text-lg font-bold text-[#171717] mb-3">Add New Service</h3>
             <form onSubmit={handleCreateService} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Service Name (English)</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Service Name (English)</label>
                 <input
                   type="text"
                   required
                   value={newServiceName}
                   onChange={(e) => setNewServiceName(e.target.value)}
                   placeholder="e.g. Skin Fade & Beard Trim"
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Tamil Translation (Optional)</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Tamil Translation (Optional)</label>
                 <input
                   type="text"
                   value={newServiceNameTa}
                   onChange={(e) => setNewServiceNameTa(e.target.value)}
-                  placeholder="e.g. ஸ்கின் ஃபேட் & தாடி டிரிம்"
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="e.g. à®¸à¯à®•à®¿à®©à¯ à®ƒà®ªà¯‡à®Ÿà¯ & à®¤à®¾à®Ÿà®¿ à®Ÿà®¿à®°à®¿à®®à¯"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1">Price (₹)</label>
+                  <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Price (₹)</label>
                   <NumberInput
                     required
                     min={0}
                     value={newServicePrice}
                     onChange={setNewServicePrice}
-                    className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1">Duration (Mins)</label>
+                  <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Duration (Mins)</label>
                   <NumberInput
                     required
                     min={1}
                     value={newServiceDuration}
                     onChange={setNewServiceDuration}
-                    className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Category</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Category</label>
                 <select
                   value={newServiceCategory}
                   onChange={(e) => setNewServiceCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs bg-white focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs bg-[#FFFFFF] focus:outline-none"
                 >
                   <option value="Hair">Hair</option>
                   <option value="Beard">Beard</option>
@@ -353,13 +353,13 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
                 <button
                   type="button"
                   onClick={() => setIsAddServiceOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-neutral-200 text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-neutral-900 text-white text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-[#FFFFFF] text-[#171717] text-xs font-bold"
                 >
                   Save Service
                 </button>
@@ -372,42 +372,42 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
       {/* Add Staff Modal */}
       {isAddStaffOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-neutral-950/60" onClick={() => setIsAddStaffOpen(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl z-10 border border-neutral-200 animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-neutral-900 mb-3">Add Stylist / Barber</h3>
+          <div className="fixed inset-0 bg-[#FFFFFF]" onClick={() => setIsAddStaffOpen(false)} />
+          <div className="relative w-full max-w-md bg-[#FFFFFF] rounded-3xl p-6 shadow-lg z-10 border border-[rgba(23,23,23,0.12)] animate-in zoom-in-95">
+            <h3 className="text-lg font-bold text-[#171717] mb-3">Add Stylist / Barber</h3>
             <form onSubmit={handleCreateStaff} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Full Name</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Full Name</label>
                 <input
                   type="text"
                   required
                   value={newStaffName}
                   onChange={(e) => setNewStaffName(e.target.value)}
                   placeholder="e.g. Vikram S"
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Title</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Title</label>
                 <input
                   type="text"
                   required
                   value={newStaffTitle}
                   onChange={(e) => setNewStaffTitle(e.target.value)}
                   placeholder="e.g. Master Barber / Color Specialist"
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">Phone Number</label>
+                <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)] mb-1">Phone Number</label>
                 <input
                   type="tel"
                   required
                   value={newStaffPhone}
                   onChange={(e) => setNewStaffPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 />
               </div>
 
@@ -415,13 +415,13 @@ export const ServicesStaffManager: React.FC<ServicesStaffManagerProps> = ({ salo
                 <button
                   type="button"
                   onClick={() => setIsAddStaffOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-neutral-200 text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-neutral-900 text-white text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-[#FFFFFF] text-[#171717] text-xs font-bold"
                 >
                   Add Stylist
                 </button>

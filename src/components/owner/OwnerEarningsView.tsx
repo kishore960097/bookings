@@ -60,14 +60,14 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
       {/* ── 1. HEADER & PERIOD SELECTOR ── */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-slate-900">Revenue &amp; Earnings</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Real-time accounting of bookings, refunds, and net payout</p>
+          <h2 className="text-lg font-black text-[#171717]">Revenue &amp; Earnings</h2>
+          <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">Real-time accounting of bookings, refunds, and net payout</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-          <div className="bg-slate-100 p-1 rounded-xl flex flex-wrap items-center gap-1">
+          <div className="bg-[#FFFFFF] p-1 rounded-xl flex flex-wrap items-center gap-1">
             {(
               [
                 { id: 'today', label: 'Today' },
@@ -79,8 +79,8 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
               <button
                 key={p.id}
                 onClick={() => setPeriod(p.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                  period === p.id ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-colors duration-150 ${
+                  period === p.id ? 'bg-[#FFFFFF] text-[#171717] shadow-2xs' : 'text-[rgba(23,23,23,0.70)] hover:text-[#171717]'
                 }`}
               >
                 {p.label}
@@ -90,7 +90,7 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
 
           <button
             onClick={handleExportCsv}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[#171717] font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -101,77 +101,77 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
       {/* ── 2. REVENUE METRICS CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Net Revenue */}
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-3xl p-5 shadow-sm lg:col-span-2 flex flex-col justify-between">
+        <div className="bg-gradient-to-br from-[#FF9F1C] to-[#FF9F1C]/80 text-[#171717] rounded-3xl p-5 shadow-sm lg:col-span-2 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">Net Revenue</span>
-            <TrendingUp className="w-5 h-5 text-emerald-200" />
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#FF9F1C]">Net Revenue</span>
+            <TrendingUp className="w-5 h-5 text-[#FF9F1C]" />
           </div>
           <div className="mt-4">
             <span className="text-3xl sm:text-4xl font-black font-mono">
               ₹{(revenueData?.netRevenue || 0).toLocaleString()}
             </span>
-            <p className="text-xs text-emerald-100 mt-1 font-medium">
+            <p className="text-xs text-[#FF9F1C] mt-1 font-medium">
               Gross bookings minus customer cancellation refunds
             </p>
           </div>
         </div>
 
         {/* Gross Revenue */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2">
+        <div className="bg-[#FFFFFF] rounded-3xl p-5 border border-[rgba(23,23,23,0.12)] shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center mb-2">
             <DollarSign className="w-4 h-4" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Gross Bookings</span>
-          <span className="text-2xl font-black text-slate-900 mt-1 block font-mono">
+          <span className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] block">Gross Bookings</span>
+          <span className="text-2xl font-black text-[#171717] mt-1 block font-mono">
             ₹{(revenueData?.grossRevenue || 0).toLocaleString()}
           </span>
         </div>
 
         {/* Completed Bookings */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-2">
+        <div className="bg-[#FFFFFF] rounded-3xl p-5 border border-[rgba(23,23,23,0.12)] shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center mb-2">
             <CheckCircle2 className="w-4 h-4" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Completed Bookings</span>
-          <span className="text-2xl font-black text-slate-900 mt-1 block">
+          <span className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] block">Completed Bookings</span>
+          <span className="text-2xl font-black text-[#171717] mt-1 block">
             {revenueData?.completedBookingsCount || 0}
           </span>
         </div>
 
         {/* Refunds */}
-        <div className="bg-white rounded-3xl p-5 border border-rose-200 bg-rose-50/20 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center mb-2">
+        <div className="bg-[#FFFFFF] rounded-3xl p-5 border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center mb-2">
             <RotateCcw className="w-4 h-4" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 block">Refunds Processed</span>
-          <span className="text-2xl font-black text-rose-800 mt-1 block font-mono">
+          <span className="text-[11px] font-black uppercase tracking-wider text-[#FF9F1C] block">Refunds Processed</span>
+          <span className="text-2xl font-black text-[#FF9F1C] mt-1 block font-mono">
             ₹{(revenueData?.totalRefunds || 0).toLocaleString()}
           </span>
         </div>
       </div>
 
       {/* ── 3. TRANSACTION HISTORY ── */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[rgba(23,23,23,0.12)]">
           <div>
-            <h3 className="font-black text-base text-slate-900">Transaction History</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Itemized record of all bookings and cancellations</p>
+            <h3 className="font-black text-base text-[#171717]">Transaction History</h3>
+            <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">Itemized record of all bookings and cancellations</p>
           </div>
-          <span className="text-xs font-bold text-slate-500">
+          <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">
             {revenueData?.transactions?.length || 0} Transactions
           </span>
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-slate-400">
-            <div className="w-8 h-8 border-3 border-slate-300 border-t-emerald-600 rounded-full animate-spin mx-auto mb-2" />
+          <div className="py-12 text-center text-[rgba(23,23,23,0.70)]">
+            <div className="w-8 h-8 border-3 border-[rgba(23,23,23,0.12)] border-t-emerald-600 rounded-full animate-spin mx-auto mb-2" />
             <p className="text-xs font-bold">Loading transactions...</p>
           </div>
         ) : !revenueData?.transactions || revenueData.transactions.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 space-y-2">
-            <DollarSign className="w-10 h-10 mx-auto text-slate-300 stroke-1" />
-            <p className="text-sm font-bold text-slate-700">No transactions recorded for this period</p>
-            <p className="text-xs text-slate-400">
+          <div className="py-12 text-center text-[rgba(23,23,23,0.70)] space-y-2">
+            <DollarSign className="w-10 h-10 mx-auto text-[rgba(23,23,23,0.70)] stroke-1" />
+            <p className="text-sm font-bold text-[rgba(23,23,23,0.70)]">No transactions recorded for this period</p>
+            <p className="text-xs text-[rgba(23,23,23,0.70)]">
               Transactions will automatically populate as customers make bookings.
             </p>
           </div>
@@ -179,7 +179,7 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-slate-50/50">
+                <tr className="border-b border-[rgba(23,23,23,0.12)] text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] bg-[rgba(23,23,23,0.05)]">
                   <th className="py-3 px-3.5">Booking / ID</th>
                   <th className="py-3 px-3.5">Customer</th>
                   <th className="py-3 px-3.5">Slot Date &amp; Time</th>
@@ -195,32 +195,32 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
                   const shortId = `QGO-${t.bookingId.split('_').pop()?.toUpperCase()}`;
 
                   return (
-                    <tr key={t.bookingId} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3.5 px-3.5 font-bold text-slate-900 font-mono">
-                        <span className="text-indigo-600">{shortId}</span>
+                    <tr key={t.bookingId} className="hover:bg-[rgba(23,23,23,0.05)] transition-colors">
+                      <td className="py-3.5 px-3.5 font-bold text-[#171717] font-mono">
+                        <span className="text-[#FF9F1C]">{shortId}</span>
                       </td>
 
-                      <td className="py-3.5 px-3.5 text-slate-800">
+                      <td className="py-3.5 px-3.5 text-[#171717]">
                         <div className="font-bold">{t.customerName}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{t.customerPhone}</div>
+                        <div className="text-[11px] text-[rgba(23,23,23,0.70)] font-mono">{t.customerPhone}</div>
                       </td>
 
-                      <td className="py-3.5 px-3.5 text-slate-600 font-mono">
+                      <td className="py-3.5 px-3.5 text-[rgba(23,23,23,0.70)] font-mono">
                         {t.scheduledDate || 'Today'} {t.scheduledTime ? `· ${t.scheduledTime}` : ''}
                       </td>
 
-                      <td className="py-3.5 px-3.5 text-right font-black text-slate-900 font-mono">
+                      <td className="py-3.5 px-3.5 text-right font-black text-[#171717] font-mono">
                         ₹{t.amount}
                       </td>
 
                       <td className="py-3.5 px-3.5 text-center">
                         <span
-                          className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                          className={`inline-flex px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${
                             isCompleted
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                               : isCancelled
-                              ? 'bg-rose-100 text-rose-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
+                              : 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                           }`}
                         >
                           {t.status}
@@ -229,9 +229,9 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
 
                       <td className="py-3.5 px-3.5 text-right font-mono font-bold">
                         {t.refundAmount ? (
-                          <span className="text-rose-600">-₹{t.refundAmount}</span>
+                          <span className="text-[#FF9F1C]">-₹{t.refundAmount}</span>
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className="text-[rgba(23,23,23,0.70)]">—</span>
                         )}
                       </td>
                     </tr>

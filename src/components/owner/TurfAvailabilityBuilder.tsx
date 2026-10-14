@@ -60,6 +60,28 @@ const DURATION_PRESETS = [
   { label: 'Custom', value: -1 },
 ];
 
+// ─── Design Tokens: Day / Night Themes ───
+const DAY_THEME = {
+  bg: '#FFF3DD',
+  border: '#F0D3A5',
+  accent: '#F59E0B',
+  text: '#251B12',
+  badgeBg: 'rgba(245,158,11,0.18)',
+  badgeText: '#92400E',
+  iconFill: '#F59E0B',
+  muted: 'rgba(37,27,18,0.55)',
+};
+const NIGHT_THEME = {
+  bg: '#F0EDFF',
+  border: '#CFC7F7',
+  accent: '#6554C0',
+  text: '#282044',
+  badgeBg: 'rgba(101,84,192,0.15)',
+  badgeText: '#4C3C9E',
+  iconFill: '#6554C0',
+  muted: 'rgba(40,32,68,0.50)',
+};
+
 // Generate automatic slot items for a day given Day & Night pricing
 function generateDayNightSlots(
   dayIndex: number,
@@ -741,32 +763,36 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── MULTI-TURF SELECTOR ── */}
       {activeTurfList.length > 1 && (
-        <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-3xl flex flex-wrap items-center justify-between gap-3">
+        <div
+          className="p-3 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3"
+          style={{ background: '#FFF3DD', border: '1px solid #F0D3A5' }}
+        >
           <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-emerald-600" />
+            <Layers className="w-4 h-4" style={{ color: '#F59E0B' }} />
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-emerald-950">
+              <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#92400E' }}>
                 Configuring Turf Schedule
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px]" style={{ color: 'rgba(37,27,18,0.65)' }}>
                 Each turf ground maintains its own independent schedule &amp; pricing.
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {activeTurfList.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setSelectedTurfId(t.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                className="px-3 py-1.5 rounded-xl text-xs font-black transition-colors duration-150"
+                style={
                   selectedTurfId === t.id
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }`}
+                    ? { background: '#F59E0B', color: '#251B12', border: '1.5px solid #F59E0B' }
+                    : { background: '#FFFFFF', border: '1.5px solid #F0D3A5', color: 'rgba(37,27,18,0.65)' }
+                }
               >
                 {t.name}
               </button>
@@ -778,113 +804,158 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
       {/* ══════════════════════════════════════════════════════
           1. PRICING & SLOT SETTINGS (CLEAN DAY + NIGHT UI)
          ══════════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-6">
+      <div
+        className="rounded-2xl shadow-sm p-4 sm:p-5 space-y-5"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E8E5E0',
+          boxShadow: '0 2px 12px rgba(23,23,23,0.06)',
+        }}
+      >
+        {/* Section header */}
         <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
-              <DollarSign className="w-4 h-4" />
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className="p-1.5 rounded-lg"
+              style={{ background: 'rgba(255,159,28,0.15)', color: '#FF9F1C' }}
+            >
+              <DollarSign className="w-3.5 h-3.5" />
             </span>
-            <h3 className="font-black text-base text-slate-900">PRICING &amp; SLOT SETTINGS</h3>
+            <h3 className="font-black text-sm" style={{ color: '#171717' }}>
+              PRICING &amp; SLOT SETTINGS
+            </h3>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px]" style={{ color: 'rgba(23,23,23,0.60)' }}>
             Configure Day and Night pricing. QGo automatically assigns prices to each slot based on start time.
           </p>
         </div>
 
         {/* ── DAY & NIGHT PRICING CARDS ── */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          {/* DAY PRICING CARD */}
-          <div className="h-full min-h-[160px] p-3 sm:p-4 rounded-3xl border-[1.5px] border-amber-300 bg-amber-50/20 flex flex-col justify-between shadow-sm relative overflow-hidden">
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-1 mb-3">
-                <div className="flex items-center gap-1.5">
-                  <Sun className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />
-                  <span className="text-[11px] font-black uppercase text-amber-900 tracking-wider">DAY</span>
-                </div>
-                <span className="text-[8px] font-black uppercase bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                  Daytime
-                </span>
-              </div>
+        <div className="grid grid-cols-2 gap-3">
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-amber-200 shadow-sm">
-                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">START</span>
-                  <TimeInput
-                    value={dayStartTime}
-                    onChange={setDayStartTime}
-                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
-                  />
-                </div>
-                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-amber-200 shadow-sm">
-                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">END</span>
-                  <TimeInput
-                    value={dayEndTime}
-                    onChange={setDayEndTime}
-                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
-                  />
-                </div>
+          {/* DAYTIME PRICING CARD */}
+          <div
+            className="p-3 rounded-xl flex flex-col gap-2 relative overflow-hidden"
+            style={{
+              background: DAY_THEME.bg,
+              border: `1.5px solid ${DAY_THEME.border}`,
+              boxShadow: '0 1px 6px rgba(245,158,11,0.10)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Sun className="w-3.5 h-3.5 shrink-0" style={{ color: DAY_THEME.accent, fill: DAY_THEME.iconFill }} />
+                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: DAY_THEME.accent }}>DAY</span>
+              </div>
+              <span
+                className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full"
+                style={{ background: DAY_THEME.badgeBg, color: DAY_THEME.badgeText }}
+              >DAYTIME</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div
+                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                style={{ background: '#FFFFFF', border: `1px solid ${DAY_THEME.border}` }}
+              >
+                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: DAY_THEME.muted }}>START</span>
+                <TimeInput
+                  value={dayStartTime}
+                  onChange={setDayStartTime}
+                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  style={{ color: DAY_THEME.text }}
+                />
+              </div>
+              <div
+                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                style={{ background: '#FFFFFF', border: `1px solid ${DAY_THEME.border}` }}
+              >
+                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: DAY_THEME.muted }}>END</span>
+                <TimeInput
+                  value={dayEndTime}
+                  onChange={setDayEndTime}
+                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  style={{ color: DAY_THEME.text }}
+                />
               </div>
             </div>
-
-            <div className="flex flex-col items-center justify-center mt-2 bg-white px-2 py-1.5 rounded-xl border border-amber-200 shadow-sm">
-              <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">PRICE</span>
-              <div className="flex items-center">
-                <span className="text-[10px] sm:text-[11px] font-black text-slate-500 mr-0.5">₹</span>
+            <div
+              className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+              style={{ background: '#FFFFFF', border: `1px solid ${DAY_THEME.border}` }}
+            >
+              <span className="text-[11px] font-black uppercase" style={{ color: DAY_THEME.muted }}>PRICE</span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-[11px] font-black" style={{ color: DAY_THEME.accent }}>&#8377;</span>
                 <NumberInput
                   min={1}
                   step={50}
                   value={dayPrice}
                   onChange={(val) => setDayPrice(Math.max(1, val))}
-                  className="text-[10px] sm:text-[11px] font-black text-emerald-700 bg-transparent text-center outline-none w-16 p-0 border-none"
+                  className="text-[11px] sm:text-xs font-black bg-transparent text-center outline-none w-14 p-0 border-none"
+                  style={{ color: DAY_THEME.accent }}
                 />
               </div>
             </div>
           </div>
 
-
-          {/* NIGHT PRICING CARD */}
-          <div className="h-full min-h-[160px] p-3 sm:p-4 rounded-3xl border-[1.5px] border-indigo-300 bg-indigo-50/20 flex flex-col justify-between shadow-sm relative overflow-hidden">
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-1 mb-3">
-                <div className="flex items-center gap-1.5">
-                  <Moon className="w-4 h-4 text-indigo-600 fill-indigo-600 shrink-0" />
-                  <span className="text-[11px] font-black uppercase text-indigo-950 tracking-wider">NIGHT</span>
-                </div>
-                <span className="text-[8px] font-black uppercase bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                  Overnight
-                </span>
+          {/* OVERNIGHT PRICING CARD */}
+          <div
+            className="p-3 rounded-xl flex flex-col gap-2 relative overflow-hidden"
+            style={{
+              background: NIGHT_THEME.bg,
+              border: `1.5px solid ${NIGHT_THEME.border}`,
+              boxShadow: '0 1px 6px rgba(101,84,192,0.10)',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Moon className="w-3.5 h-3.5 shrink-0" style={{ color: NIGHT_THEME.accent, fill: NIGHT_THEME.iconFill }} />
+                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: NIGHT_THEME.accent }}>NIGHT</span>
               </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-indigo-200 shadow-sm">
-                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">START</span>
-                  <TimeInput
-                    value={nightStartTime}
-                    onChange={setNightStartTime}
-                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
-                  />
-                </div>
-                <div className="flex flex-col items-center bg-white px-1 py-1.5 rounded-xl border border-indigo-200 shadow-sm">
-                  <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">END</span>
-                  <TimeInput
-                    value={nightEndTime}
-                    onChange={setNightEndTime}
-                    className="text-[10px] sm:text-[11px] font-black text-slate-900 bg-transparent text-center outline-none w-full"
-                  />
-                </div>
+              <span
+                className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full"
+                style={{ background: NIGHT_THEME.badgeBg, color: NIGHT_THEME.badgeText }}
+              >OVERNIGHT</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div
+                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                style={{ background: '#FFFFFF', border: `1px solid ${NIGHT_THEME.border}` }}
+              >
+                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: NIGHT_THEME.muted }}>START</span>
+                <TimeInput
+                  value={nightStartTime}
+                  onChange={setNightStartTime}
+                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  style={{ color: NIGHT_THEME.text }}
+                />
+              </div>
+              <div
+                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                style={{ background: '#FFFFFF', border: `1px solid ${NIGHT_THEME.border}` }}
+              >
+                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: NIGHT_THEME.muted }}>END</span>
+                <TimeInput
+                  value={nightEndTime}
+                  onChange={setNightEndTime}
+                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  style={{ color: NIGHT_THEME.text }}
+                />
               </div>
             </div>
-
-            <div className="flex flex-col items-center justify-center mt-2 bg-white px-2 py-1.5 rounded-xl border border-indigo-200 shadow-sm">
-              <span className="text-[8px] font-black uppercase text-slate-500 mb-0.5">PRICE</span>
-              <div className="flex items-center">
-                <span className="text-[10px] sm:text-[11px] font-black text-slate-500 mr-0.5">₹</span>
+            <div
+              className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+              style={{ background: '#FFFFFF', border: `1px solid ${NIGHT_THEME.border}` }}
+            >
+              <span className="text-[11px] font-black uppercase" style={{ color: NIGHT_THEME.muted }}>PRICE</span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-[11px] font-black" style={{ color: NIGHT_THEME.accent }}>&#8377;</span>
                 <NumberInput
                   min={1}
                   step={50}
                   value={nightPrice}
                   onChange={(val) => setNightPrice(Math.max(1, val))}
-                  className="text-[10px] sm:text-[11px] font-black text-indigo-700 bg-transparent text-center outline-none w-16 p-0 border-none"
+                  className="text-[11px] sm:text-xs font-black bg-transparent text-center outline-none w-14 p-0 border-none"
+                  style={{ color: NIGHT_THEME.accent }}
                 />
               </div>
             </div>
@@ -893,10 +964,10 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
         {/* ── SLOT DURATION ── */}
         <div>
-          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+          <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(23,23,23,0.60)' }}>
             SLOT DURATION
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {DURATION_PRESETS.map((dp) => {
               const isSelected = durationPreset === dp.value;
               return (
@@ -904,11 +975,12 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   key={dp.label}
                   type="button"
                   onClick={() => setDurationPreset(dp.value)}
-                  className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all ${
+                  className="px-3 py-2 rounded-xl border text-[11px] font-black transition-colors duration-150"
+                  style={
                     isSelected
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
+                      ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C', boxShadow: '0 1px 4px rgba(255,159,28,0.25)' }
+                      : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+                  }
                 >
                   {dp.label}
                 </button>
@@ -917,14 +989,18 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           </div>
 
           {durationPreset === -1 && (
-            <div className="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200 max-w-sm flex items-center justify-between">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-slate-600">
+            <div
+              className="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-3"
+              style={{ background: '#FFFFFF', border: '1.5px solid #E8E5E0' }}
+            >
+              <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.60)' }}>
                 Custom Duration
               </label>
               <DurationInput
                 value={customDurationMinutes}
                 onChange={(val) => setCustomDurationMinutes(Math.max(15, val))}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white text-emerald-700"
+                className="px-3 py-1.5 rounded-xl border border-[#E8E5E0] text-xs font-bold bg-[#FFFFFF]"
+                style={{ color: '#FF9F1C' }}
               />
             </div>
           )}
@@ -932,56 +1008,48 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
         {/* ── PAYMENT OPTIONS ── */}
         <div>
-          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+          <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(23,23,23,0.60)' }}>
             PAYMENT OPTIONS
           </label>
-          <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => setGlobalPaymentType('FULL')}
-              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
-                globalPaymentType === 'FULL'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Full Payment Only
-            </button>
-            <button
-              type="button"
-              onClick={() => setGlobalPaymentType('ADVANCE')}
-              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
-                globalPaymentType === 'ADVANCE'
-                  ? 'bg-amber-500 text-slate-900 border-amber-500 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Advance Payment Only
-            </button>
-            <button
-              type="button"
-              onClick={() => setGlobalPaymentType('BOTH')}
-              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
-                globalPaymentType === 'BOTH'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Allow Both Options
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+            {(
+              [
+                { value: 'FULL' as const, label: 'Full Payment Only' },
+                { value: 'ADVANCE' as const, label: 'Advance Only' },
+                { value: 'BOTH' as const, label: 'Allow Both' },
+              ]
+            ).map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setGlobalPaymentType(value)}
+                className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+                style={
+                  globalPaymentType === value
+                    ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
+                    : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {(globalPaymentType === 'ADVANCE' || globalPaymentType === 'BOTH') && (
-            <div className="mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-200 max-w-sm flex items-center justify-between">
-              <label className="block text-[11px] font-black uppercase tracking-wider text-amber-900">
-                Advance Amount (₹)
+            <div
+              className="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-3"
+              style={{ background: 'rgba(255,159,28,0.08)', border: '1.5px solid rgba(255,159,28,0.25)' }}
+            >
+              <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: '#FF9F1C' }}>
+                ADVANCE AMOUNT (&#8377;)
               </label>
               <NumberInput
                 min={0}
                 step={50}
                 value={globalAdvanceAmount}
                 onChange={setGlobalAdvanceAmount}
-                className="w-24 px-3 py-1.5 rounded-xl border border-amber-300 text-xs font-bold bg-white text-amber-900 text-center"
+                className="w-24 px-3 py-1.5 rounded-xl border text-xs font-bold bg-[#FFFFFF] text-center"
+                style={{ color: '#FF9F1C', border: '1.5px solid #E8E5E0' }}
               />
             </div>
           )}
@@ -989,18 +1057,19 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
         {/* ── GENERATION RANGE ── */}
         <div>
-          <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+          <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(23,23,23,0.60)' }}>
             GENERATION RANGE
           </label>
-          <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
             <button
               type="button"
               onClick={() => setGenerationRange('days')}
-              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
+              className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+              style={
                 generationRange === 'days'
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
+                  ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
+                  : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+              }
             >
               Selected Days ({selectedDays.length})
             </button>
@@ -1010,11 +1079,12 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 setGenerationRange('week');
                 setSelectedDays([0, 1, 2, 3, 4, 5, 6]);
               }}
-              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
+              className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+              style={
                 generationRange === 'week'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
+                  ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
+                  : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+              }
             >
               Entire Week (7 Days)
             </button>
@@ -1024,11 +1094,12 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 setGenerationRange('month');
                 setSelectedDays([0, 1, 2, 3, 4, 5, 6]);
               }}
-              className={`py-2.5 px-3 rounded-xl border text-xs font-black text-center transition-all ${
+              className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+              style={
                 generationRange === 'month'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
+                  ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
+                  : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+              }
             >
               Full Month (30 Days)
             </button>
@@ -1038,19 +1109,20 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         {/* ── SELECT DAYS ── */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+            <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.60)' }}>
               SELECT DAYS
             </label>
             <button
               type="button"
               onClick={handleSelectEntireWeek}
-              className="text-xs font-black text-emerald-700 hover:text-emerald-800 underline"
+              className="text-[11px] font-black underline"
+              style={{ color: '#FF9F1C' }}
             >
-              Select Entire Week
+              Select All
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
             {DAY_SHORT.map((shortName, idx) => {
               const isSelected = selectedDays.includes(idx);
               return (
@@ -1058,13 +1130,23 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   key={shortName}
                   type="button"
                   onClick={() => toggleDaySelection(idx)}
-                  className={`py-2 sm:py-3 rounded-xl sm:rounded-2xl border text-center font-black text-[10px] sm:text-xs transition-all ${
+                  className="py-2 sm:py-2.5 rounded-xl border text-center font-black text-[11px] sm:text-[11px] transition-colors duration-150"
+                  style={
                     isSelected
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-400/30'
-                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
-                  }`}
+                      ? {
+                          background: '#FF9F1C',
+                          color: '#171717',
+                          border: '1.5px solid #FF9F1C',
+                          boxShadow: '0 1px 4px rgba(255,159,28,0.30)',
+                        }
+                      : {
+                          background: '#FFFFFF',
+                          border: '1.5px solid #E8E5E0',
+                          color: 'rgba(23,23,23,0.55)',
+                        }
+                  }
                 >
-                  <span>{shortName}</span>
+                  {shortName}
                 </button>
               );
             })}
@@ -1072,7 +1154,14 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         </div>
 
         {validationError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-xs font-bold text-red-700 flex items-center gap-2">
+          <div
+            className="p-3 rounded-xl text-xs font-bold flex items-center gap-2"
+            style={{
+              background: 'rgba(232,65,54,0.08)',
+              border: '1.5px solid rgba(232,65,54,0.20)',
+              color: '#E84136',
+            }}
+          >
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{validationError}</span>
           </div>
@@ -1083,17 +1172,21 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           type="button"
           onClick={handleGenerateClick}
           disabled={Boolean(validationError)}
-          className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-colors duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: validationError ? 'rgba(255,159,28,0.50)' : '#FF9F1C',
+            color: '#171717',
+            boxShadow: validationError ? 'none' : '0 2px 10px rgba(255,159,28,0.30)',
+          }}
         >
-          
+          <Zap className="w-3.5 h-3.5" />
           <span>
-            GENERATE SLOTS (
+            GENERATE SLOTS &mdash;{' '}
             {generationRange === 'month'
-              ? 'FULL MONTH · 30 DAYS'
+              ? 'FULL MONTH (30 DAYS)'
               : generationRange === 'week'
-              ? 'ENTIRE WEEK · 7 DAYS'
+              ? 'ENTIRE WEEK (7 DAYS)'
               : `${selectedDays.length} DAYS`}
-            )
           </span>
         </button>
       </div>
@@ -1101,20 +1194,48 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
       {/* ══════════════════════════════════════════════════════
           2. SCHEDULE & GENERATED SLOTS PREVIEW
          ══════════════════════════════════════════════════════ */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+      <div
+        className="rounded-2xl shadow-sm p-4 sm:p-5 space-y-4"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E8E5E0',
+          boxShadow: '0 2px 12px rgba(23,23,23,0.06)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-3" style={{ borderBottom: '1px solid #E8E5E0' }}>
           <div>
-            <h3 className="font-black text-base text-slate-900">
-              SCHEDULE &amp; GENERATED SLOTS PREVIEW
+            <h3 className="font-black text-sm" style={{ color: '#171717' }}>
+              SCHEDULE &amp; GENERATED SLOTS
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Day slots (☀️) and Night slots (🌙) are visually distinguished with their assigned pricing.
+            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(23,23,23,0.55)' }}>
+              Day slots and Night slots are visually differentiated with their assigned pricing.
             </p>
+          </div>
+          <div className="flex gap-2 flex-wrap shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowAddBreakModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black transition-colors duration-150"
+              style={{ background: '#FAF8F4', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.70)' }}
+            >
+              <Coffee className="w-3 h-3" />
+              Add Break
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAddCustomSlotModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black transition-colors duration-150"
+              style={{ background: '#FAF8F4', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.70)' }}
+            >
+              <Plus className="w-3 h-3" />
+              Custom Slot
+            </button>
           </div>
         </div>
 
-        {/* Day Tabs: SUN | MON | TUE | WED | THU | FRI | SAT */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-2">
+        {/* Day Tabs */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
           {days.map((d) => {
             const isTabActive = activeDayView === d.dayOfWeek;
             const activeSlotsCount = (d.slots || []).filter((s) => s.status === 'active').length;
@@ -1123,25 +1244,41 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 key={d.dayOfWeek}
                 type="button"
                 onClick={() => setActiveDayView(d.dayOfWeek)}
-                className={`w-11 h-11 sm:w-14 sm:h-14 mx-auto rounded-full flex flex-col items-center justify-center transition-all ${
+                className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-full flex flex-col items-center justify-center transition-colors duration-150"
+                style={
                   isTabActive
-                    ? 'bg-slate-900 text-white shadow-md ring-2 ring-slate-700 ring-offset-1'
+                    ? {
+                        background: '#FFFFFF',
+                        color: '#171717',
+                        boxShadow: '0 2px 10px rgba(255,159,28,0.25)',
+                        outline: '2px solid #FF9F1C',
+                        outlineOffset: '1px',
+                      }
                     : d.isOpen
-                    ? 'bg-white border border-slate-200 text-slate-800 hover:bg-slate-50'
-                    : 'bg-slate-100 border border-slate-200 text-slate-400'
-                }`}
+                    ? {
+                        background: '#FFFFFF',
+                        border: '1.5px solid #E8E5E0',
+                        color: '#171717',
+                      }
+                    : {
+                        background: '#FAF8F4',
+                        border: '1.5px solid #E8E5E0',
+                        color: 'rgba(23,23,23,0.45)',
+                      }
+                }
               >
-                <span className="block text-[9px] sm:text-[10px] font-black tracking-wider uppercase leading-none mb-1">
+                <span className="block text-[11px] sm:text-[11px] font-black tracking-wider uppercase leading-none mb-0.5">
                   {DAY_SHORT[d.dayOfWeek]}
                 </span>
                 <span
-                  className={`inline-block px-1.5 py-0.5 rounded-full text-[8px] font-black leading-none ${
+                  className="inline-block px-1 py-0.5 rounded-full text-[11px] font-black leading-none"
+                  style={
                     !d.isOpen
-                      ? 'bg-red-100 text-red-700'
+                      ? { background: 'rgba(23,23,23,0.08)', color: 'rgba(23,23,23,0.45)' }
                       : isTabActive
-                      ? 'bg-emerald-500 text-slate-950'
-                      : 'bg-emerald-100 text-emerald-800'
-                  }`}
+                      ? { background: '#FF9F1C', color: '#171717' }
+                      : { background: 'rgba(255,159,28,0.15)', color: '#FF9F1C' }
+                  }
                 >
                   {d.isOpen ? `${activeSlotsCount}` : 'Off'}
                 </span>
@@ -1150,49 +1287,58 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           })}
         </div>
 
-        {/* ── Active Day Header & Controls Removed as requested ── */}
-
         {/* Closed Day Alert */}
         {!activeDay.isOpen && (
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2.5">
-            <Info className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <div
+            className="p-3 rounded-xl text-xs flex items-start gap-2"
+            style={{
+              background: 'rgba(255,159,28,0.08)',
+              border: '1.5px solid rgba(255,159,28,0.25)',
+              color: '#A85200',
+            }}
+          >
+            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#FF9F1C' }} />
             <div>
               <p className="font-black">{activeDay.dayName} is currently marked as CLOSED.</p>
-              <p className="mt-0.5 text-amber-700">
+              <p className="mt-0.5 text-[11px]" style={{ color: 'rgba(168,82,0,0.75)' }}>
                 All slots on this day are disabled and will not be displayed or bookable by customers.
               </p>
             </div>
           </div>
         )}
 
-        {/* ── Breaks List ── */}
+        {/* Breaks List */}
         {(activeDay.breaks || []).length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+          <div className="space-y-1.5">
+            <p className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.55)' }}>
               Scheduled Breaks ({activeDay.breaks?.length})
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {activeDay.breaks?.map((brk, idx) => (
                 <div
                   key={idx}
-                  className="p-3 rounded-2xl border border-amber-200 bg-amber-50/70 flex items-center justify-between text-xs"
+                  className="p-2.5 rounded-xl flex items-center justify-between text-xs"
+                  style={{ background: '#FFF3DD', border: '1px solid #F0D3A5' }}
                 >
                   <div className="flex items-center gap-2">
-                    <Coffee className="w-4 h-4 text-amber-600" />
+                    <Coffee className="w-3.5 h-3.5 shrink-0" style={{ color: '#F59E0B' }} />
                     <div>
-                      <p className="font-black text-amber-950">
-                        {format12Hour(brk.startTime)} – {format12Hour(brk.endTime)}
+                      <p className="font-black text-[11px]" style={{ color: '#251B12' }}>
+                        {format12Hour(brk.startTime)} &ndash; {format12Hour(brk.endTime)}
                       </p>
-                      <p className="text-[10px] text-amber-700">{brk.reason || 'Break / Maintenance'}</p>
+                      <p className="text-[11px]" style={{ color: 'rgba(37,27,18,0.55)' }}>
+                        {brk.reason || 'Break / Maintenance'}
+                      </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleDeleteBreak(idx)}
-                    className="p-1.5 text-amber-700 hover:text-red-600 rounded-lg"
+                    className="p-1 rounded-lg transition-colors duration-150"
                     title="Delete break"
+                    style={{ color: 'rgba(37,27,18,0.40)' }}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               ))}
@@ -1200,134 +1346,198 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           </div>
         )}
 
-        {/* ── Generated Slots Grid with Day & Night Color Styling ── */}
+        {/* ── Generated Slots Grid ── */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-600">
-              Generated Slots ({activeDaySlots.length} Total ·{' '}
-              {activeDaySlots.filter((s) => s.status === 'active').length} Active)
-            </span>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
-                <Sun className="w-3 h-3 text-amber-500 fill-amber-400" /> Day Slot (₹{dayPrice})
+          {/* Slot count + legend */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.55)' }}>
+              GENERATED SLOTS&nbsp;
+              <span style={{ color: '#171717' }}>
+                ({activeDaySlots.length} total &middot; {activeDaySlots.filter((s) => s.status === 'active').length} active)
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-900 border border-indigo-200">
-                <Moon className="w-3 h-3 text-indigo-600 fill-indigo-400" /> Night Slot (₹{nightPrice})
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-black">
+              <span
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg"
+                style={{ background: DAY_THEME.bg, border: `1px solid ${DAY_THEME.border}`, color: DAY_THEME.text }}
+              >
+                <Sun className="w-3 h-3 shrink-0" style={{ color: DAY_THEME.accent, fill: DAY_THEME.iconFill }} />
+                <span>DAY &mdash; &#8377;{dayPrice}</span>
+              </span>
+              <span
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg"
+                style={{ background: NIGHT_THEME.bg, border: `1px solid ${NIGHT_THEME.border}`, color: NIGHT_THEME.text }}
+              >
+                <Moon className="w-3 h-3 shrink-0" style={{ color: NIGHT_THEME.accent, fill: NIGHT_THEME.iconFill }} />
+                <span>NIGHT &mdash; &#8377;{nightPrice}</span>
               </span>
             </div>
           </div>
 
           {activeDaySlots.length === 0 ? (
-            <div className="py-12 text-center rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
-              <Calendar className="w-8 h-8 mx-auto mb-2 opacity-40 text-slate-400" />
-              <p className="text-xs font-black text-slate-600">No slots generated for {activeDay.dayName} yet.</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Click &ldquo;GENERATE SLOTS&rdquo; above to automatically create the schedule.
+            <div
+              className="py-10 text-center rounded-2xl border-2 border-dashed"
+              style={{ borderColor: '#E8E5E0', color: 'rgba(23,23,23,0.40)' }}
+            >
+              <Calendar className="w-7 h-7 mx-auto mb-2 opacity-40" />
+              <p className="text-xs font-black">No slots generated for {activeDay.dayName} yet.</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'rgba(23,23,23,0.40)' }}>
+                Click &ldquo;GENERATE SLOTS&rdquo; above to create the schedule.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                gap: '8px',
+              }}
+            >
               {activeDaySlots.map((slot) => {
                 const isActive = slot.status === 'active';
                 const isEditingPrice = editingSlotId === slot.id;
                 const isEditingTime = editingTimeSlotId === slot.id;
-                const isNightSlot = slot.periodType === 'night' || isMinuteInInterval(timeToMinutes(slot.startTime), nightStartTime, nightEndTime);
+                const isNightSlot =
+                  slot.periodType === 'night' ||
+                  isMinuteInInterval(timeToMinutes(slot.startTime), nightStartTime, nightEndTime);
+                const theme = isNightSlot ? NIGHT_THEME : DAY_THEME;
 
                 return (
                   <div
                     key={slot.id}
-                    className={`p-2 rounded-xl border transition-all flex flex-col justify-between overflow-hidden ${
+                    className="rounded-xl flex flex-col overflow-hidden transition-colors duration-150"
+                    style={
                       !isActive
-                        ? 'bg-slate-100/80 border-slate-200 text-slate-400 opacity-75'
-                        : isNightSlot
-                        ? 'bg-indigo-50/50 border-indigo-200 hover:border-indigo-400 shadow-2xs'
-                        : 'bg-amber-50/30 border-amber-200/80 hover:border-amber-400 shadow-2xs'
-                    }`}
+                        ? {
+                            background: 'rgba(23,23,23,0.04)',
+                            border: '1.5px solid #E8E5E0',
+                            opacity: 0.70,
+                          }
+                        : {
+                            background: theme.bg,
+                            border: `1.5px solid ${theme.border}`,
+                            boxShadow: isNightSlot
+                              ? '0 1px 6px rgba(101,84,192,0.10)'
+                              : '0 1px 6px rgba(245,158,11,0.10)',
+                          }
+                    }
                   >
-                    <div>
-                      {/* Top Header Badge */}
-                      <div className="flex items-center justify-between gap-0.5 mb-1.5">
-                        <div className="flex items-center gap-0.5">
-                          {isNightSlot ? (
-                            <Moon className="w-3 h-3 text-indigo-600 fill-indigo-400" />
-                          ) : (
-                            <Sun className="w-3 h-3 text-amber-500 fill-amber-400" />
-                          )}
+                    <div className="p-2 flex flex-col gap-1.5 flex-1">
 
+                      {/* TOP ROW */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          {isNightSlot ? (
+                            <Moon className="w-3 h-3 shrink-0" style={{ color: theme.accent, fill: theme.iconFill }} />
+                          ) : (
+                            <Sun className="w-3 h-3 shrink-0" style={{ color: theme.accent, fill: theme.iconFill }} />
+                          )}
                           <span
-                            className={`text-[7px] font-black uppercase tracking-widest px-1 py-0.5 rounded-sm leading-none ${
-                              isActive
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-slate-200 text-slate-600'
-                            }`}
+                            className="text-[11px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                            style={{ background: theme.badgeBg, color: theme.badgeText }}
                           >
-                            {isActive ? 'ON' : 'OFF'}
+                            {isNightSlot ? 'NIGHT' : 'DAY'}
                           </span>
                         </div>
+                        <span
+                          className="text-[11px] font-black uppercase px-1.5 py-0.5 rounded-full"
+                          style={
+                            isActive
+                              ? { background: 'rgba(22,132,91,0.14)', color: '#16845B' }
+                              : { background: 'rgba(23,23,23,0.08)', color: 'rgba(23,23,23,0.50)' }
+                          }
+                        >
+                          {isActive ? 'ON' : 'OFF'}
+                        </span>
                       </div>
 
-                      {/* Slot Time Range */}
+                      {/* TIME */}
                       {isEditingTime ? (
-                        <div className="space-y-1 py-1">
+                        <div className="space-y-1">
                           <TimeInput
                             value={editStartTimeVal}
                             onChange={setEditStartTimeVal}
-                            className="w-full px-1 py-0.5 text-[10px] border rounded bg-white font-mono font-bold"
+                            className="w-full px-1.5 py-0.5 text-[11px] border rounded-lg bg-white font-mono font-bold"
+                            style={{ borderColor: theme.border, color: theme.text }}
                           />
                           <TimeInput
                             value={editEndTimeVal}
                             onChange={setEditEndTimeVal}
-                            className="w-full px-1 py-0.5 text-[10px] border rounded bg-white font-mono font-bold"
+                            className="w-full px-1.5 py-0.5 text-[11px] border rounded-lg bg-white font-mono font-bold"
+                            style={{ borderColor: theme.border, color: theme.text }}
                           />
-                          <div className="flex gap-1 mt-1">
-                            <button onClick={() => handleSaveSlotTime(slot.id)} className="flex-1 py-0.5 bg-emerald-600 text-white rounded text-[8px] font-black">Save</button>
-                            <button onClick={() => setEditingTimeSlotId(null)} className="flex-1 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">Esc</button>
+                          <div className="flex gap-1 mt-0.5">
+                            <button
+                              onClick={() => handleSaveSlotTime(slot.id)}
+                              className="flex-1 py-0.5 rounded-lg text-[11px] font-black"
+                              style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#171717' }}
+                            >Save</button>
+                            <button
+                              onClick={() => setEditingTimeSlotId(null)}
+                              className="flex-1 py-0.5 rounded-lg text-[11px] font-black bg-white"
+                              style={{ color: 'rgba(23,23,23,0.55)', border: `1px solid ${theme.border}` }}
+                            >Cancel</button>
                           </div>
                         </div>
                       ) : (
-                        <div>
-                        <div className="font-black text-[10px] text-slate-900 font-mono leading-snug flex flex-col py-1">
-                          <span>{format12Hour(slot.startTime).replace(' AM','a').replace(' PM','p')}</span>
-                          <span className="text-slate-400 text-[8px] leading-none ml-1">to</span>
-                          <span>{format12Hour(slot.endTime).replace(' AM','a').replace(' PM','p')}</span>
-                        </div>
+                        <div
+                          className="text-[11px] font-black font-mono leading-snug"
+                          style={{ color: isActive ? theme.text : 'rgba(23,23,23,0.50)' }}
+                        >
+                          {format12Hour(slot.startTime)} &ndash; {format12Hour(slot.endTime)}
                         </div>
                       )}
 
-                      {/* Slot Price */}
-                      <div className="mt-1.5">
+                      {/* PRICE */}
+                      <div>
                         {isEditingPrice ? (
                           <div className="flex items-center gap-0.5">
+                            <span className="text-[11px] font-black" style={{ color: theme.accent }}>&#8377;</span>
                             <NumberInput
                               min={1}
                               step={50}
                               value={editPriceVal}
                               onChange={setEditPriceVal}
-                              className="w-12 px-1 py-0.5 rounded border border-emerald-400 text-[10px] font-bold bg-white"
+                              className="w-14 px-1 py-0.5 rounded-lg border text-[11px] font-bold bg-white"
+                              style={{ borderColor: theme.accent, color: theme.text }}
                               autoFocus
                             />
-                            <button onClick={() => handleSaveSlotPrice(slot.id)} className="p-0.5 bg-emerald-600 text-white rounded"><Check className="w-3 h-3" /></button>
+                            <button
+                              onClick={() => handleSaveSlotPrice(slot.id)}
+                              className="p-0.5 rounded-lg"
+                              style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#171717' }}
+                            ><Check className="w-3 h-3" /></button>
                           </div>
                         ) : (
                           <div className="flex items-center justify-between">
-                            <span className={`text-[11px] font-black font-sans leading-none ${isNightSlot ? 'text-indigo-900' : 'text-emerald-700'}`}>
-                              ₹{slot.price}
+                            <span
+                              className="text-[13px] font-black leading-none"
+                              style={{ color: isActive ? theme.accent : 'rgba(23,23,23,0.40)' }}
+                            >
+                              &#8377;{slot.price}
                             </span>
-                            <button onClick={() => { setEditingSlotId(slot.id); setEditPriceVal(slot.price); }} className="text-slate-400 hover:text-emerald-600">
-                              <Pencil className="w-2.5 h-2.5" />
-                            </button>
+                            <button
+                              onClick={() => { setEditingSlotId(slot.id); setEditPriceVal(slot.price); }}
+                              className="p-0.5 rounded-md transition-colors duration-150"
+                              title="Edit price"
+                              style={{ color: 'rgba(23,23,23,0.40)' }}
+                            ><Pencil className="w-2.5 h-2.5" /></button>
                           </div>
                         )}
                       </div>
 
-                      {/* Payment Settings */}
-                      <div className="mt-2 border-t border-slate-100 pt-1.5">
+                      {/* PAYMENT INFO */}
+                      <div
+                        className="pt-1.5"
+                        style={{ borderTop: `1px solid ${isActive ? theme.border : '#E8E5E0'}` }}
+                      >
                         {editingPaymentSlotId === slot.id ? (
-                          <div className="space-y-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                          <div className="space-y-1 bg-white p-1.5 rounded-lg" style={{ border: `1px solid ${theme.border}` }}>
                             <select
                               value={editPaymentTypeVal}
                               onChange={(e) => setEditPaymentTypeVal(e.target.value as any)}
-                              className="w-full text-[10px] px-1 py-0.5 rounded border border-slate-300 bg-white"
+                              className="w-full text-[11px] px-1 py-0.5 rounded-lg bg-white"
+                              style={{ border: `1px solid ${theme.border}`, color: theme.text }}
                             >
                               <option value="FULL">Full Payment</option>
                               <option value="ADVANCE">Advance Only</option>
@@ -1335,53 +1545,109 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                             </select>
                             {(editPaymentTypeVal === 'ADVANCE' || editPaymentTypeVal === 'BOTH') && (
                               <div className="flex items-center gap-1">
-                                <span className="text-[9px] font-black uppercase text-slate-500">Adv:</span>
+                                <span className="text-[11px] font-black uppercase" style={{ color: 'rgba(23,23,23,0.55)' }}>Adv:</span>
                                 <NumberInput
                                   min={0}
                                   step={50}
                                   value={editAdvanceAmountVal}
                                   onChange={setEditAdvanceAmountVal}
-                                  className="flex-1 px-1 py-0.5 rounded border border-slate-300 text-[10px] bg-white"
+                                  className="flex-1 px-1 py-0.5 rounded-lg text-[11px] bg-white"
+                                  style={{ border: `1px solid ${theme.border}` }}
                                 />
                               </div>
                             )}
-                            <div className="flex gap-1 mt-1">
-                              <button onClick={() => handleSaveSlotPayment(slot.id)} className="flex-1 py-0.5 bg-emerald-600 text-white rounded text-[8px] font-black">Save</button>
-                              <button onClick={() => setEditingPaymentSlotId(null)} className="flex-1 py-0.5 bg-slate-200 text-slate-700 rounded text-[8px] font-black">Esc</button>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleSaveSlotPayment(slot.id)}
+                                className="flex-1 py-0.5 rounded-lg text-[11px] font-black"
+                                style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#171717' }}
+                              >Save</button>
+                              <button
+                                onClick={() => setEditingPaymentSlotId(null)}
+                                className="flex-1 py-0.5 rounded-lg text-[11px] font-black bg-white"
+                                style={{ color: 'rgba(23,23,23,0.55)', border: `1px solid ${theme.border}` }}
+                              >Cancel</button>
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold text-slate-500">
-                                {slot.paymentType === 'FULL' ? 'Full Payment' : slot.paymentType === 'ADVANCE' ? 'Advance Only' : 'Advance or Full'}
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-0.5">
+                              <span
+                                className="text-[11px] font-bold leading-none"
+                                style={{ color: isActive ? theme.muted : 'rgba(23,23,23,0.40)' }}
+                              >
+                                {slot.paymentType === 'FULL'
+                                  ? 'Full Payment'
+                                  : slot.paymentType === 'ADVANCE'
+                                  ? 'Advance Only'
+                                  : 'Adv or Full'}
                               </span>
-                              <button onClick={() => { setEditingPaymentSlotId(slot.id); setEditPaymentTypeVal(slot.paymentType || 'BOTH'); setEditAdvanceAmountVal(slot.advanceAmount || 400); }} className="text-slate-400 hover:text-emerald-600">
-                                <Pencil className="w-2.5 h-2.5" />
-                              </button>
+                              {slot.paymentType !== 'FULL' && (
+                                <span
+                                  className="text-[11px] font-black leading-none"
+                                  style={{ color: isActive ? theme.accent : 'rgba(23,23,23,0.35)' }}
+                                >
+                                  Adv: &#8377;{slot.advanceAmount || 0}
+                                </span>
+                              )}
                             </div>
-                            {slot.paymentType !== 'FULL' && (
-                              <div className="text-[9px] font-black text-amber-600">
-                                Adv: ₹{slot.advanceAmount || 0}
-                              </div>
-                            )}
+                            <button
+                              onClick={() => {
+                                setEditingPaymentSlotId(slot.id);
+                                setEditPaymentTypeVal(slot.paymentType || 'BOTH');
+                                setEditAdvanceAmountVal(slot.advanceAmount || 400);
+                              }}
+                              className="p-0.5 rounded-md transition-colors duration-150"
+                              title="Edit payment"
+                              style={{ color: 'rgba(23,23,23,0.40)' }}
+                            ><Pencil className="w-2.5 h-2.5" /></button>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Action Bar */}
-                    <div className="pt-2 mt-2 border-t border-slate-200/60 flex items-center justify-between text-slate-400">
-                      <button onClick={() => handleToggleSlotStatus(slot.id)} className={`p-1 rounded hover:text-slate-700 ${isActive ? 'hover:bg-slate-200' : 'text-emerald-600 hover:bg-emerald-100'}`} title={isActive ? "Disable" : "Enable"}>
-                        <ToggleLeft className={`w-3.5 h-3.5 ${isActive ? 'rotate-180 text-emerald-600' : ''}`} />
+                    {/* ACTION BAR */}
+                    <div
+                      className="px-2 py-1.5 flex items-center justify-between"
+                      style={{
+                        borderTop: `1px solid ${isActive ? theme.border : '#E8E5E0'}`,
+                        background: isActive ? 'rgba(255,255,255,0.50)' : 'rgba(23,23,23,0.03)',
+                      }}
+                    >
+                      <button
+                        onClick={() => handleToggleSlotStatus(slot.id)}
+                        className="p-1 rounded-md transition-colors duration-150"
+                        title={isActive ? 'Disable slot' : 'Enable slot'}
+                        style={{ color: isActive ? theme.accent : 'rgba(23,23,23,0.40)' }}
+                      >
+                        <ToggleLeft className={`w-3.5 h-3.5 ${isActive ? 'rotate-180' : ''}`} />
                       </button>
-                      <button onClick={() => { setEditingTimeSlotId(slot.id); setEditStartTimeVal(slot.startTime); setEditEndTimeVal(slot.endTime); }} className="p-1 rounded hover:bg-slate-200 hover:text-slate-700" title="Edit Time">
+                      <button
+                        onClick={() => {
+                          setEditingTimeSlotId(slot.id);
+                          setEditStartTimeVal(slot.startTime);
+                          setEditEndTimeVal(slot.endTime);
+                        }}
+                        className="p-1 rounded-md transition-colors duration-150"
+                        title="Edit time"
+                        style={{ color: 'rgba(23,23,23,0.45)' }}
+                      >
                         <Clock className="w-3 h-3" />
                       </button>
-                      <button onClick={() => handleDuplicateSlot(slot)} className="p-1 rounded hover:bg-slate-200 hover:text-slate-700" title="Duplicate">
+                      <button
+                        onClick={() => handleDuplicateSlot(slot)}
+                        className="p-1 rounded-md transition-colors duration-150"
+                        title="Duplicate slot"
+                        style={{ color: 'rgba(23,23,23,0.45)' }}
+                      >
                         <Copy className="w-3 h-3" />
                       </button>
-                      <button onClick={() => handleDeleteSlot(slot.id)} className="p-1 rounded hover:bg-red-100 hover:text-red-600" title="Delete">
+                      <button
+                        onClick={() => handleDeleteSlot(slot.id)}
+                        className="p-1 rounded-md transition-colors duration-150"
+                        title="Delete slot"
+                        style={{ color: 'rgba(23,23,23,0.45)' }}
+                      >
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
@@ -1399,30 +1665,34 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* REGENERATE CONFIRMATION MODAL */}
       {confirmRegenerateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-3 text-amber-600">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
-                <AlertCircle className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+          <div
+            className="rounded-2xl p-5 max-w-md w-full space-y-4"
+            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,159,28,0.15)' }}>
+                <AlertCircle className="w-4 h-4" style={{ color: '#FF9F1C' }} />
               </div>
-              <h3 className="font-black text-base text-slate-900">Regenerate Schedule?</h3>
+              <h3 className="font-black text-sm" style={{ color: '#171717' }}>Regenerate Schedule?</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Regenerating slots will replace the current generated schedule for the selected days.
-              Do you want to continue?
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(23,23,23,0.65)' }}>
+              Regenerating slots will replace the current generated schedule for the selected days. Do you want to continue?
             </p>
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setConfirmRegenerateOpen(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="flex-1 py-2 rounded-xl border text-xs font-bold transition-colors duration-150"
+                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={executeGeneration}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 shadow-sm"
+                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
+                style={{ background: '#FF9F1C', color: '#171717' }}
               >
                 Regenerate
               </button>
@@ -1433,29 +1703,34 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* BULK ACTION CONFIRMATION MODAL */}
       {confirmBulkAction.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-3 text-emerald-600">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                <Copy className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+          <div
+            className="rounded-2xl p-5 max-w-md w-full space-y-4"
+            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,159,28,0.15)' }}>
+                <Copy className="w-4 h-4" style={{ color: '#FF9F1C' }} />
               </div>
-              <h3 className="font-black text-base text-slate-900">{confirmBulkAction.title}</h3>
+              <h3 className="font-black text-sm" style={{ color: '#171717' }}>{confirmBulkAction.title}</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(23,23,23,0.65)' }}>
               {confirmBulkAction.description}
             </p>
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setConfirmBulkAction((p) => ({ ...p, open: false }))}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="flex-1 py-2 rounded-xl border text-xs font-bold transition-colors duration-150"
+                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmBulkAction.onConfirm}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 shadow-sm"
+                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
+                style={{ background: '#FF9F1C', color: '#171717' }}
               >
                 Continue &amp; Apply
               </button>
@@ -1466,70 +1741,79 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* ADD BREAK MODAL */}
       {showAddBreakModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+          <div
+            className="rounded-2xl p-5 max-w-md w-full space-y-4"
+            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+          >
+            <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid #E8E5E0' }}>
               <div className="flex items-center gap-2">
-                <Coffee className="w-4 h-4 text-amber-500" />
-                <h3 className="font-black text-sm text-slate-900">Add Break for {activeDay.dayName}</h3>
+                <Coffee className="w-4 h-4" style={{ color: '#FF9F1C' }} />
+                <h3 className="font-black text-sm" style={{ color: '#171717' }}>Add Break &mdash; {activeDay.dayName}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddBreakModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100"
+                className="p-1.5 rounded-lg transition-colors duration-150"
+                style={{ color: 'rgba(23,23,23,0.50)', background: '#FAF8F4' }}
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Break Start Time
+                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                  START TIME
                 </label>
                 <TimeInput
                   value={breakStart}
                   onChange={setBreakStart}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
+                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Break End Time
+                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                  END TIME
                 </label>
                 <TimeInput
                   value={breakEnd}
                   onChange={setBreakEnd}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
+                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                Reason / Note
+              <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                REASON / NOTE
               </label>
               <input
                 type="text"
                 value={breakReason}
                 onChange={(e) => setBreakReason(e.target.value)}
                 placeholder="e.g. Maintenance, Watering & Cleaning"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white"
+                className="w-full px-3 py-2 rounded-xl text-xs"
+                style={{ border: '1.5px solid #E8E5E0', background: '#FAF8F4', color: '#171717' }}
               />
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAddBreakModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-colors duration-150"
+                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddBreak}
-                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs"
+                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
+                style={{ background: '#FF9F1C', color: '#171717' }}
               >
                 Save Break
               </button>
@@ -1540,86 +1824,96 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* ADD CUSTOM SLOT MODAL */}
       {showAddCustomSlotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+          <div
+            className="rounded-2xl p-5 max-w-md w-full space-y-4"
+            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+          >
+            <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid #E8E5E0' }}>
               <div className="flex items-center gap-2">
-                <Plus className="w-4 h-4 text-indigo-600" />
-                <h3 className="font-black text-sm text-slate-900">
-                  + Custom Slot ({activeDay.dayName})
+                <Plus className="w-4 h-4" style={{ color: '#FF9F1C' }} />
+                <h3 className="font-black text-sm" style={{ color: '#171717' }}>
+                  Add Custom Slot &mdash; {activeDay.dayName}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddCustomSlotModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100"
+                className="p-1.5 rounded-lg transition-colors duration-150"
+                style={{ color: 'rgba(23,23,23,0.50)', background: '#FAF8F4' }}
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Start Time
+                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                  START TIME
                 </label>
                 <TimeInput
                   value={csStartTime}
                   onChange={setCsStartTime}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
+                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  End Time
+                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                  END TIME
                 </label>
                 <TimeInput
                   value={csEndTime}
                   onChange={setCsEndTime}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
+                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Slot Price (₹)
+                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                  SLOT PRICE (&#8377;)
                 </label>
                 <NumberInput
                   min={1}
                   step={50}
                   value={csPrice}
                   onChange={setCsPrice}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
+                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-600 mb-1">
-                  Label (Optional)
+                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                  LABEL (OPTIONAL)
                 </label>
                 <input
                   type="text"
                   value={csLabel}
                   onChange={(e) => setCsLabel(e.target.value)}
-                  placeholder="e.g. Early Bird, Night Match"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white"
+                  placeholder="e.g. Early Bird"
+                  className="w-full px-3 py-2 rounded-xl text-xs"
+                  style={{ border: '1.5px solid #E8E5E0', background: '#FAF8F4', color: '#171717' }}
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAddCustomSlotModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                className="flex-1 py-2 rounded-xl text-xs font-bold transition-colors duration-150"
+                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddCustomSlot}
-                className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-sm"
+                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
+                style={{ background: '#FF9F1C', color: '#171717' }}
               >
                 Add Custom Slot
               </button>

@@ -80,7 +80,7 @@ const ImageCard: React.FC<{
   label?: string;
   onRemove?: () => void;
 }> = ({ url, label, onRemove }) => (
-  <div className="relative group rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-video">
+  <div className="relative group rounded-2xl overflow-hidden border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] aspect-video">
     {url ? (
       <img
         src={url}
@@ -91,12 +91,12 @@ const ImageCard: React.FC<{
         }}
       />
     ) : (
-      <div className="w-full h-full flex items-center justify-center text-slate-300">
+      <div className="w-full h-full flex items-center justify-center text-[rgba(23,23,23,0.70)]">
         <ImageIcon className="w-8 h-8" />
       </div>
     )}
     {label && (
-      <span className="absolute bottom-1.5 left-1.5 text-[10px] font-black uppercase tracking-wider bg-slate-900/70 text-white px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+      <span className="absolute bottom-1.5 left-1.5 text-[11px] font-black uppercase tracking-wider bg-[#FFFFFF] text-[#171717] px-1.5 py-0.5 rounded-md">
         {label}
       </span>
     )}
@@ -104,7 +104,7 @@ const ImageCard: React.FC<{
       <button
         type="button"
         onClick={onRemove}
-        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-sm"
+        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#FF9F1C] text-[#171717] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-sm"
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -121,13 +121,13 @@ const ViewField: React.FC<{
 }> = ({ icon, label, value, mono }) => {
   if (!value) return null;
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-slate-100 last:border-0">
-      <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
+    <div className="flex items-start gap-3 py-3 border-b border-[rgba(23,23,23,0.12)] last:border-0">
+      <div className="w-8 h-8 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] flex items-center justify-center text-[rgba(23,23,23,0.70)] shrink-0 mt-0.5">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</p>
-        <p className={`text-sm font-semibold text-slate-900 mt-0.5 break-words ${mono ? 'font-mono' : ''}`}>
+        <p className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)]">{label}</p>
+        <p className={`text-sm font-semibold text-[#171717] mt-0.5 break-words ${mono ? 'font-mono' : ''}`}>
           {value}
         </p>
       </div>
@@ -275,21 +275,21 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
 
   // ─── INPUT STYLES ───
   const inputCls = (err?: string) =>
-    `w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors ${
-      err ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300 bg-white'
+    `w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] transition-colors ${
+      err ? 'border-[#FF9F1C] bg-[rgba(255,159,28,0.15)]' : 'border-[rgba(23,23,23,0.12)] bg-[#FFFFFF]'
     }`;
 
-  const labelCls = 'block text-[10px] font-black uppercase tracking-wider text-slate-600 mb-1.5';
+  const labelCls = 'block text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1.5';
 
   return (
     <div className="space-y-5 animate-in fade-in duration-150">
       {/* ── SUCCESS BANNER ── */}
       {saveSuccess && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 animate-in slide-in-from-top-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="flex items-center gap-3 p-4 bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] rounded-2xl text-[#FF9F1C] animate-in slide-in-from-top-2">
+          <CheckCircle2 className="w-5 h-5 text-[#FF9F1C] shrink-0" />
           <div>
             <p className="text-xs font-black">Business details updated successfully.</p>
-            <p className="text-[11px] text-emerald-700 mt-0.5">
+            <p className="text-[11px] text-[#FF9F1C] mt-0.5">
               Changes are now live and visible to all customers.
             </p>
           </div>
@@ -297,18 +297,18 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
       )}
 
       {/* ── HEADER CARD ── */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs overflow-hidden">
         {/* Cover photo banner */}
         <div
-          className="h-32 sm:h-40 w-full bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden"
+          className="h-32 sm:h-40 w-full bg-gradient-to-br from-[#FFFFFF] to-[#FAF8F4] relative overflow-hidden"
           style={
             (isEditing ? form.coverUrl : salon.coverUrl)
               ? { backgroundImage: `url(${isEditing ? form.coverUrl : salon.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
               : {}
           }
         >
-          <div className="absolute inset-0 bg-slate-900/30" />
-          <div className="absolute bottom-3 left-4 text-white/60 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+          <div className="absolute inset-0 bg-[#FFFFFF]" />
+          <div className="absolute bottom-3 left-4 text-[#171717]/60 text-[11px] font-black uppercase tracking-wider flex items-center gap-1">
             <ImageIcon className="w-3 h-3" />
             Cover Photo
           </div>
@@ -317,7 +317,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
         {/* Business Info */}
         <div className="px-5 sm:px-6 pb-5 -mt-8 flex items-start gap-4">
           {/* Logo */}
-          <div className="w-16 h-16 rounded-2xl border-4 border-white shadow-md bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white text-2xl font-black shrink-0 overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl border-4 border-white shadow-md bg-gradient-to-br from-[#FF9F1C] to-[#FF9F1C]/80 flex items-center justify-center text-[#171717] text-2xl font-black shrink-0 overflow-hidden">
             {(isEditing ? form.logoUrl : salon.logoUrl) ? (
               <img
                 src={isEditing ? form.logoUrl : salon.logoUrl}
@@ -331,10 +331,10 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
 
           {/* Name & Category */}
           <div className="pt-8 min-w-0 flex-1">
-            <h2 className="text-xl font-black text-slate-900 truncate">
+            <h2 className="text-xl font-black text-[#171717] truncate">
               {isEditing ? form.name || 'Your Business' : salon.name}
             </h2>
-            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+            <p className="text-xs text-[rgba(23,23,23,0.70)] font-semibold mt-0.5">
               {isEditing ? form.category || salon.category : salon.category}
             </p>
           </div>
@@ -344,7 +344,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
             <button
               id="btn-edit-business-details"
               onClick={enterEdit}
-              className="mt-8 shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition-all"
+              className="mt-8 shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[#171717] font-black text-xs shadow-sm transition-colors duration-150"
             >
               <Pencil className="w-3.5 h-3.5" />
               Edit Details
@@ -355,7 +355,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 type="button"
                 onClick={handleCancel}
                 disabled={saving}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
+                className="px-4 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] font-bold text-xs hover:bg-[rgba(23,23,23,0.05)] transition-colors"
               >
                 Cancel
               </button>
@@ -363,7 +363,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !dirty}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-black text-xs shadow-sm transition-all"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FF9F1C] hover:bg-[#FF9F1C] disabled:opacity-60 text-[#171717] font-black text-xs shadow-sm transition-colors duration-150"
               >
                 {saving ? (
                   <>
@@ -386,8 +386,8 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
       {!isEditing && (
         <div className="space-y-4">
           {/* Contact & Identity */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 pb-2 border-b border-slate-100">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6">
+            <h3 className="text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-3 pb-2 border-b border-[rgba(23,23,23,0.12)]">
               Contact & Identity
             </h3>
             <ViewField icon={<Building2 className="w-4 h-4" />} label="Business Name" value={salon.name} />
@@ -399,8 +399,8 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
           </div>
 
           {/* Location */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 pb-2 border-b border-slate-100">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6">
+            <h3 className="text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-3 pb-2 border-b border-[rgba(23,23,23,0.12)]">
               Location
             </h3>
             <ViewField icon={<MapPin className="w-4 h-4" />} label="Full Address" value={salon.address} />
@@ -417,17 +417,17 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
 
           {/* About */}
           {salon.description && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 pb-2 border-b border-slate-100">
+            <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6">
+              <h3 className="text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-3 pb-2 border-b border-[rgba(23,23,23,0.12)]">
                 About
               </h3>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">{salon.description}</p>
+              <p className="text-sm text-[rgba(23,23,23,0.70)] leading-relaxed font-medium">{salon.description}</p>
             </div>
           )}
 
           {/* Business Images */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-100">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6 space-y-4">
+            <h3 className="text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] pb-2 border-b border-[rgba(23,23,23,0.12)]">
               Business Images
             </h3>
 
@@ -438,7 +438,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
 
             {salon.photos && salon.photos.length > 0 && (
               <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                <p className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-2">
                   Photo Gallery ({salon.photos.length})
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -450,21 +450,21 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
             )}
 
             {(!salon.photos || salon.photos.length === 0) && !salon.logoUrl && !salon.coverUrl && (
-              <div className="py-8 text-center text-slate-400 space-y-1">
-                <Camera className="w-8 h-8 mx-auto stroke-1 text-slate-300" />
-                <p className="text-xs font-bold text-slate-500">No images added yet.</p>
-                <p className="text-[11px] text-slate-400">Click "Edit Details" to add your business photos.</p>
+              <div className="py-8 text-center text-[rgba(23,23,23,0.70)] space-y-1">
+                <Camera className="w-8 h-8 mx-auto stroke-1 text-[rgba(23,23,23,0.70)]" />
+                <p className="text-xs font-bold text-[rgba(23,23,23,0.70)]">No images added yet.</p>
+                <p className="text-[11px] text-[rgba(23,23,23,0.70)]">Click "Edit Details" to add your business photos.</p>
               </div>
             )}
           </div>
 
           {/* Business Code */}
-          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
+          <div className="bg-[#FFFFFF] rounded-2xl border border-[rgba(23,23,23,0.12)] p-4 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Internal Business Code</p>
-              <p className="text-sm font-mono font-bold text-slate-700 mt-0.5">{salon.joinCode || '—'}</p>
+              <p className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)]">Internal Business Code</p>
+              <p className="text-sm font-mono font-bold text-[rgba(23,23,23,0.70)] mt-0.5">{salon.joinCode || '—'}</p>
             </div>
-            <Info className="w-4 h-4 text-slate-400" />
+            <Info className="w-4 h-4 text-[rgba(23,23,23,0.70)]" />
           </div>
         </div>
       )}
@@ -474,26 +474,26 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
         <div className="space-y-5">
           {/* Save Error Banner */}
           {saveError && (
-            <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800">
-              <AlertTriangle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] rounded-2xl text-[#FF9F1C]">
+              <AlertTriangle className="w-4 h-4 text-[#FF9F1C] mt-0.5 shrink-0" />
               <div>
                 <p className="text-xs font-black">Save failed</p>
-                <p className="text-[11px] text-rose-700 mt-0.5">{saveError}</p>
+                <p className="text-[11px] text-[#FF9F1C] mt-0.5">{saveError}</p>
               </div>
             </div>
           )}
 
           {/* Dirty indicator */}
           {dirty && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs font-bold">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            <div className="flex items-center gap-2 px-3 py-2 bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] rounded-xl text-[#FF9F1C] text-xs font-bold">
+              <AlertTriangle className="w-3.5 h-3.5 text-[#FF9F1C]" />
               You have unsaved changes
             </div>
           )}
 
           {/* ── SECTION: BASIC INFO ── */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-            <h3 className="text-sm font-black text-slate-900 pb-3 border-b border-slate-100">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6 space-y-4">
+            <h3 className="text-sm font-black text-[#171717] pb-3 border-b border-[rgba(23,23,23,0.12)]">
               Basic Information
             </h3>
 
@@ -509,7 +509,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                   className={inputCls(validationErrors.name)}
                 />
                 {validationErrors.name && (
-                  <p className="text-rose-600 text-[11px] font-bold mt-1">{validationErrors.name}</p>
+                  <p className="text-[#FF9F1C] text-[11px] font-bold mt-1">{validationErrors.name}</p>
                 )}
               </div>
 
@@ -524,7 +524,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                   className={inputCls(validationErrors.phone)}
                 />
                 {validationErrors.phone && (
-                  <p className="text-rose-600 text-[11px] font-bold mt-1">{validationErrors.phone}</p>
+                  <p className="text-[#FF9F1C] text-[11px] font-bold mt-1">{validationErrors.phone}</p>
                 )}
               </div>
             </div>
@@ -551,7 +551,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                   className={inputCls(validationErrors.email)}
                 />
                 {validationErrors.email && (
-                  <p className="text-rose-600 text-[11px] font-bold mt-1">{validationErrors.email}</p>
+                  <p className="text-[#FF9F1C] text-[11px] font-bold mt-1">{validationErrors.email}</p>
                 )}
               </div>
 
@@ -559,7 +559,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
               <div>
                 <label className={labelCls}>Instagram Handle</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">@</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[rgba(23,23,23,0.70)] text-xs font-bold">@</span>
                   <input
                     type="text"
                     value={form.instagram?.replace(/^@/, '')}
@@ -575,7 +575,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
             <div>
               <label className={labelCls}>Website URL</label>
               <div className="relative">
-                <Link className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Link className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(23,23,23,0.70)]" />
                 <input
                   type="url"
                   value={form.website}
@@ -585,7 +585,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 />
               </div>
               {validationErrors.website && (
-                <p className="text-rose-600 text-[11px] font-bold mt-1">{validationErrors.website}</p>
+                <p className="text-[#FF9F1C] text-[11px] font-bold mt-1">{validationErrors.website}</p>
               )}
             </div>
 
@@ -599,13 +599,13 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 placeholder="Describe your business, facilities, amenities, and what makes you special..."
                 className={`${inputCls()} resize-none leading-relaxed`}
               />
-              <p className="text-[10px] text-slate-400 mt-1 text-right">{form.description.length} / 500 chars</p>
+              <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-1 text-right">{form.description.length} / 500 chars</p>
             </div>
           </div>
 
           {/* ── SECTION: LOCATION ── */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-            <h3 className="text-sm font-black text-slate-900 pb-3 border-b border-slate-100">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6 space-y-4">
+            <h3 className="text-sm font-black text-[#171717] pb-3 border-b border-[rgba(23,23,23,0.12)]">
               Location & Address
             </h3>
 
@@ -623,7 +623,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 placeholder="Search your business address..."
               />
               {validationErrors.address && (
-                <p className="text-rose-600 text-[11px] font-bold mt-1">{validationErrors.address}</p>
+                <p className="text-[#FF9F1C] text-[11px] font-bold mt-1">{validationErrors.address}</p>
               )}
             </div>
 
@@ -644,8 +644,8 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
               {form.lat !== 0 && form.lng !== 0 && (
                 <div>
                   <label className={labelCls}>GPS Coordinates (auto-filled)</label>
-                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50/30 text-xs font-mono text-emerald-800">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                  <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] text-xs font-mono text-[#FF9F1C]">
+                    <MapPin className="w-3.5 h-3.5 text-[#FF9F1C]" />
                     {form.lat.toFixed(5)}, {form.lng.toFixed(5)}
                   </div>
                 </div>
@@ -654,10 +654,10 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
           </div>
 
           {/* ── SECTION: IMAGES ── */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-5">
-            <div className="pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900">Business Images</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-5 sm:p-6 space-y-5">
+            <div className="pb-3 border-b border-[rgba(23,23,23,0.12)]">
+              <h3 className="text-sm font-black text-[#171717]">Business Images</h3>
+              <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-0.5">
                 Use image URLs (from your CDN, Google Drive, or any public link). Changes are previewed instantly.
               </p>
             </div>
@@ -680,7 +680,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                     <button
                       type="button"
                       onClick={() => setField('logoUrl', '')}
-                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center"
+                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FF9F1C] text-[#171717] flex items-center justify-center"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -704,7 +704,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                     <button
                       type="button"
                       onClick={() => setField('coverUrl', '')}
-                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center"
+                      className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FF9F1C] text-[#171717] flex items-center justify-center"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -738,7 +738,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                   type="button"
                   onClick={addPhoto}
                   disabled={!newPhotoUrl.trim()}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-[#FF9F1C] text-[#171717] font-bold text-xs disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Plus className="w-4 h-4" />
                   Add
@@ -758,7 +758,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                   ))}
                 </div>
               ) : (
-                <div className="py-6 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400">
+                <div className="py-6 text-center border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-2xl text-[rgba(23,23,23,0.70)]">
                   <Camera className="w-6 h-6 mx-auto mb-1 stroke-1" />
                   <p className="text-xs font-bold">No gallery photos yet.</p>
                   <p className="text-[11px]">Paste image URLs above to build your gallery.</p>
@@ -768,15 +768,15 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
           </div>
 
           {/* ── SAVE & CANCEL FOOTER ── */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-4 sm:p-5 flex items-center justify-between gap-3">
-            <div className="text-xs text-slate-500">
+          <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs p-4 sm:p-5 flex items-center justify-between gap-3">
+            <div className="text-xs text-[rgba(23,23,23,0.70)]">
               {dirty ? (
-                <span className="text-amber-700 font-bold flex items-center gap-1">
+                <span className="text-[#FF9F1C] font-bold flex items-center gap-1">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   Unsaved changes
                 </span>
               ) : (
-                <span className="text-slate-400">No changes made yet</span>
+                <span className="text-[rgba(23,23,23,0.70)]">No changes made yet</span>
               )}
             </div>
 
@@ -785,7 +785,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 type="button"
                 onClick={handleCancel}
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
+                className="px-5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] font-bold text-xs hover:bg-[rgba(23,23,23,0.05)] transition-colors"
               >
                 Cancel
               </button>
@@ -793,7 +793,7 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
                 type="button"
                 onClick={handleSave}
                 disabled={saving || !dirty}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs shadow-sm transition-all"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#FF9F1C] hover:bg-[#FF9F1C] disabled:opacity-50 text-[#171717] font-black text-xs shadow-sm transition-colors duration-150"
               >
                 {saving ? (
                   <>
@@ -814,15 +814,15 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
 
       {/* ── DISCARD CONFIRMATION MODAL ── */}
       {showDiscardConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 max-w-sm w-full animate-in zoom-in-95 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FFFFFF]">
+          <div className="bg-[#FFFFFF] rounded-3xl shadow-lg border border-[rgba(23,23,23,0.12)] p-6 max-w-sm w-full animate-in zoom-in-95 space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-black text-base text-slate-900">Discard Changes?</h3>
-                <p className="text-xs text-slate-500 mt-1">
+                <h3 className="font-black text-base text-[#171717]">Discard Changes?</h3>
+                <p className="text-xs text-[rgba(23,23,23,0.70)] mt-1">
                   You have unsaved changes. If you cancel now, your edits will be lost.
                 </p>
               </div>
@@ -832,14 +832,14 @@ export const OwnerBusinessProfileEditor: React.FC<OwnerBusinessProfileEditorProp
               <button
                 type="button"
                 onClick={() => setShowDiscardConfirm(false)}
-                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50"
+                className="flex-1 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] font-bold text-xs hover:bg-[rgba(23,23,23,0.05)]"
               >
                 Continue Editing
               </button>
               <button
                 type="button"
                 onClick={confirmDiscard}
-                className="flex-1 py-3 rounded-xl bg-rose-600 text-white font-black text-xs hover:bg-rose-700"
+                className="flex-1 py-3 rounded-xl bg-[#FF9F1C] text-[#171717] font-black text-xs hover:bg-[#FF9F1C]"
               >
                 Discard Changes
               </button>

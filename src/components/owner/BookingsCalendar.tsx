@@ -84,16 +84,16 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-neutral-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[#FFFFFF] p-4 rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Date Selector */}
-          <div className="flex items-center gap-2 bg-neutral-50 px-3 py-1.5 rounded-xl border border-neutral-200">
-            <CalendarIcon className="w-4 h-4 text-neutral-500" />
+          <div className="flex items-center gap-2 bg-[#FFFFFF] px-3 py-1.5 rounded-xl border border-[rgba(23,23,23,0.12)]">
+            <CalendarIcon className="w-4 h-4 text-[rgba(23,23,23,0.70)]" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs font-bold text-neutral-800 bg-transparent focus:outline-none"
+              className="text-xs font-bold text-[#171717] bg-transparent focus:outline-none"
             />
           </div>
 
@@ -101,7 +101,7 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
           <select
             value={selectedStaff}
             onChange={(e) => setSelectedStaff(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-neutral-200 text-xs font-bold text-neutral-700 bg-white focus:outline-none"
+            className="px-3 py-1.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-bold text-[rgba(23,23,23,0.70)] bg-[#FFFFFF] focus:outline-none"
           >
             <option value="all">All Stylists</option>
             {staffList.map((st) => (
@@ -114,63 +114,63 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
 
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-2.5" />
+          <Search className="w-3.5 h-3.5 text-[rgba(23,23,23,0.70)] absolute left-3 top-2.5" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, phone, or token..."
-            className="w-full pl-8 pr-3 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#FAF8F4] border border-[rgba(23,23,23,0.12)] text-xs focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
           />
         </div>
       </div>
 
       {/* Bookings Table / List */}
-      <div className="bg-white rounded-3xl border border-neutral-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
-          <h3 className="font-extrabold text-base text-neutral-900">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-[rgba(23,23,23,0.12)] flex items-center justify-between">
+          <h3 className="font-extrabold text-base text-[#171717]">
             Appointments & Tokens ({filteredBookings.length})
           </h3>
-          <span className="text-xs text-neutral-500">{selectedDate}</span>
+          <span className="text-xs text-[rgba(23,23,23,0.70)]">{selectedDate}</span>
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-xs text-neutral-400">Loading schedule...</div>
+          <div className="py-12 text-center text-xs text-[rgba(23,23,23,0.70)]">Loading schedule...</div>
         ) : filteredBookings.length === 0 ? (
-          <div className="py-16 text-center text-neutral-400">
-            <CalendarIcon className="w-10 h-10 mx-auto stroke-1 text-neutral-300 mb-2" />
-            <p className="text-sm font-bold text-neutral-700">No bookings for this date</p>
+          <div className="py-16 text-center text-[rgba(23,23,23,0.70)]">
+            <CalendarIcon className="w-10 h-10 mx-auto stroke-1 text-[rgba(23,23,23,0.70)] mb-2" />
+            <p className="text-sm font-bold text-[rgba(23,23,23,0.70)]">No bookings for this date</p>
           </div>
         ) : (
           <div className="divide-y divide-neutral-100 overflow-x-auto">
             {filteredBookings.map((b) => (
               <div
                 key={b.id}
-                className="p-4 hover:bg-neutral-50/70 transition-colors flex flex-wrap items-center justify-between gap-3 text-xs"
+                className="p-4 hover:bg-[rgba(23,23,23,0.05)] transition-colors flex flex-wrap items-center justify-between gap-3 text-xs"
               >
                 {/* Time & Token */}
                 <div className="flex items-center gap-3 min-w-[140px]">
-                  <div className="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-900 flex flex-col items-center justify-center font-mono font-bold">
-                    <span className="text-[10px] text-neutral-500">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFFFFF] text-[#171717] flex flex-col items-center justify-center font-mono font-bold">
+                    <span className="text-[11px] text-[rgba(23,23,23,0.70)]">
                       {b.mode === 'appointment' ? 'APT' : 'TKN'}
                     </span>
                     <span className="text-xs">#{b.tokenNumber?.split('-').pop()}</span>
                   </div>
 
                   <div>
-                    <span className="font-bold text-neutral-900 block">
+                    <span className="font-bold text-[#171717] block">
                       {b.scheduledTime ? `${b.scheduledTime}${b.slotEndTime ? ` - ${b.slotEndTime}` : ''}` : new Date(b.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="text-[10px] text-neutral-500">{b.mode}</span>
+                    <span className="text-[11px] text-[rgba(23,23,23,0.70)]">{b.mode}</span>
                   </div>
                 </div>
 
                 {/* Customer Details */}
                 <div className="min-w-[150px]">
-                  <span className="font-bold text-neutral-900 block">{b.customerName}</span>
+                  <span className="font-bold text-[#171717] block">{b.customerName}</span>
                   <a
                     href={`tel:${b.customerPhone}`}
-                    className="text-neutral-500 hover:text-amber-600 flex items-center gap-1 mt-0.5 text-[11px]"
+                    className="text-[rgba(23,23,23,0.70)] hover:text-[#FF9F1C] flex items-center gap-1 mt-0.5 text-[11px]"
                   >
                     <Phone className="w-3 h-3" />
                     <span>{b.customerPhone}</span>
@@ -179,19 +179,19 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
 
                 {/* Service & Staff */}
                 <div className="min-w-[140px]">
-                  <span className="font-semibold text-neutral-800 block">{b.serviceName}</span>
-                  <span className="text-[11px] text-neutral-500">
+                  <span className="font-semibold text-[#171717] block">{b.serviceName}</span>
+                  <span className="text-[11px] text-[rgba(23,23,23,0.70)]">
                     Stylist: <strong>{b.staffName || 'Any'}</strong>
                   </span>
                 </div>
 
                 {/* Amount & Payment */}
                 <div className="min-w-[80px]">
-                  <span className="font-extrabold text-neutral-900 block">
+                  <span className="font-extrabold text-[#171717] block">
                     {t.rupees}
                     {b.totalAmount || b.amount}
                   </span>
-                  <span className="text-[10px] text-emerald-600 font-semibold">
+                  <span className="text-[11px] text-[#FF9F1C] font-semibold">
                     {b.paymentStatus === 'paid' ? 'Paid' : 'Pay at Shop'}
                   </span>
                 </div>
@@ -199,14 +199,14 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
                 {/* Status & Actions */}
                 <div className="flex items-center gap-2">
                   <span
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
                       b.status === 'completed'
-                        ? 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                         : b.status === 'checked_in'
-                        ? 'bg-sky-100 text-sky-800'
+                        ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                         : b.status === 'confirmed'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-neutral-100 text-neutral-600'
+                        ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
+                        : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)]'
                     }`}
                   >
                     {b.status}
@@ -217,7 +217,7 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
                       {b.status === 'confirmed' && (
                         <button
                           onClick={() => handleUpdateStatus(b.id, 'checked_in')}
-                          className="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-bold"
+                          className="px-2 py-1 bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] rounded-lg text-[11px] font-bold"
                           title="Check In"
                         >
                           Check In
@@ -225,7 +225,7 @@ export const BookingsCalendar: React.FC<BookingsCalendarProps> = ({ salon }) => 
                       )}
                       <button
                         onClick={() => handleUpdateStatus(b.id, 'completed')}
-                        className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold"
+                        className="px-2 py-1 bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] rounded-lg text-[11px] font-bold"
                         title="Complete Service"
                       >
                         Served

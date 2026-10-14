@@ -399,25 +399,25 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
   // ─── UI Helpers ───
   const stepHeader = (title: string, subtitle: string) => (
     <div className="mb-5">
-      <p className="text-[11px] text-emerald-600 font-black uppercase tracking-widest mb-0.5">
+      <p className="text-[11px] text-[#FF9F1C] font-black uppercase tracking-widest mb-0.5">
         Step {step} of {totalSteps}
       </p>
-      <h2 className="text-xl font-black text-slate-900">{title}</h2>
-      <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+      <h2 className="text-xl font-black text-[#171717]">{title}</h2>
+      <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">{subtitle}</p>
     </div>
   );
 
   const formInput = (label: string, required = false, children: React.ReactNode) => (
     <div>
-      <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label className="block text-xs font-bold uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+        {label} {required && <span className="text-[#FF9F1C]">*</span>}
       </label>
       {children}
     </div>
   );
 
   const inputCls =
-    'w-full px-3.5 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-semibold text-slate-900 bg-white';
+    'w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] text-sm font-semibold text-[#171717] bg-[#FFFFFF]';
 
   const navButtons = (
     onBackBtn?: () => void,
@@ -425,12 +425,12 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
     nextLabel = 'Save & Continue',
     canNext = true
   ) => (
-    <div className="flex items-center justify-between pt-6 mt-8 border-t border-slate-100 gap-4">
+    <div className="flex items-center justify-between pt-6 mt-8 border-t border-[rgba(23,23,23,0.12)] gap-4">
       {onBackBtn ? (
         <button
           type="button"
           onClick={onBackBtn}
-          className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors w-full sm:w-auto"
+          className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-[rgba(23,23,23,0.12)] text-sm font-bold text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)] transition-colors w-full sm:w-auto"
         >
           <ChevronLeft className="w-4 h-4" />
           Back
@@ -443,7 +443,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           type="button"
           onClick={onNextBtn}
           disabled={saving || !canNext}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-[14px] bg-[#00a870] hover:bg-[#009665] text-white font-bold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-[14px] bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] font-bold text-sm transition-colors duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <>
@@ -463,7 +463,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xl p-6 sm:p-8">
         {/* Step Progress Bar */}
         <div className="flex items-center gap-1 mb-6 flex-wrap">
           {steps.map((s) => {
@@ -473,12 +473,12 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             return (
               <React.Fragment key={s.id}>
                 <div
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black transition-all ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-black transition-colors duration-150 ${
                     current
-                      ? 'bg-emerald-600 text-white shadow-sm'
+                      ? 'bg-[#FF9F1C] text-[#171717] shadow-sm'
                       : done
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-slate-100 text-slate-400'
+                      ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
+                      : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)]'
                   }`}
                 >
                   <Icon className="w-3 h-3" />
@@ -486,7 +486,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   <span className="sm:hidden">{s.id}</span>
                 </div>
                 {s.id < totalSteps && (
-                  <div className={`h-0.5 w-3 rounded ${done ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                  <div className={`h-0.5 w-3 rounded ${done ? 'bg-[#FF9F1C]' : 'bg-[#FFFFFF]'}`} />
                 )}
               </React.Fragment>
             );
@@ -494,7 +494,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
         </div>
 
         {error && (
-          <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs font-semibold text-red-700 flex items-center gap-2">
+          <div className="mb-5 p-3.5 bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] rounded-2xl text-xs font-semibold text-[#FF9F1C] flex items-center gap-2">
             <X className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -582,7 +582,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <button
               type="submit"
               disabled={saving || !name.trim() || !phone.trim()}
-              className="w-full py-3.5 mt-6 rounded-[14px] bg-[#00a870] hover:bg-[#009665] text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-sm"
+              className="w-full py-3.5 mt-6 rounded-[14px] bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 transition-colors duration-150 shadow-sm"
             >
               {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               Save &amp; Continue
@@ -611,11 +611,11 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               required
             />
 
-            <div className="pt-6 mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-slate-100">
+            <div className="pt-6 mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[rgba(23,23,23,0.12)]">
               <button
                 type="button"
                 onClick={goBack}
-                className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 w-full sm:w-auto"
+                className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-[rgba(23,23,23,0.12)] text-sm font-bold text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)] w-full sm:w-auto"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -624,7 +624,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               <button
                 type="submit"
                 disabled={saving || !address.trim()}
-                className="flex-1 sm:flex-none px-8 py-3.5 rounded-[14px] bg-[#00a870] hover:bg-[#009665] text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+                className="flex-1 sm:flex-none px-8 py-3.5 rounded-[14px] bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
               >
                 Save &amp; Continue
                 <ChevronRight className="w-4 h-4" />
@@ -646,7 +646,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               false,
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
                     <input
                       id="logo-upload"
                       type="file"
@@ -661,10 +661,10 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       }}
                       className="hidden"
                     />
-                    <Image className="w-5 h-5 mx-auto text-slate-400 mb-1" />
-                    <span className="text-xs font-bold text-slate-600">Upload Gallery</span>
+                    <Image className="w-5 h-5 mx-auto text-[rgba(23,23,23,0.70)] mb-1" />
+                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Upload Gallery</span>
                   </label>
-                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -680,12 +680,12 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       className="hidden"
                     />
                     
-                    <span className="text-xs font-bold text-slate-600">Take Photo</span>
+                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Take Photo</span>
                   </label>
                 </div>
                 {logoUrl && (
                   <div className="flex items-start gap-4 mt-2">
-                    <img src={logoUrl} alt="Logo preview" className="h-16 rounded-md object-contain border border-slate-200" />
+                    <img src={logoUrl} alt="Logo preview" className="h-16 rounded-md object-contain border border-[rgba(23,23,23,0.12)]" />
                     <button
                       type="button"
                       onClick={() => {
@@ -693,7 +693,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                         const input = document.getElementById('logo-upload') as HTMLInputElement;
                         if (input) input.value = '';
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] text-xs font-bold hover:bg-[rgba(255,159,28,0.15)] transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Remove
@@ -708,7 +708,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               false,
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
                     <input
                       id="photos-upload"
                       type="file"
@@ -734,10 +734,10 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       }}
                       className="hidden"
                     />
-                    <Image className="w-5 h-5 mx-auto text-slate-400 mb-1" />
-                    <span className="text-xs font-bold text-slate-600">Upload Gallery</span>
+                    <Image className="w-5 h-5 mx-auto text-[rgba(23,23,23,0.70)] mb-1" />
+                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Upload Gallery</span>
                   </label>
-                  <label className="flex-1 cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center hover:bg-slate-100 transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -763,14 +763,14 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       className="hidden"
                     />
                     
-                    <span className="text-xs font-bold text-slate-600">Take Photo</span>
+                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Take Photo</span>
                   </label>
                 </div>
                 {photos.length > 0 && (
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     {photos.map((photo, idx) => (
                       <div key={idx} className="flex flex-col items-start gap-2">
-                        <img src={photo} alt={`Venue photo ${idx + 1}`} className="h-32 w-full object-cover rounded-md border border-slate-200" />
+                        <img src={photo} alt={`Venue photo ${idx + 1}`} className="h-32 w-full object-cover rounded-md border border-[rgba(23,23,23,0.12)]" />
                         <button
                           type="button"
                           onClick={() => {
@@ -780,7 +780,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                               if (input) input.value = '';
                             }
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] text-xs font-bold hover:bg-[rgba(255,159,28,0.15)] transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           Remove
@@ -792,7 +792,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               </div>
             )}
 
-            <p className="text-[11px] text-slate-400 italic">
+            <p className="text-[11px] text-[rgba(23,23,23,0.70)] italic">
               Upload an image file from your device.
             </p>
 
@@ -845,13 +845,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <div className="space-y-4">
               {/* Advance Booking Window */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                   How many days ahead can players book?
                 </label>
                 <select
                   value={advanceBookingDays}
                   onChange={(e) => setAdvanceBookingDays(Number(e.target.value))}
-                  className="w-full px-3.5 py-3 rounded-xl border border-slate-200 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 >
                   <option value={1}>1 day ahead</option>
                   <option value={3}>3 days ahead</option>
@@ -865,13 +865,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
               {/* Minimum Notice */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                   Minimum notice before slot start
                 </label>
                 <select
                   value={minNoticeMinutes}
                   onChange={(e) => setMinNoticeMinutes(Number(e.target.value))}
-                  className="w-full px-3.5 py-3 rounded-xl border border-slate-200 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 >
                   <option value={0}>No minimum notice (Book anytime)</option>
                   <option value={15}>15 minutes before</option>
@@ -882,34 +882,34 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               </div>
 
               {/* Player Cancellation Toggle */}
-              <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50">
+              <div className="flex items-center justify-between p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF]">
                 <div>
-                  <p className="text-sm font-bold text-slate-800">Allow Player Cancellations?</p>
-                  <p className="text-[11px] text-slate-500">Allow players to cancel their slot in advance</p>
+                  <p className="text-sm font-bold text-[#171717]">Allow Player Cancellations?</p>
+                  <p className="text-[11px] text-[rgba(23,23,23,0.70)]">Allow players to cancel their slot in advance</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCancellationAllowed(!cancellationAllowed)}
                 >
                   {cancellationAllowed ? (
-                    <ToggleRight className="w-8 h-8 text-emerald-500" />
+                    <ToggleRight className="w-8 h-8 text-[#FF9F1C]" />
                   ) : (
-                    <ToggleLeft className="w-8 h-8 text-slate-300" />
+                    <ToggleLeft className="w-8 h-8 text-[rgba(23,23,23,0.70)]" />
                   )}
                 </button>
               </div>
 
               {cancellationAllowed && (
-                <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 space-y-3.5">
+                <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] space-y-3.5">
                   {/* Cancellation Deadline */}
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                       Cancellation Deadline
                     </label>
                     <select
                       value={cancellationDeadlineHours}
                       onChange={(e) => setCancellationDeadlineHours(Number(e.target.value))}
-                      className="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                     >
                       <option value={0.5}>30 minutes before slot</option>
                       <option value={1}>1 hour before slot</option>
@@ -919,20 +919,20 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       <option value={12}>12 hours before slot</option>
                       <option value={24}>24 hours before slot</option>
                     </select>
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-1">
                       Cancellations made after this cutoff become disabled and non-refundable.
                     </p>
                   </div>
 
                   {/* Cancellation Refund Percentage */}
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                       Cancellation Refund Percentage
                     </label>
                     <select
                       value={refundPercentage}
                       onChange={(e) => setRefundPercentage(Number(e.target.value))}
-                      className="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                     >
                       <option value={100}>100% Refund (Full Refund)</option>
                       <option value={80}>80% Refund</option>
@@ -948,14 +948,14 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   </div>
 
                   {/* Live Refund Calculation Example Card */}
-                  <div className="p-3 rounded-xl bg-white border border-emerald-200 text-xs text-slate-700 space-y-1">
-                    <p className="font-bold text-slate-900">
+                  <div className="p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] text-xs text-[rgba(23,23,23,0.70)] space-y-1">
+                    <p className="font-bold text-[#171717]">
                       💡 Policy Preview (on a ₹1,000 booking):
                     </p>
-                    <p className="text-emerald-700 font-semibold">
+                    <p className="text-[#FF9F1C] font-semibold">
                       • Player receives: <strong>₹{Math.round((1000 * refundPercentage) / 100)}</strong> ({refundPercentage}%)
                     </p>
-                    <p className="text-slate-500">
+                    <p className="text-[rgba(23,23,23,0.70)]">
                       • Non-refundable fee retained: <strong>₹{1000 - Math.round((1000 * refundPercentage) / 100)}</strong> ({100 - refundPercentage}%)
                     </p>
                   </div>
@@ -964,20 +964,20 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
               {/* Booking Reminder Notification Setting */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                   Booking Reminder Notification
                 </label>
                 <select
                   value={reminderMinutesBefore}
                   onChange={(e) => setReminderMinutesBefore(Number(e.target.value))}
-                  className="w-full px-3.5 py-3 rounded-xl border border-slate-200 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
                 >
                   <option value={15}>15 minutes before slot</option>
                   <option value={30}>30 minutes before slot (Default)</option>
                   <option value={60}>1 hour before slot</option>
                   <option value={120}>2 hours before slot</option>
                 </select>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-1">
                   Automated notification sent to customer before their booked slot starts.
                 </p>
               </div>
@@ -993,25 +993,25 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {stepHeader('Review & Launch Turf', 'Review your setup and publish your turf on QGo.')}
 
             <div className="space-y-3">
-              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-3">
+              <div className="p-4 rounded-2xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)]/80 flex items-start gap-3">
                 <span className="text-2xl">🏟️</span>
                 <div>
-                  <h4 className="text-base font-black text-slate-900">{name}</h4>
-                  <p className="text-xs text-emerald-800 font-bold mt-0.5">{category}</p>
-                  <p className="text-xs text-slate-500 mt-1">{address}, {city}</p>
+                  <h4 className="text-base font-black text-[#171717]">{name}</h4>
+                  <p className="text-xs text-[#FF9F1C] font-bold mt-0.5">{category}</p>
+                  <p className="text-xs text-[rgba(23,23,23,0.70)] mt-1">{address}, {city}</p>
                 </div>
               </div>
 
               {/* Turf Resources Summary */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-2">
+              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+                  <span className="text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)]">
                     Turfs / Pitches ({turfs.length})
                   </span>
                   <button
                     type="button"
                     onClick={() => setStep(4)}
-                    className="text-xs font-bold text-emerald-600 hover:underline"
+                    className="text-xs font-bold text-[#FF9F1C] hover:underline"
                   >
                     Edit
                   </button>
@@ -1019,36 +1019,36 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {turfs.map((t, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs">
-                      <p className="font-black text-slate-900">{t.name}</p>
-                      <p className="text-[10px] text-slate-500">{t.type} · Max {t.capacity || 14} players</p>
+                    <div key={idx} className="p-2.5 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] text-xs">
+                      <p className="font-black text-[#171717]">{t.name}</p>
+                      <p className="text-[11px] text-[rgba(23,23,23,0.70)]">{t.type} · Max {t.capacity || 14} players</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Rules summary */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-2 text-xs">
+              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-black uppercase tracking-wider text-slate-500">
+                  <span className="font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)]">
                     Booking & Availability Overview
                   </span>
                   <button
                     type="button"
                     onClick={() => setStep(5)}
-                    className="font-bold text-emerald-600 hover:underline"
+                    className="font-bold text-[#FF9F1C] hover:underline"
                   >
                     Edit Slots
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1 text-slate-700">
+                <div className="grid grid-cols-2 gap-2 pt-1 text-[rgba(23,23,23,0.70)]">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Advance Booking</span>
+                    <span className="text-[rgba(23,23,23,0.70)] block text-[11px] uppercase font-bold">Advance Booking</span>
                     <span className="font-bold">Up to {advanceBookingDays} days</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Min Notice</span>
+                    <span className="text-[rgba(23,23,23,0.70)] block text-[11px] uppercase font-bold">Min Notice</span>
                     <span className="font-bold">{minNoticeMinutes} minutes</span>
                   </div>
                 </div>
@@ -1059,7 +1059,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base flex items-center justify-center gap-2 transition-all shadow-xl active:scale-98"
+              className="w-full py-4 rounded-2xl bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] font-black text-base flex items-center justify-center gap-2 transition-colors duration-150 shadow-xl"
             >
               {saving && (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1080,17 +1080,17 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {stepHeader('Your Services', 'Add the services customers can book.')}
 
             {services.length === 0 ? (
-              <div className="py-6 text-center rounded-2xl border-2 border-dashed border-slate-200 text-slate-400">
+              <div className="py-6 text-center rounded-2xl border-2 border-dashed border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)]">
                 <Scissors className="w-8 h-8 mx-auto mb-2 opacity-40" />
                 <p className="text-xs font-semibold">No services added yet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {services.map((svc) => (
-                  <div key={svc.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div key={svc.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)]">
                     <div>
-                      <p className="text-sm font-bold text-slate-900">{svc.name}</p>
-                      <p className="text-xs text-slate-500">₹{svc.price} · {svc.durationMinutes} min</p>
+                      <p className="text-sm font-bold text-[#171717]">{svc.name}</p>
+                      <p className="text-xs text-[rgba(23,23,23,0.70)]">₹{svc.price} · {svc.durationMinutes} min</p>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
@@ -1105,13 +1105,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                           setEditingServiceId(svc.id);
                           setShowAddService(true);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600"
+                        className="p-1.5 text-[rgba(23,23,23,0.70)] hover:text-[#FF9F1C]"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setServices((prev) => prev.filter((s) => s.id !== svc.id))}
-                        className="p-1.5 text-slate-400 hover:text-red-500"
+                        className="p-1.5 text-[rgba(23,23,23,0.70)] hover:text-[#FF9F1C]"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1122,20 +1122,20 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             )}
 
             {showAddService ? (
-              <div className="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/50 space-y-3">
-                <h4 className="text-sm font-black text-slate-900">{editingServiceId ? 'Edit Service' : 'New Service'}</h4>
+              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] space-y-3">
+                <h4 className="text-sm font-black text-[#171717]">{editingServiceId ? 'Edit Service' : 'New Service'}</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <NumberInput
                     placeholder="Price (₹)"
                     value={newSvc.price || ''}
                     onChange={(val) => setNewSvc((p) => ({ ...p, price: val }))}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white"
+                    className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
                   />
                   <NumberInput
                     placeholder="Duration (min)"
                     value={newSvc.durationMinutes}
                     onChange={(val) => setNewSvc((p) => ({ ...p, durationMinutes: val }))}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white"
+                    className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
                   />
                 </div>
                 <input
@@ -1143,7 +1143,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   placeholder="Service name *"
                   value={newSvc.name}
                   onChange={(e) => setNewSvc((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
                 />
                 <div className="flex gap-2">
                   <button 
@@ -1168,7 +1168,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       setShowAddService(false);
                       setNewSvc({ name: '', price: 0, durationMinutes: 30, category: 'General', description: '' });
                     }} 
-                    className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black"
+                    className="flex-1 py-2 bg-[#FF9F1C] text-[#171717] rounded-xl text-xs font-black"
                   >
                     {editingServiceId ? 'Save' : 'Add'}
                   </button>
@@ -1177,7 +1177,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             ) : (
               <button
                 onClick={() => setShowAddService(true)}
-                className="w-full py-3 rounded-xl border-2 border-dashed border-indigo-300 text-indigo-600 font-bold text-xs flex items-center justify-center gap-1.5"
+                className="w-full py-3 rounded-xl border-2 border-dashed border-[rgba(23,23,23,0.12)] text-[#FF9F1C] font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 Add Service
@@ -1195,39 +1195,39 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
             <div className="space-y-2">
               {staffList.map((st) => (
-                <div key={st.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div key={st.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)]">
                   <div>
                     <p className="text-sm font-bold">{st.name}</p>
-                    <p className="text-xs text-slate-500">{st.title}</p>
+                    <p className="text-xs text-[rgba(23,23,23,0.70)]">{st.title}</p>
                   </div>
                   <button onClick={() => setStaffList((prev) => prev.filter((s) => s.id !== st.id))}>
-                    <Trash2 className="w-4 h-4 text-slate-400" />
+                    <Trash2 className="w-4 h-4 text-[rgba(23,23,23,0.70)]" />
                   </button>
                 </div>
               ))}
             </div>
 
             {showAddStaff ? (
-              <div className="p-4 rounded-2xl border border-indigo-200 bg-indigo-50/50 space-y-3">
+              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] space-y-3">
                 <input
                   type="text"
                   placeholder="Staff Name *"
                   value={newStaff.name}
                   onChange={(e) => setNewStaff((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
                 />
                 <input
                   type="text"
                   placeholder="Role (e.g. Master Stylist)"
                   value={newStaff.title}
                   onChange={(e) => setNewStaff((p) => ({ ...p, title: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
                 />
                 <div className="flex gap-2">
                   <button onClick={() => setShowAddStaff(false)} className="flex-1 py-2 text-xs font-bold">
                     Cancel
                   </button>
-                  <button onClick={handleAddStaff} className="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black">
+                  <button onClick={handleAddStaff} className="flex-1 py-2 bg-[#FF9F1C] text-[#171717] rounded-xl text-xs font-black">
                     Add
                   </button>
                 </div>
@@ -1235,7 +1235,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             ) : (
               <button
                 onClick={() => setShowAddStaff(true)}
-                className="w-full py-3 rounded-xl border-2 border-dashed border-indigo-300 text-indigo-600 font-bold text-xs flex items-center justify-center gap-1.5"
+                className="w-full py-3 rounded-xl border-2 border-dashed border-[rgba(23,23,23,0.12)] text-[#FF9F1C] font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 Add Team Member
@@ -1265,13 +1265,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           <div className="space-y-4">
             {stepHeader('Booking & Queue Settings', 'Control how appointments and live walk-in queues behave.')}
 
-            <div className="flex items-center justify-between p-4 rounded-xl border-2 border-indigo-100 bg-indigo-50">
+            <div className="flex items-center justify-between p-4 rounded-xl border-2 border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)]">
               <div>
-                <p className="text-sm font-black text-indigo-900">Enable Live Walk-in Queue</p>
-                <p className="text-[11px] text-indigo-700">Allow customers to take digital queue tokens from home</p>
+                <p className="text-sm font-black text-[#FF9F1C]">Enable Live Walk-in Queue</p>
+                <p className="text-[11px] text-[#FF9F1C]">Allow customers to take digital queue tokens from home</p>
               </div>
               <button type="button" onClick={() => setEnableQueue(!enableQueue)}>
-                {enableQueue ? <ToggleRight className="w-8 h-8 text-indigo-600" /> : <ToggleLeft className="w-8 h-8 text-slate-300" />}
+                {enableQueue ? <ToggleRight className="w-8 h-8 text-[#FF9F1C]" /> : <ToggleLeft className="w-8 h-8 text-[rgba(23,23,23,0.70)]" />}
               </button>
             </div>
 
@@ -1287,7 +1287,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl"
+              className="w-full py-4 rounded-2xl bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] font-black text-sm flex items-center justify-center gap-2 shadow-xl"
             >
               
               Submit for Verification

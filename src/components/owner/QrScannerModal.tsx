@@ -28,7 +28,6 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
 }) => {
   const { t } = useAuth();
   const [manualCode, setManualCode] = useState('');
-  const [activeWaitingBookings, setActiveWaitingBookings] = useState<Booking[]>([]);
   const [scanning, setScanning] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [result, setResult] = useState<{
@@ -41,24 +40,6 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const scanLoopRef = useRef<number | null>(null);
-
-  // Fetch active bookings for quick test simulation
-  useEffect(() => {
-    const loadWaiting = async () => {
-      try {
-        const res = await api.getBookings({ salonId: salon.id });
-        if (res && res.bookings) {
-          const waiting = res.bookings.filter(
-            (b) => b.status === 'confirmed' || b.status === 'in_progress'
-          );
-          setActiveWaitingBookings(waiting);
-        }
-      } catch (e) {
-        console.error('Error fetching waiting bookings:', e);
-      }
-    };
-    loadWaiting();
-  }, [salon.id]);
 
   // Start Camera
   const startCamera = async () => {
@@ -251,22 +232,22 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-xs" onClick={onClose} />
+      <div className="fixed inset-0 bg-[#FFFFFF]" onClick={onClose} />
 
-      <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-7 shadow-2xl z-10 border border-neutral-200 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto scrollbar-none">
+      <div className="relative w-full max-w-lg bg-[#FFFFFF] rounded-3xl p-6 sm:p-7 shadow-lg z-10 border border-[rgba(23,23,23,0.12)] animate-in zoom-in-95 max-h-[90vh] overflow-y-auto scrollbar-none">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100"
+          className="absolute top-5 right-5 p-2 rounded-full text-[rgba(23,23,23,0.70)] hover:text-[#171717] hover:bg-[rgba(23,23,23,0.05)]"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="text-center mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-2">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] flex items-center justify-center mx-auto mb-2">
             <QrCode className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-extrabold text-neutral-900">QR Scanner</h2>
-          <p className="text-xs text-neutral-500 mt-0.5">{salon.name} Reception Check-in Desk</p>
+          <h2 className="text-xl font-extrabold text-[#171717]">QR Scanner</h2>
+          <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">{salon.name} Reception Check-in Desk</p>
         </div>
 
         {/* Verification Result Banner */}
@@ -274,18 +255,18 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
           <div
             className={`mb-5 p-4 rounded-2xl border text-xs font-bold flex items-start gap-3 animate-in fade-in ${
               result.status === 'success'
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                ? 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)] text-[#FF9F1C]'
                 : result.status === 'already_checked_in'
-                ? 'bg-amber-50 border-amber-300 text-amber-900'
-                : 'bg-red-50 border-red-300 text-red-900'
+                ? 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)] text-[#FF9F1C]'
+                : 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)] text-[#FF9F1C]'
             }`}
           >
             {result.status === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-5 h-5 text-[#FF9F1C] shrink-0 mt-0.5" />
             ) : result.status === 'already_checked_in' ? (
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#FF9F1C] shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-[#FF9F1C] shrink-0 mt-0.5" />
             )}
             <div className="w-full">
               <span className="block text-sm">{result.message}</span>
@@ -296,16 +277,16 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
                   </span>
                   
                   {result.status === 'success' && (
-                    <div className="bg-white/60 rounded-xl p-3 border border-emerald-200/60 shadow-xs space-y-1.5 w-full">
-                      <div className="flex justify-between items-center text-emerald-800 text-xs">
+                    <div className="bg-[rgba(23,23,23,0.05)] rounded-xl p-3 border border-[rgba(23,23,23,0.12)]/60 shadow-xs space-y-1.5 w-full">
+                      <div className="flex justify-between items-center text-[#FF9F1C] text-xs">
                         <span>Total Slot Amount:</span>
                         <span className="font-bold">₹{result.booking.totalAmount || result.booking.amount}</span>
                       </div>
-                      <div className="flex justify-between items-center text-emerald-800 text-xs mt-1">
+                      <div className="flex justify-between items-center text-[#FF9F1C] text-xs mt-1">
                         <span>Slot Amount Paid:</span>
                         <span className="font-bold">₹{(result.booking.totalAmount || result.booking.amount || 0) - (result.booking.balanceAmount || 0)}</span>
                       </div>
-                      <div className="flex justify-between items-center pt-2 mt-2 border-t border-emerald-200/60 text-emerald-950 font-black text-sm">
+                      <div className="flex justify-between items-center pt-2 mt-2 border-t border-[rgba(23,23,23,0.12)]/60 text-[#FF9F1C] font-black text-sm">
                         <span>Balance Due:</span>
                         <span>₹{result.booking.balanceAmount || 0}</span>
                       </div>
@@ -317,7 +298,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
                               type="button"
                               disabled={scanning}
                               onClick={() => handleAcceptAndComplete(result.booking!, true)}
-                              className="w-full py-2.5 bg-[#F66B0E] hover:bg-[#e05e0a] text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+                              className="w-full py-2.5 bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] rounded-lg text-xs font-bold transition-colors shadow-sm"
                             >
                               Collect ₹{result.booking.balanceAmount} & Accept
                             </button>
@@ -325,7 +306,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
                               type="button"
                               disabled={scanning}
                               onClick={() => handleAcceptAndComplete(result.booking!, false)}
-                              className="w-full py-2.5 bg-transparent hover:bg-orange-50 text-[#F66B0E] border border-[#F66B0E] rounded-lg text-xs font-bold transition-colors"
+                              className="w-full py-2.5 bg-transparent hover:bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] border border-[#FF9F1C] rounded-lg text-xs font-bold transition-colors"
                             >
                               Accept without Payment
                             </button>
@@ -335,7 +316,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
                             type="button"
                             disabled={scanning}
                             onClick={() => handleAcceptAndComplete(result.booking!, true)}
-                            className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+                            className="w-full py-2.5 bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] rounded-lg text-xs font-bold transition-colors shadow-sm"
                           >
                             Accept & Check-in
                           </button>
@@ -350,36 +331,36 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
         )}
 
         {/* Camera Scanner Box */}
-        <div className="relative bg-neutral-950 rounded-3xl overflow-hidden aspect-4/3 flex flex-col items-center justify-center border-2 border-neutral-800 shadow-inner mb-5">
+        <div className="relative bg-[#FFFFFF] rounded-3xl overflow-hidden aspect-4/3 flex flex-col items-center justify-center border-2 border-[rgba(23,23,23,0.12)] shadow-inner mb-5">
           {cameraActive ? (
             <>
               <video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
               {/* Scanning Target Crosshairs */}
-              <div className="absolute inset-8 border-2 border-emerald-400/80 rounded-2xl pointer-events-none animate-pulse flex items-center justify-center">
-                <span className="text-[10px] text-white bg-black/60 px-2 py-0.5 rounded">
+              <div className="absolute inset-8 border-2 border-[#FF9F1C] rounded-2xl pointer-events-none animate-pulse flex items-center justify-center">
+                <span className="text-[11px] text-[#171717] bg-[#171717]/60 px-2 py-0.5 rounded">
                   Align QR code inside box
                 </span>
               </div>
               <button
                 onClick={stopCamera}
-                className="absolute bottom-3 bg-neutral-900/80 text-white text-xs px-3 py-1 rounded-full backdrop-blur-xs hover:bg-neutral-800"
+                className="absolute bottom-3 bg-[#FFFFFF] text-[#171717] text-xs px-3 py-1 rounded-full hover:bg-[rgba(23,23,23,0.05)]"
               >
                 Turn off camera
               </button>
             </>
           ) : (
-            <div className="p-6 text-center text-neutral-400 space-y-3">
-              <Camera className="w-12 h-12 mx-auto stroke-1 text-neutral-500" />
+            <div className="p-6 text-center text-[rgba(23,23,23,0.70)] space-y-3">
+              <Camera className="w-12 h-12 mx-auto stroke-1 text-[rgba(23,23,23,0.70)]" />
               <div>
-                <p className="text-xs font-bold text-white">Live Camera Scanner</p>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
+                <p className="text-xs font-bold text-[#171717]">Live Camera Scanner</p>
+                <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-0.5">
                   Point camera at customer's phone QR ticket
                 </p>
               </div>
               <button
                 type="button"
                 onClick={startCamera}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-neutral-950 font-bold text-xs shadow-md transition-colors inline-flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] font-bold text-xs shadow-md transition-colors inline-flex items-center gap-1.5"
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>Start Scanner Camera</span>
@@ -388,57 +369,22 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({
           )}
         </div>
 
-        {/* 1-Click QR Simulator: Instant test with currently waiting customer tickets */}
-        <div className="mb-5 p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200">
-          <span className="text-xs font-bold text-neutral-800 block mb-1 flex items-center gap-1">
-            
-            Quick Test Simulator (Click any waiting customer):
-          </span>
-
-          {activeWaitingBookings.length === 0 ? (
-            <p className="text-[11px] text-neutral-400">No customers currently in waiting queue.</p>
-          ) : (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {activeWaitingBookings.map((b) => (
-                <button
-                  key={b.id}
-                  type="button"
-                  disabled={scanning}
-                  onClick={() =>
-                    handleVerifyPayload({
-                      bookingId: b.id,
-                      salonId: b.salonId,
-                      tokenNumber: b.tokenNumber,
-                      qrCodeId: b.qrCodeId,
-                    })
-                  }
-                  className="px-2.5 py-1.5 rounded-xl bg-white border border-neutral-300 hover:border-emerald-500 hover:bg-emerald-50 text-xs font-semibold text-neutral-800 transition-all text-left shadow-2xs"
-                >
-                  <span className="font-mono text-emerald-700 font-bold">
-                    #{b.tokenNumber?.split('-').pop()}
-                  </span>{' '}
-                  - {b.customerName}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Manual Code Input Form */}
         <form onSubmit={handleManualSubmit} className="space-y-3">
-          <label className="block text-xs font-bold text-neutral-700">Or enter 6-digit code</label>
+          <label className="block text-xs font-bold text-[rgba(23,23,23,0.70)]">Or enter 6-digit code</label>
           <div className="flex gap-2">
             <input
               type="text"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               placeholder="e.g. A012 or SLN48291-20260821-A012"
-              className="flex-1 px-3.5 py-2.5 rounded-xl border border-neutral-300 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 uppercase"
+              className="flex-1 px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] uppercase"
             />
             <button
               type="submit"
               disabled={scanning || !manualCode}
-              className="px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-300 text-white text-xs font-bold transition-colors shrink-0"
+              className="px-4 py-2.5 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] disabled:bg-[#FFFFFF] text-[#171717] text-xs font-bold transition-colors shrink-0"
             >
               {scanning ? 'Checking...' : 'Verify'}
             </button>

@@ -202,17 +202,17 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
       {/* ── TOP CONTROL BAR ── */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
         {/* Navigation buttons */}
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handlePrev}
-            className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors"
+            className="p-2 rounded-xl border border-[rgba(23,23,23,0.12)] hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)] transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-black text-xs text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer">
-            <CalendarIcon className="w-4 h-4 text-slate-500" />
+          <div className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] font-black text-xs text-[#171717] hover:bg-[rgba(23,23,23,0.05)] transition-colors cursor-pointer">
+            <CalendarIcon className="w-4 h-4 text-[rgba(23,23,23,0.70)]" />
             <span>{selectedDate}</span>
             <input 
               type="date" 
@@ -223,13 +223,13 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
           </div>
           <button
             onClick={handleNext}
-            className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors"
+            className="p-2 rounded-xl border border-[rgba(23,23,23,0.12)] hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)] transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)] font-bold text-xs transition-colors"
           >
             Today
           </button>
@@ -237,13 +237,13 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
         {/* View mode toggle & Actions */}
         <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-          <div className="bg-slate-100 p-1 rounded-xl flex flex-wrap items-center gap-1">
+          <div className="bg-[#FFFFFF] p-1 rounded-xl flex flex-wrap items-center gap-1">
             {(['day', 'week', 'month'] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => setViewMode(m)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
-                  viewMode === m ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-colors duration-150 ${
+                  viewMode === m ? 'bg-[#FFFFFF] text-[#171717] shadow-2xs' : 'text-[rgba(23,23,23,0.70)] hover:text-[#171717]'
                 }`}
               >
                 {m}
@@ -257,7 +257,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
               setBlockDateConflicts(null);
               setShowBlockDateModal(true);
             }}
-            className="px-3.5 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold text-xs flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] hover:bg-[rgba(255,159,28,0.15)] font-bold text-xs flex items-center gap-1.5 transition-colors"
           >
             <Lock className="w-3.5 h-3.5" />
             <span>Block Date</span>
@@ -277,7 +277,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                 }
               }
             }}
-            className="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] hover:bg-[rgba(255,159,28,0.15)] font-bold text-xs flex items-center gap-1.5 transition-colors"
           >
             <Unlock className="w-3.5 h-3.5" />
             <span>Unblock Date</span>
@@ -285,7 +285,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
           <button
             onClick={onOpenSettings}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)] font-bold text-xs flex items-center gap-1.5 transition-colors"
           >
             <span>Edit Base Schedule</span>
           </button>
@@ -293,7 +293,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
           {onOpenSchedules && (
             <button
               onClick={onOpenSchedules}
-              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+              className="px-3.5 py-2 rounded-xl bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
             >
               <span>Open Slots</span>
             </button>
@@ -303,14 +303,14 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
       {/* ── CALENDAR VIEW ── */}
       {loading ? (
-        <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center text-slate-400">
-          <div className="w-8 h-8 border-3 border-slate-300 border-t-indigo-600 rounded-full animate-spin mx-auto mb-2" />
+        <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-16 text-center text-[rgba(23,23,23,0.70)]">
+          <div className="w-8 h-8 border-3 border-[rgba(23,23,23,0.12)] border-t-indigo-600 rounded-full animate-spin mx-auto mb-2" />
           <p className="text-xs font-bold">Loading slot schedule...</p>
         </div>
       ) : viewMode === 'week' ? (
         /* WEEK MATRIX VIEW */
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-          <div className="grid grid-cols-7 gap-3 text-center pb-3 border-b border-slate-100">
+        <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-6 shadow-xs space-y-4">
+          <div className="grid grid-cols-7 gap-3 text-center pb-3 border-b border-[rgba(23,23,23,0.12)]">
             {weekDates.map((dateStr) => {
               const d = new Date(`${dateStr}T00:00:00Z`);
               const isToday = dateStr === new Date().toISOString().split('T')[0];
@@ -319,15 +319,15 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                 <div
                   key={dateStr}
                   onClick={() => setSelectedDate(dateStr)}
-                  className={`w-11 h-11 sm:w-14 sm:h-14 mx-auto rounded-full flex flex-col items-center justify-center cursor-pointer transition-all ${
+                  className={`w-11 h-11 sm:w-14 sm:h-14 mx-auto rounded-full flex flex-col items-center justify-center cursor-pointer transition-colors duration-150 ${
                     isSelected
-                      ? 'bg-indigo-600 text-white shadow-md'
+                      ? 'bg-[#FF9F1C] text-[#171717] shadow-md'
                       : isToday
-                      ? 'bg-indigo-50 border border-indigo-200 text-indigo-900 font-black'
-                      : 'hover:bg-slate-50 text-slate-700'
+                      ? 'bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] font-black'
+                      : 'hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)]'
                   }`}
                 >
-                  <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider leading-none mb-1">{dayNames[d.getUTCDay()]}</p>
+                  <p className="text-[11px] sm:text-[11px] font-black uppercase tracking-wider leading-none mb-1">{dayNames[d.getUTCDay()]}</p>
                   <p className="text-sm sm:text-base font-black leading-none">{d.getUTCDate()}</p>
                 </div>
               );
@@ -339,13 +339,13 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
             {weekDates.map((dateStr) => {
               const slots = weekSlotsMap[dateStr] || [];
               return (
-                <div key={dateStr} className={`space-y-2 min-h-[300px] bg-slate-50/50 p-2 rounded-2xl border border-slate-100 ${dateStr === selectedDate ? 'block' : 'hidden sm:block'}`}>
-                  <div className="text-[11px] font-black text-slate-600 text-center pb-1 border-b border-slate-200/60">
+                <div key={dateStr} className={`space-y-2 min-h-[300px] bg-[rgba(23,23,23,0.05)] p-2 rounded-2xl border border-[rgba(23,23,23,0.12)] ${dateStr === selectedDate ? 'block' : 'hidden sm:block'}`}>
+                  <div className="text-[11px] font-black text-[rgba(23,23,23,0.70)] text-center pb-1 border-b border-[rgba(23,23,23,0.12)]/60">
                     {slots.length} Slots
                   </div>
 
                   {slots.length === 0 ? (
-                    <div className="py-8 text-center text-[11px] text-slate-400 font-medium">
+                    <div className="py-8 text-center text-[11px] text-[rgba(23,23,23,0.70)] font-medium">
                       Closed / No Slots
                     </div>
                   ) : (
@@ -362,35 +362,35 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                               setSelectedDate(dateStr);
                               setSelectedSlot(slot);
                             }}
-                            className={`p-1.5 sm:p-2.5 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] shadow-2xs flex flex-col justify-between overflow-hidden ${
+                            className={`p-1.5 sm:p-2.5 rounded-xl border cursor-pointer transition-colors duration-150 hover:scale-[1.02] shadow-2xs flex flex-col justify-between overflow-hidden ${
                               isBooked
-                                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                                ? 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)] text-[#FF9F1C]'
                                 : isBlocked
-                                ? 'bg-slate-200 border-slate-300 text-slate-600 opacity-60'
-                                : 'bg-white border-slate-200 hover:border-emerald-400 text-slate-800'
+                                ? 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)] opacity-60'
+                                : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] hover:border-[#FF9F1C] text-[#171717]'
                             }`}
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between font-mono font-bold mb-1 sm:mb-0 gap-0.5">
-                              <span className="text-[9px] sm:text-[11px] whitespace-nowrap overflow-hidden text-ellipsis">{formatTime12Hour(slot.startTime)}</span>
-                              <span className="text-[9px] sm:text-[10px] font-black text-slate-500">₹{slot.price}</span>
+                              <span className="text-[11px] sm:text-[11px] whitespace-nowrap overflow-hidden text-ellipsis">{formatTime12Hour(slot.startTime)}</span>
+                              <span className="text-[11px] sm:text-[11px] font-black text-[rgba(23,23,23,0.70)]">₹{slot.price}</span>
                             </div>
 
                             <div className="mt-1 flex items-center justify-between">
                               <span
-                                className={`text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded truncate ${
+                                className={`text-[11px] sm:text-[11px] font-black uppercase px-1.5 py-0.5 rounded truncate ${
                                   isPast && isBooked
-                                    ? 'bg-blue-100 text-blue-800'
+                                    ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                                     : isBooked
-                                    ? 'bg-rose-200 text-rose-900'
+                                    ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                                     : isBlocked || !slot.available
-                                    ? 'bg-slate-300 text-slate-700'
-                                    : 'bg-emerald-100 text-emerald-800'
+                                    ? 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)]'
+                                    : 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                                 }`}
                               >
                                 {isPast && isBooked ? 'COMPLETED' : isBooked ? 'BOOKED' : isBlocked ? 'BLOCKED' : !slot.available ? 'CLOSED' : 'AVAILABLE'}
                               </span>
                               {slot.customerName && (
-                                <span className="text-[9px] sm:text-[10px] font-bold text-slate-700 truncate max-w-[40px] ml-1">
+                                <span className="text-[11px] sm:text-[11px] font-bold text-[rgba(23,23,23,0.70)] truncate max-w-[40px] ml-1">
                                   {slot.customerName}
                                 </span>
                               )}
@@ -407,10 +407,10 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
         </div>
       ) : (
         /* DAY LIST VIEW */
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-black text-base text-slate-900">Slots for {selectedDate}</h3>
-            <span className="text-xs font-bold text-slate-500">{daySlots.length} Total Slots</span>
+            <h3 className="font-black text-base text-[#171717]">Slots for {selectedDate}</h3>
+            <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">{daySlots.length} Total Slots</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
@@ -423,44 +423,44 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                 <div
                   key={slot.id}
                   onClick={() => setSelectedSlot(slot)}
-                  className={`p-2.5 sm:p-4 rounded-2xl border cursor-pointer transition-all hover:scale-[1.01] flex flex-col gap-1.5 overflow-hidden justify-between h-full ${
+                  className={`p-2.5 sm:p-4 rounded-2xl border cursor-pointer transition-colors duration-150 hover:scale-[1.01] flex flex-col gap-1.5 overflow-hidden justify-between h-full ${
                     isBooked
-                      ? 'bg-rose-50 border-rose-200'
+                      ? 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)]'
                       : isBlocked
-                      ? 'bg-slate-100 border-slate-200 opacity-70'
-                      : 'bg-white border-slate-200 hover:border-emerald-400'
+                      ? 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] opacity-70'
+                      : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] hover:border-[#FF9F1C]'
                   }`}
                 >
                   <div className="flex flex-col gap-0.5">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-[10px] sm:text-sm text-slate-900 truncate">
+                      <span className="font-mono font-bold text-[11px] sm:text-sm text-[#171717] truncate">
                         {formatTime12Hour(slot.startTime)}
                       </span>
-                      <span className="font-black text-[10px] sm:text-sm text-slate-900 font-mono shrink-0">₹{slot.price}</span>
+                      <span className="font-black text-[11px] sm:text-sm text-[#171717] font-mono shrink-0">₹{slot.price}</span>
                     </div>
-                    <span className="text-[9px] sm:text-xs text-slate-500 font-bold">
+                    <span className="text-[11px] sm:text-xs text-[rgba(23,23,23,0.70)] font-bold">
                       to {formatTime12Hour(slot.endTime)}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-1.5 sm:pt-2 border-t border-slate-100 mt-auto">
+                  <div className="flex items-center justify-between text-xs pt-1.5 sm:pt-2 border-t border-[rgba(23,23,23,0.12)] mt-auto">
                     <span
-                      className={`text-[8px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md truncate ${
+                      className={`text-[11px] sm:text-[11px] font-black uppercase px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-md truncate ${
                         isPast && isBooked
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                           : isBooked
-                          ? 'bg-rose-200 text-rose-900'
+                          ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                           : isBlocked || !slot.available
-                          ? 'bg-slate-300 text-slate-700'
-                          : 'bg-emerald-100 text-emerald-800'
+                          ? 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)]'
+                          : 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                       }`}
                     >
                       {isPast && isBooked ? 'COMPLETED' : isBooked ? 'BOOKED' : isBlocked ? 'BLOCKED' : !slot.available ? 'CLOSED' : 'AVAILABLE'}
                     </span>
                     {slot.customerName ? (
-                      <span className="font-bold text-slate-800 text-[9px] sm:text-xs truncate max-w-[60px] sm:max-w-[100px] ml-1">{slot.customerName}</span>
+                      <span className="font-bold text-[#171717] text-[11px] sm:text-xs truncate max-w-[60px] sm:max-w-[100px] ml-1">{slot.customerName}</span>
                     ) : (
-                      <span className="text-slate-400 text-[9px] sm:text-xs">—</span>
+                      <span className="text-[rgba(23,23,23,0.70)] text-[11px] sm:text-xs">—</span>
                     )}
                   </div>
                 </div>
@@ -472,44 +472,44 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
       {/* ── 5. SLOT DETAIL MODAL ── */}
       {selectedSlot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FFFFFF]">
+          <div className="bg-[#FFFFFF] rounded-3xl p-6 max-w-md w-full shadow-lg border border-[rgba(23,23,23,0.12)] space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(23,23,23,0.12)]">
               <div>
-                <h3 className="font-black text-base text-slate-900">Slot Details</h3>
-                <p className="text-xs text-slate-500 font-mono">{selectedDate} · {formatTime12Hour(selectedSlot.startTime)} – {formatTime12Hour(selectedSlot.endTime)}</p>
+                <h3 className="font-black text-base text-[#171717]">Slot Details</h3>
+                <p className="text-xs text-[rgba(23,23,23,0.70)] font-mono">{selectedDate} · {formatTime12Hour(selectedSlot.startTime)} – {formatTime12Hour(selectedSlot.endTime)}</p>
               </div>
               <button
                 onClick={() => setSelectedSlot(null)}
-                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-xl hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)] hover:text-[rgba(23,23,23,0.70)]"
               >
                 ✕
               </button>
             </div>
 
             {/* Info Grid */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
+            <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] space-y-2.5 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-500">Time Range:</span>
-                <span className="font-bold text-slate-900 font-mono">{formatTime12Hour(selectedSlot.startTime)} – {formatTime12Hour(selectedSlot.endTime)}</span>
+                <span className="text-[rgba(23,23,23,0.70)]">Time Range:</span>
+                <span className="font-bold text-[#171717] font-mono">{formatTime12Hour(selectedSlot.startTime)} – {formatTime12Hour(selectedSlot.endTime)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Duration:</span>
-                <span className="font-bold text-slate-900">{selectedSlot.durationMinutes} minutes</span>
+                <span className="text-[rgba(23,23,23,0.70)]">Duration:</span>
+                <span className="font-bold text-[#171717]">{selectedSlot.durationMinutes} minutes</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Price:</span>
-                <span className="font-black text-slate-900 font-mono">₹{selectedSlot.price}</span>
+                <span className="text-[rgba(23,23,23,0.70)]">Price:</span>
+                <span className="font-black text-[#171717] font-mono">₹{selectedSlot.price}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Status:</span>
+                <span className="text-[rgba(23,23,23,0.70)]">Status:</span>
                 <span
-                  className={`font-black uppercase px-2 py-0.5 rounded text-[10px] ${
+                  className={`font-black uppercase px-2 py-0.5 rounded text-[11px] ${
                     selectedSlot.isBooked
-                      ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                      ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] border border-[rgba(23,23,23,0.12)]'
                       : selectedSlot.isBlocked || !selectedSlot.available
-                      ? 'bg-slate-100 text-slate-600 border border-slate-200'
-                      : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      ? 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] border border-[rgba(23,23,23,0.12)]'
+                      : 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] border border-[rgba(23,23,23,0.12)]'
                   }`}
                 >
                   {selectedSlot.isBooked ? 'BOOKED' : selectedSlot.isBlocked ? 'BLOCKED' : !selectedSlot.available ? 'CLOSED' : 'AVAILABLE'}
@@ -518,34 +518,34 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
               {selectedSlot.isBooked && (
                 <>
-                  <div className="pt-2 border-t border-slate-200 flex justify-between">
-                    <span className="text-slate-500">Customer Name:</span>
-                    <span className="font-bold text-slate-900">{selectedSlot.customerName || 'Customer'}</span>
+                  <div className="pt-2 border-t border-[rgba(23,23,23,0.12)] flex justify-between">
+                    <span className="text-[rgba(23,23,23,0.70)]">Customer Name:</span>
+                    <span className="font-bold text-[#171717]">{selectedSlot.customerName || 'Customer'}</span>
                   </div>
                   {selectedSlot.customerPhone && (
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Phone:</span>
-                      <span className="font-bold text-slate-900 font-mono">{selectedSlot.customerPhone}</span>
+                      <span className="text-[rgba(23,23,23,0.70)]">Phone:</span>
+                      <span className="font-bold text-[#171717] font-mono">{selectedSlot.customerPhone}</span>
                     </div>
                   )}
                   {selectedSlot.bookingId && (
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Booking ID:</span>
-                      <span className="font-bold text-indigo-700 font-mono">
+                      <span className="text-[rgba(23,23,23,0.70)]">Booking ID:</span>
+                      <span className="font-bold text-[#FF9F1C] font-mono">
                         QGO-{selectedSlot.bookingId.split('_').pop()?.toUpperCase()}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Payment:</span>
-                    <span className="font-bold text-emerald-700 capitalize">{selectedSlot.paymentStatus || 'Pay at Shop'}</span>
+                    <span className="text-[rgba(23,23,23,0.70)]">Payment:</span>
+                    <span className="font-bold text-[#FF9F1C] capitalize">{selectedSlot.paymentStatus || 'Pay at Shop'}</span>
                   </div>
                 </>
               )}
             </div>
 
             {slotActionError && (
-              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">
+              <div className="p-2.5 rounded-xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] text-xs font-bold">
                 {slotActionError}
               </div>
             )}
@@ -557,7 +557,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                   type="button"
                   onClick={handleCancelBookedSlot}
                   disabled={slotActionLoading}
-                  className="w-full py-3 rounded-xl bg-rose-600 text-white font-black text-xs hover:bg-rose-700 shadow-sm transition-colors"
+                  className="w-full py-3 rounded-xl bg-[#FF9F1C] text-[#171717] font-black text-xs hover:bg-[#FF9F1C] shadow-sm transition-colors"
                 >
                   {slotActionLoading ? 'Processing...' : 'Cancel Booking & Process Refund'}
                 </button>
@@ -566,7 +566,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                   type="button"
                   onClick={handleUnblockSlot}
                   disabled={slotActionLoading}
-                  className="w-full py-3 rounded-xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-700 shadow-sm transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-3 rounded-xl bg-[#FF9F1C] text-[#171717] font-black text-xs hover:bg-[#FF9F1C] shadow-sm transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Unlock className="w-4 h-4" />
                   <span>{slotActionLoading ? 'Unblocking...' : 'Unblock Slot'}</span>
@@ -576,7 +576,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                   type="button"
                   onClick={handleBlockSlot}
                   disabled={slotActionLoading}
-                  className="w-full py-3 rounded-xl bg-slate-900 text-white font-black text-xs hover:bg-slate-800 shadow-sm transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-3 rounded-xl bg-[#FFFFFF] text-[#171717] font-black text-xs hover:bg-[rgba(23,23,23,0.05)] shadow-sm transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Lock className="w-4 h-4" />
                   <span>{slotActionLoading ? 'Blocking...' : 'Block This Slot'}</span>
@@ -589,29 +589,29 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
 
       {/* ── 6. BLOCK DATE MODAL ── */}
       {showBlockDateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FFFFFF]">
+          <div className="bg-[#FFFFFF] rounded-3xl p-6 max-w-md w-full shadow-lg border border-[rgba(23,23,23,0.12)] space-y-4 animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-[#FF9F1C]">
+              <div className="w-10 h-10 rounded-2xl bg-[rgba(255,159,28,0.15)] flex items-center justify-center">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-black text-base text-slate-900">Block Specific Date</h3>
-                <p className="text-xs text-slate-500">Make all slots unavailable for an entire date</p>
+                <h3 className="font-black text-base text-[#171717]">Block Specific Date</h3>
+                <p className="text-xs text-[rgba(23,23,23,0.70)]">Make all slots unavailable for an entire date</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                   Select Dates to Block
                 </label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {blockDates.map(d => (
-                    <span key={d} className="px-2 py-1 bg-rose-100 text-rose-800 text-[10px] rounded flex items-center gap-1 font-bold">
+                    <span key={d} className="px-2 py-1 bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] text-[11px] rounded flex items-center gap-1 font-bold">
                       {d} 
                       <XCircle 
-                        className="w-3 h-3 cursor-pointer hover:text-rose-950" 
+                        className="w-3 h-3 cursor-pointer hover:text-[#FF9F1C]" 
                         onClick={() => setBlockDates(blockDates.filter(bd => bd !== d))} 
                       />
                     </span>
@@ -626,12 +626,12 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                     }
                     e.target.value = '';
                   }}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-bold"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
                   Reason for Closure
                 </label>
                 <input
@@ -639,17 +639,17 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                   value={blockDateReason}
                   onChange={(e) => setBlockDateReason(e.target.value)}
                   placeholder="e.g. Private Event, Maintenance, Personal Holiday"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-medium"
                 />
               </div>
 
               {blockDateConflicts && blockDateConflicts.length > 0 && (
-                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2 text-xs">
-                  <div className="flex items-center gap-2 font-bold text-amber-900">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <div className="p-3.5 rounded-2xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] space-y-2 text-xs">
+                  <div className="flex items-center gap-2 font-bold text-[#FF9F1C]">
+                    <AlertTriangle className="w-4 h-4 text-[#FF9F1C]" />
                     <span>Active Bookings Conflict ({blockDateConflicts.length})</span>
                   </div>
-                  <p className="text-amber-800 text-[11px] leading-relaxed">
+                  <p className="text-[#FF9F1C] text-[11px] leading-relaxed">
                     There are {blockDateConflicts.length} active customer bookings on this date. Blocking this date will cancel them and issue full 100% refunds.
                   </p>
                 </div>
@@ -660,7 +660,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
               <button
                 type="button"
                 onClick={() => setShowBlockDateModal(false)}
-                className="flex-1 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="flex-1 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-xs font-bold text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)]"
               >
                 Cancel
               </button>
@@ -668,7 +668,7 @@ export const OwnerSlotCalendar: React.FC<OwnerSlotCalendarProps> = ({ salon, onO
                 type="button"
                 onClick={() => handleBlockDateSubmit(Boolean(blockDateConflicts && blockDateConflicts.length > 0))}
                 disabled={blockDateLoading}
-                className="flex-1 py-3 rounded-xl bg-rose-600 text-white font-black text-xs hover:bg-rose-700 shadow-sm"
+                className="flex-1 py-3 rounded-xl bg-[#FF9F1C] text-[#171717] font-black text-xs hover:bg-[#FF9F1C] shadow-sm"
               >
                 {blockDateLoading
                   ? 'Processing...'

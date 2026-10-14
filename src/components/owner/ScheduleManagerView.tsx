@@ -89,66 +89,66 @@ export const ScheduleManagerView: React.FC<ScheduleManagerViewProps> = ({ salon,
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
-      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-2xs">
+      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-8 shadow-2xs">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center">
             <CalendarDays className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900">Unblock / Open Future Slots</h2>
-            <p className="text-slate-500 font-medium">Easily open slots for upcoming months using existing setups.</p>
+            <h2 className="text-2xl font-black text-[#171717]">Unblock / Open Future Slots</h2>
+            <p className="text-[rgba(23,23,23,0.70)] font-medium">Easily open slots for upcoming months using existing setups.</p>
           </div>
         </div>
 
         <div className="space-y-8">
           {/* Step 1: Source */}
-          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-            <label className="block text-sm font-bold text-slate-900 mb-2">1. Select existing date to copy slots from</label>
+          <div className="bg-[#FFFFFF] p-5 rounded-2xl border border-[rgba(23,23,23,0.12)]">
+            <label className="block text-sm font-bold text-[#171717] mb-2">1. Select existing date to copy slots from</label>
             <input 
               type="date" 
               value={sourceDate}
               onChange={(e) => setSourceDate(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all outline-none"
+              className="w-full bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-[#FF9F1C] focus:border-[#FF9F1C] transition-colors duration-150 outline-none"
             />
             
             {fetchingSlots ? (
-              <div className="mt-4 text-sm text-slate-500">Loading slots...</div>
+              <div className="mt-4 text-sm text-[rgba(23,23,23,0.70)]">Loading slots...</div>
             ) : sourceSlots.length > 0 ? (
               <div className="mt-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Existing Slot Setup ({sourceSlots.length} slots)</p>
+                <p className="text-xs font-bold text-[rgba(23,23,23,0.70)] uppercase tracking-wider mb-2">Existing Slot Setup ({sourceSlots.length} slots)</p>
                 <div className="flex flex-wrap gap-2">
                   {sourceSlots.slice(0, 8).map((slot, i) => (
-                    <div key={i} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg flex items-center gap-1">
+                    <div key={i} className="px-3 py-1.5 bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] text-xs font-bold rounded-lg flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {slot.startTime}
                     </div>
                   ))}
                   {sourceSlots.length > 8 && (
-                    <div className="px-3 py-1.5 bg-slate-100 text-slate-500 text-xs font-bold rounded-lg">
+                    <div className="px-3 py-1.5 bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] text-xs font-bold rounded-lg">
                       +{sourceSlots.length - 8} more
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="mt-4 text-sm text-rose-500 font-medium">No slots found on this date.</div>
+              <div className="mt-4 text-sm text-[#FF9F1C] font-medium">No slots found on this date.</div>
             )}
           </div>
 
           <div className="flex justify-center -my-4 relative z-10">
-            <div className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 shadow-sm">
+            <div className="w-10 h-10 bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] rounded-full flex items-center justify-center text-[rgba(23,23,23,0.70)] shadow-sm">
               <ArrowRight className="w-5 h-5 rotate-90" />
             </div>
           </div>
 
           {/* Step 2: Target */}
-          <div className="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100/50">
-            <label className="block text-sm font-bold text-slate-900 mb-2">2. Select future month to open</label>
+          <div className="bg-[rgba(255,159,28,0.15)] p-5 rounded-2xl border border-[rgba(23,23,23,0.12)]">
+            <label className="block text-sm font-bold text-[#171717] mb-2">2. Select future month to open</label>
             <input 
               type="month" 
               value={targetMonth}
               onChange={(e) => setTargetMonth(e.target.value)}
-              className="w-full bg-white border border-indigo-200 rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all outline-none"
+              className="w-full bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-[#FF9F1C] focus:border-[#FF9F1C] transition-colors duration-150 outline-none"
             />
           </div>
 
@@ -156,7 +156,7 @@ export const ScheduleManagerView: React.FC<ScheduleManagerViewProps> = ({ salon,
           <button 
             disabled={loading || !sourceDate || !targetMonth || sourceSlots.length === 0}
             onClick={handleApply}
-            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl font-black text-lg flex items-center justify-center gap-2 shadow-xl shadow-indigo-600/20 transition-all"
+            className="w-full py-4 bg-[#FF9F1C] hover:bg-[#FF9F1C] disabled:bg-[#FFFFFF] disabled:cursor-not-allowed text-[#171717] rounded-xl font-black text-lg flex items-center justify-center gap-2 shadow-xl shadow-xs transition-colors duration-150"
           >
             {loading ? 'Applying...' : 'Apply & Open Slots'}
             {!loading && <CheckCircle2 className="w-5 h-5" />}

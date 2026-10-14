@@ -221,7 +221,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
 
             <button
               onClick={() => setShowWizard(true)}
-              className="w-full py-4 rounded-2xl bg-[var(--qp-primary)] text-white font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm cursor-pointer"
+              className="w-full py-4 rounded-2xl bg-[var(--qp-primary)] text-[#171717] font-semibold text-base flex items-center justify-center gap-2 transition-opacity duration-150 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm cursor-pointer"
             >
               
               Start Setting Up My Business
@@ -262,7 +262,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
   if (salon && !isApprovedOrLive) {
     return (
       <div className="min-h-screen bg-[var(--qp-bg)] text-[var(--qp-text)] px-4 py-8 flex flex-col items-center">
-        <div className="w-full max-w-2xl space-y-6 transition-all duration-500 ease-out">
+        <div className="w-full max-w-2xl space-y-6 transition-colors duration-150 duration-500 ease-out">
           {/* Business Header Card */}
           <div className="ap-glass-card p-6 flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -307,7 +307,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
                   type="button"
                   onClick={handleSimulateApproval}
                   disabled={approving}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[var(--qp-primary)] text-white font-semibold text-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[var(--qp-primary)] text-[#171717] font-semibold text-sm transition-opacity duration-150 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   
                   <span>{approving ? 'Approving...' : 'Simulate Approval'}</span>
@@ -316,7 +316,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
                 <button
                   type="button"
                   onClick={() => setShowWizard(true)}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-text)] font-semibold text-sm hover:bg-white/40 transition-colors"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] text-[var(--qp-text)] font-semibold text-sm hover:bg-[rgba(23,23,23,0.05)] transition-colors"
                 >
                   Review Details
                 </button>
@@ -346,16 +346,16 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
         setActiveTab(id);
         if (id === 'notifications') markAllNotificationsRead();
       }}
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-sm font-medium transition-all duration-300 ease-out whitespace-nowrap cursor-pointer ${
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-[14px] text-sm font-medium transition-opacity duration-150 ease-out whitespace-nowrap cursor-pointer ${
         activeTab === id
           ? 'bg-[var(--qp-surface)] shadow-sm text-[var(--qp-text)]'
-          : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] hover:bg-black/5'
+          : 'text-[var(--qp-text-sec)] hover:text-[var(--qp-text)] hover:bg-[#171717]/5'
       }`}
     >
       <Icon className="w-4 h-4" />
       <span>{label}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="w-4 h-4 rounded-full bg-[var(--qp-primary)] text-white text-[10px] font-bold flex items-center justify-center">
+        <span className="w-4 h-4 rounded-full bg-[var(--qp-primary)] text-[#171717] text-[11px] font-bold flex items-center justify-center">
           {badge}
         </span>
       )}
@@ -404,8 +404,8 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
                           setSalon(s);
                           setIsShopSwitcherOpen(false);
                         }}
-                        className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-black/5 transition-colors ${
-                          s.id === salon!.id ? 'bg-black/5 font-semibold' : ''
+                        className={`w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#171717]/5 transition-colors ${
+                          s.id === salon!.id ? 'bg-[#171717]/5 font-semibold' : ''
                         }`}
                       >
                         <div className="min-w-0">
@@ -430,7 +430,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
             >
               <Bell className="w-5 h-5" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[var(--qp-bg)]"></span>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-[#FF9F1C] rounded-full border-2 border-[var(--qp-bg)]"></span>
               )}
             </button>
             <button
@@ -445,7 +445,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
             
             <button
               onClick={() => setIsScannerOpen(true)}
-              className="px-4 py-2.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] hover:bg-white/40 text-[var(--qp-text)] font-semibold text-sm shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2.5 rounded-2xl bg-[var(--qp-surface)] border border-[var(--qp-border)] hover:bg-[rgba(23,23,23,0.05)] text-[var(--qp-text)] font-semibold text-sm shadow-sm transition-colors duration-150 flex items-center gap-1.5 cursor-pointer"
             >
               <QrCode className="w-4 h-4" />
               <span className="hidden sm:inline">Scan Customer</span>
@@ -526,7 +526,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
 
       {/* ── Slot Detail Modal from Today's Slots ── */}
       {selectedSlotForDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#171717]/40">
           <div className="ap-glass-panel p-8 max-w-md w-full space-y-6 animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-4 border-b border-[var(--qp-border)]">
               <div>
@@ -555,10 +555,10 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
                 <span
                   className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                     selectedSlotForDetail.isBooked
-                      ? 'bg-rose-100 text-rose-700'
+                      ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                       : selectedSlotForDetail.isBlocked
-                      ? 'bg-black/10 text-[var(--qp-text)]'
-                      : 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-[#171717]/10 text-[var(--qp-text)]'
+                      : 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
                   }`}
                 >
                   {selectedSlotForDetail.isBooked ? 'Booked' : selectedSlotForDetail.isBlocked ? 'Blocked' : 'Available'}
@@ -595,7 +595,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
                   type="button"
                   onClick={handleCancelBookedSlotModal}
                   disabled={slotActionLoading}
-                  className="w-full py-3.5 rounded-2xl bg-rose-50 text-rose-600 font-semibold text-sm hover:bg-rose-100 transition-colors"
+                  className="w-full py-3.5 rounded-2xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] font-semibold text-sm hover:bg-[rgba(255,159,28,0.15)] transition-colors"
                 >
                   {slotActionLoading ? 'Processing...' : 'Cancel Booking & Process Refund'}
                 </button>
@@ -606,7 +606,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({ initialSalon, on
                     setSelectedSlotForDetail(null);
                     setActiveTab('slots');
                   }}
-                  className="w-full py-3.5 rounded-2xl bg-[var(--qp-primary)] text-white font-semibold text-sm transition-all duration-300 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm"
+                  className="w-full py-3.5 rounded-2xl bg-[var(--qp-primary)] text-[#171717] font-semibold text-sm transition-opacity duration-150 ease-out hover:scale-[1.02] hover:opacity-90 shadow-sm"
                 >
                   Manage in Slots Calendar
                 </button>
