@@ -185,6 +185,7 @@ export function App() {
     <AuthProvider>
       <QueueProvider>
         <QbiProvider>
+          <div className="q-ambient" aria-hidden="true" />
           <MobileFrameWrapper>
             <AppContent />
           </MobileFrameWrapper>
