@@ -125,12 +125,12 @@ function AppContent() {
 
   if (isAdminPath && currentRole !== 'admin') {
     return withIntro(
-      <div className="min-h-screen grid place-items-center bg-[#FFF4E8] px-5 text-center text-[#0B0B0B]">
-        <div className="ap-glass-panel max-w-md p-8 border border-[#0B0B0B]">
+      <div className="min-h-screen grid place-items-center bg-[var(--q-canvas-soft)] px-5 text-center text-[var(--q-ink)]">
+        <div className="q-card max-w-md p-8 border border-[var(--q-hairline)]">
           <QGoLogo size="lg" className="mx-auto mb-5" />
           <h1 className="text-2xl font-bold">Admin access restricted</h1>
-          <p className="mt-3 text-sm text-[rgba(11,11,11,0.70)]">Admin access is restricted to the authorized QGo administrator.</p>
-          <button className="btn-primary mt-6" onClick={() => { logout(); setPage('login'); }}>Sign in with another account</button>
+          <p className="mt-3 text-sm text-[var(--q-muted)]">Admin access is restricted to the authorized QGo administrator.</p>
+          <button className="q-btn-primary mt-6" onClick={() => { logout(); setPage('login'); }}>Sign in with another account</button>
         </div>
       </div>
     );
@@ -140,7 +140,7 @@ function AppContent() {
   return withIntro(
     <>
       {currentRole === 'owner' ? (
-        <div className="min-h-screen flex flex-col font-sans" style={{ background: '#FFF4E8', color: '#0B0B0B' }}>
+        <div className="min-h-screen flex flex-col font-sans bg-[var(--q-canvas-soft)] text-[var(--q-ink)]">
           <main className="flex-1">
             <OwnerDashboard
               onBackToLanding={() => {

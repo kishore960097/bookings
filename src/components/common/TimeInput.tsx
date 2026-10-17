@@ -157,8 +157,8 @@ function Drum<T>({
               style={{ height: ITEM_H, scrollSnapAlign: 'center' }}
               className={`flex items-center justify-center cursor-pointer transition-colors duration-150 duration-150
                 ${isSelected
-                  ? 'text-[#0B0B0B] font-black text-3xl tracking-tight'
-                  : 'text-[#6B665F] font-bold text-xl'
+                  ? 'text-[var(--q-ink)] font-black text-3xl tracking-tight'
+                  : 'text-[var(--q-muted)] font-bold text-xl'
                 }`}
               onClick={() => commitIndex(i)}
             >
@@ -192,8 +192,8 @@ function Drum<T>({
         style={{
           top: padTop,
           height: ITEM_H,
-          borderTop: '1px solid rgba(11,11,11,0.12)',
-          borderBottom: '1px solid rgba(11,11,11,0.12)',
+          borderTop: '1px solid var(--q-hairline)',
+          borderBottom: '1px solid var(--q-hairline)',
         }}
       />
     </div>
@@ -227,27 +227,27 @@ function DrumTimePickerModal({ value, onChange, onClose }: DrumTimePickerProps) 
       className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-[#0B0B0B]/50" />
+      <div className="absolute inset-0 bg-[var(--q-scrim-bg)] backdrop-blur-[8px]" />
       <div
-        className="relative w-full max-w-sm bg-[#FFFFFF] sm:rounded-[32px] rounded-t-[32px] shadow-lg pb-safe overflow-hidden border border-[#0B0B0B] m-0 sm:m-4"
+        className="relative w-full max-w-sm bg-[var(--q-canvas)] sm:rounded-[20px] rounded-t-[20px] shadow-[0_1px_2px_rgba(23,23,23,0.06),0_8px_24px_rgba(23,23,23,0.06)] pb-safe overflow-hidden border border-[var(--q-hairline)] m-0 sm:m-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-12 h-1.5 rounded-full bg-[rgba(11,11,11,0.12)]" />
+          <div className="w-12 h-1.5 rounded-full bg-[var(--q-hairline)]" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4">
           <button
             onClick={onClose}
-            className="text-base font-semibold text-[#6B665F] hover:text-[#0B0B0B] transition-colors"
+            className="text-base font-semibold text-[var(--q-muted)] hover:text-[var(--q-ink)] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="text-base font-bold text-[#E8342A] hover:opacity-80 transition-colors"
+            className="text-base font-bold text-[var(--q-red-action)] hover:text-[var(--q-red-pressed)] transition-colors"
           >
             Done
           </button>

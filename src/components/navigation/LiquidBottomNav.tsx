@@ -45,7 +45,7 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
     >
       {/* ── Floating Capsule Bottom Bar (Image 1 Style) ── */}
       <nav
-        className="relative w-full h-[70px] bg-white rounded-full px-2 py-1.5 flex items-center justify-between border border-black/[0.08] shadow-[0_12px_36px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.04)] select-none"
+        className="relative w-full h-[70px] q-glass-frosted rounded-full px-2 py-1.5 flex items-center justify-between border border-[var(--q-hairline)] shadow-[0_1px_2px_rgba(23,23,23,0.06),0_8px_24px_rgba(23,23,23,0.06)] select-none"
         role="tablist"
         aria-label="Navigation Tabs"
       >
@@ -73,14 +73,14 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                         onTabChange(tab.id);
                       }
                     }}
-                    className="relative z-20 flex-1 h-full min-w-0 flex flex-col items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded-full select-none"
+                    className="relative z-20 flex-1 h-full min-w-0 flex flex-col items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--q-red)] rounded-full select-none"
                   >
                     {/* Black squircle as in Image 2 */}
-                    <div className="w-11 h-11 -mt-3.5 rounded-[16px] bg-[#000000] text-white flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.30)] active:shadow-xs transition-shadow">
+                    <div className="w-11 h-11 -mt-3.5 rounded-[16px] bg-[var(--q-red-action)] text-white flex items-center justify-center shadow-[0_4px_14px_rgba(214,46,40,0.35)] active:bg-[var(--q-red-pressed)] transition-colors">
                       <Plus size={22} strokeWidth={2.8} className="text-white" />
                     </div>
                     {/* "Add" label underneath */}
-                    <span className="text-[11px] tracking-tight leading-normal font-bold text-[#000000] mt-0.5">
+                    <span className="text-[11px] tracking-tight leading-normal font-bold text-[var(--q-ink)] mt-0.5">
                       {tab.label}
                     </span>
                   </motion.button>
@@ -98,13 +98,13 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                   whileTap={{ scale: 0.92 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                   onClick={() => onTabChange(tab.id)}
-                  className="relative z-10 flex-1 h-full min-w-0 flex flex-col items-center justify-center py-1 px-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded-full select-none"
+                  className="relative z-10 flex-1 h-full min-w-0 flex flex-col items-center justify-center py-1 px-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--q-red)] rounded-full select-none"
                 >
                   {/* ── iPhone-Style Smooth Gliding Active Pill (Orange Capsule from Image 1) ── */}
                   {isTabActive && (
                     <motion.div
                       layoutId="activeTabPill"
-                      className="absolute inset-x-1 inset-y-1 sm:inset-x-1.5 sm:inset-y-1 bg-[#FFA012] rounded-full shadow-[0_3px_12px_rgba(255,160,18,0.38)] -z-0 pointer-events-none"
+                      className="absolute inset-x-1 inset-y-1 sm:inset-x-1.5 sm:inset-y-1 bg-[var(--q-red-wash)] rounded-full border border-[rgba(232,52,42,0.15)] -z-0 pointer-events-none"
                       transition={{
                         type: 'spring',
                         stiffness: 450,
@@ -115,14 +115,14 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                   )}
 
                   {/* Icon */}
-                  <div className="relative z-10 flex items-center justify-center text-[#000000] mb-0.5">
+                  <div className={`relative z-10 flex items-center justify-center mb-0.5 ${isTabActive ? 'text-[var(--q-red)]' : 'text-[var(--q-muted)]'}`}>
                     <Icon size={20} strokeWidth={isTabActive ? 2.4 : 2.0} />
                   </div>
 
                   {/* Label */}
                   <span
-                    className={`relative z-10 text-[11px] tracking-tight leading-normal text-[#000000] truncate max-w-full px-0.5 ${
-                      isTabActive ? 'font-bold' : 'font-semibold'
+                    className={`relative z-10 text-[11px] tracking-tight leading-normal truncate max-w-full px-0.5 ${
+                      isTabActive ? 'font-bold text-[var(--q-red)]' : 'font-semibold text-[var(--q-muted)]'
                     }`}
                   >
                     {tab.label}

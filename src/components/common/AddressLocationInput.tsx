@@ -145,14 +145,14 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
   return (
     <div className="relative" ref={containerRef}>
       <div className="flex items-center justify-between mb-1">
-        <label className="block text-xs font-bold uppercase tracking-wider text-[#6B665F]">
+        <label className="block text-xs font-bold uppercase tracking-wider text-[var(--q-muted)]">
           Address &amp; Location *
         </label>
         <button
           type="button"
           onClick={handleUseCurrentLocation}
           disabled={isLocating}
-          className="text-[11px] font-bold text-[#E8342A] hover:opacity-80 flex items-center gap-1 transition-colors disabled:opacity-50"
+          className="text-[11px] font-bold text-[var(--q-red-action)] hover:text-[var(--q-red-pressed)] flex items-center gap-1 transition-colors disabled:opacity-50"
         >
           {isLocating ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -176,12 +176,12 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
           }}
           placeholder={placeholder}
           required={required}
-          className="w-full px-4 py-3 pr-10 rounded-xl border border-[rgba(11,11,11,0.12)] focus:outline-none focus:ring-2 focus:ring-[#0B0B0B] font-semibold text-[#0B0B0B] bg-[#FFFFFF]"
+          className="w-full px-4 py-3 pr-10 rounded-[8px] border border-[var(--q-hairline)] focus:outline-none focus:ring-2 focus:ring-[var(--q-red)] font-semibold text-[var(--q-ink)] bg-[var(--q-canvas)]"
         />
 
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B665F]">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--q-muted)]">
           {isSearching ? (
-            <Loader2 className="w-4 h-4 animate-spin text-[#0B0B0B]" />
+            <Loader2 className="w-4 h-4 animate-spin text-[var(--q-ink)]" />
           ) : (
             <MapPin className="w-4 h-4" />
           )}
@@ -189,15 +189,15 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
       </div>
 
       {locationError && (
-        <p className="text-[11px] font-semibold text-[#B3261E] mt-1 bg-[rgba(179,38,30,0.10)] px-2.5 py-1 rounded-lg border border-[rgba(179,38,30,0.20)]">
+        <p className="text-[11px] font-semibold text-[var(--q-error)] mt-1 bg-[rgba(179,38,30,0.12)] px-2.5 py-1 rounded-lg border border-[rgba(179,38,30,0.20)]">
           {locationError}
         </p>
       )}
 
       {/* Autocomplete Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#FFFFFF] rounded-2xl shadow-xl border border-[#0B0B0B] z-50 overflow-hidden divide-y divide-[rgba(11,11,11,0.06)] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-3 py-1.5 bg-[#FFFFFF] text-[11px] font-bold uppercase tracking-wider text-[#6B665F]">
+        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[var(--q-canvas)] rounded-[14px] shadow-[0_8px_24px_rgba(23,23,23,0.10)] border border-[var(--q-hairline)] z-50 overflow-hidden divide-y divide-[var(--q-hairline)] max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+          <div className="px-3 py-1.5 bg-[var(--q-canvas-soft)] text-[11px] font-bold uppercase tracking-wider text-[var(--q-muted)]">
             Suggested Locations
           </div>
           {suggestions.map((item) => (
@@ -205,9 +205,9 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
               key={item.placeId}
               type="button"
               onClick={() => handleSelectSuggestion(item)}
-              className="w-full px-3.5 py-2.5 text-left flex items-start gap-2.5 hover:bg-[rgba(11,11,11,0.05)] transition-colors text-xs text-[#0B0B0B]"
+              className="w-full px-3.5 py-2.5 text-left flex items-start gap-2.5 hover:bg-[var(--q-canvas-soft)] transition-colors text-xs text-[var(--q-ink)]"
             >
-              <MapPin className="w-4 h-4 text-[#E8342A] shrink-0 mt-0.5" />
+              <MapPin className="w-4 h-4 text-[var(--q-red)] shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <span className="font-semibold block leading-tight">{item.displayName}</span>
               </div>

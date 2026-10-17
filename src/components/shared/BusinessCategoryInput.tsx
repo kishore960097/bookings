@@ -130,14 +130,14 @@ export const BusinessCategoryInput: React.FC<BusinessCategoryInputProps> = ({
   return (
     <div className={`space-y-1.5 ${className}`}>
       <div className="flex items-center justify-between">
-        <label className="block text-xs font-bold uppercase tracking-wider text-[#6B665F]">
-          {label} {required && <span className="text-[#E8342A]">*</span>}
+        <label className="block text-xs font-bold uppercase tracking-wider text-[var(--q-muted)]">
+          {label} {required && <span className="text-[var(--q-red)]">*</span>}
         </label>
         {isCustomMode ? (
           <button
             type="button"
             onClick={handleBackToPresets}
-            className="text-[11px] font-bold text-[#E8342A] hover:opacity-80 transition-colors flex items-center gap-1"
+            className="text-[11px] font-bold text-[var(--q-red-action)] hover:text-[var(--q-red-pressed)] transition-colors flex items-center gap-1"
           >
             <span>Choose from Presets</span>
           </button>
@@ -148,7 +148,7 @@ export const BusinessCategoryInput: React.FC<BusinessCategoryInputProps> = ({
               setIsCustomMode(true);
               setCustomText(value || '');
             }}
-            className="text-[11px] font-bold text-[#E8342A] hover:opacity-80 transition-colors flex items-center gap-1"
+            className="text-[11px] font-bold text-[var(--q-red-action)] hover:text-[var(--q-red-pressed)] transition-colors flex items-center gap-1"
           >
             <Plus size={12} />
             <span>Type Custom Category</span>
@@ -162,7 +162,7 @@ export const BusinessCategoryInput: React.FC<BusinessCategoryInputProps> = ({
             value={value || 'Barber Shop'}
             onChange={handleSelectChange}
             required={required}
-            className="w-full px-4 py-3 rounded-xl border border-[rgba(11,11,11,0.12)] focus:outline-none focus:ring-2 focus:ring-[#0B0B0B] font-semibold text-[#0B0B0B] bg-[#FFF4E8] appearance-none cursor-pointer pr-10 text-sm shadow-sm"
+            className="w-full px-4 py-3 rounded-[8px] border border-[var(--q-hairline)] focus:outline-none focus:ring-2 focus:ring-[var(--q-red)] font-semibold text-[var(--q-ink)] bg-[var(--q-canvas)] appearance-none cursor-pointer pr-10 text-sm shadow-xs"
           >
             {DEFAULT_BUSINESS_CATEGORIES.map((catGroup) => (
               <optgroup key={catGroup.group} label={catGroup.group}>
@@ -177,7 +177,7 @@ export const BusinessCategoryInput: React.FC<BusinessCategoryInputProps> = ({
               <option value="__CUSTOM__">✍️ + Type Custom Business Category...</option>
             </optgroup>
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#6B665F]">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--q-muted)]">
             <ChevronDown size={18} />
           </div>
         </div>
@@ -191,13 +191,13 @@ export const BusinessCategoryInput: React.FC<BusinessCategoryInputProps> = ({
               placeholder="e.g. Ayurvedic Panchakarma Clinic, Pet Spa & Care, Tattoo Studio..."
               required={required}
               autoFocus
-              className="w-full px-4 py-3 rounded-xl border-2 border-[#0B0B0B] focus:outline-none focus:ring-2 focus:ring-[#0B0B0B] font-semibold text-[#0B0B0B] bg-[#FFFFFF] pr-10 text-sm"
+              className="w-full px-4 py-3 rounded-[8px] border border-[var(--q-hairline)] focus:outline-none focus:ring-2 focus:ring-[var(--q-red)] font-semibold text-[var(--q-ink)] bg-[var(--q-canvas)] pr-10 text-sm"
             />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#0B0B0B]">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--q-muted)]">
               <Edit3 size={16} />
             </div>
           </div>
-          <p className="text-[11px] text-[#6B665F] flex items-center gap-1">
+          <p className="text-[11px] text-[var(--q-muted)] flex items-center gap-1">
             
             <span>Type any custom business or service category. Customers can search and filter by it.</span>
           </p>
