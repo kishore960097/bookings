@@ -29,6 +29,14 @@ function AppContent() {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const handleIntroDone = React.useCallback(() => setIsIntroComplete(true), []);
 
+  // Hard fallback: if session loading hangs for more than 6 s, unblock the intro.
+  const [introReadyFallback, setIntroReadyFallback] = useState(false);
+  React.useEffect(() => {
+    const t = window.setTimeout(() => setIntroReadyFallback(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
+  const introReady = !isLoadingSession || introReadyFallback;
+
   // Page routing — landing for unauthenticated, app for authenticated
   const [page, setPage] = useState<AppPage>(user ? 'app' : isAdminPath ? 'login' : 'landing');
 
@@ -43,7 +51,7 @@ function AppContent() {
       <div aria-hidden={!isIntroComplete} inert={!isIntroComplete}>
         {content}
       </div>
-      {!isIntroComplete && <QGoIntro ready={!isLoadingSession} onDone={handleIntroDone} />}
+      {!isIntroComplete && <QGoIntro ready={introReady} onDone={handleIntroDone} />}
     </>
   );
 

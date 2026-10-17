@@ -73,9 +73,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Safety: always resolve loading within 5 s regardless of Firebase state.
+    const safetyTimer = window.setTimeout(() => {
+      setIsLoadingSession(false);
+    }, 5000);
+
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
-        await firebaseAuthReady;
+        // Wait for persistence to be configured, but don't let it block forever.
+        await Promise.race([
+          firebaseAuthReady,
+          new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+        ]);
+
         let tokenToVerify = localStorage.getItem(TOKEN_KEY);
         if (firebaseUser) {
           tokenToVerify = await firebaseUser.getIdToken();
@@ -99,11 +109,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (err) {
         console.error('Session validation error:', err);
       } finally {
+        clearTimeout(safetyTimer);
         setIsLoadingSession(false);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(safetyTimer);
+      unsubscribe();
+    };
   }, []);
 
   // Removed destructive useEffect[user]
