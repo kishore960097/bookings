@@ -41,7 +41,7 @@ const MiniQR: React.FC<{ size?: number }> = ({ size = 80 }) => (
         <div
           key={`${ri}-${ci}`}
           style={{
-            background: cell ? '#0B0B0B' : 'transparent',
+            background: cell ? '#171717' : 'transparent',
             borderRadius: 1,
           }}
         />
@@ -114,8 +114,10 @@ const Navbar: React.FC<{ onSignIn: () => void; onGetStarted: () => void }> = ({ 
         scrolled ? ' border-b' : ''
       }`}
       style={{
-        background: scrolled ? 'rgba(255,255,255,0.92)' : 'transparent',
-        borderColor: scrolled ? 'var(--qp-border)' : 'transparent',
+        background: scrolled ? 'rgba(255,255,255,0.72)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(180%)' : 'none',
+        borderColor: scrolled ? 'var(--q-hairline)' : 'transparent',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -216,7 +218,7 @@ const HeroBookingCard: React.FC = () => (
     {/* Floating mini cards — back layer (hidden on very narrow screens to prevent overflow) */}
     <div
       className="hidden sm:block absolute top-8 -left-4 glass rounded-2xl p-3 shadow-xl"
-      style={{ width: 150, animationDelay: '0s', border: '1px solid #0B0B0B' }}
+      style={{ width: 150, animationDelay: '0s', border: '1px solid var(--q-hairline)' }}
     >
       <div className="flex items-center gap-2 mb-2">
         <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--qp-success-soft)' }}>
@@ -233,7 +235,7 @@ const HeroBookingCard: React.FC = () => (
 
     <div
       className="hidden sm:block absolute top-4 -right-2 glass rounded-2xl p-3 shadow-xl"
-      style={{ width: 140, animationDelay: '1s', border: '1px solid #0B0B0B' }}
+      style={{ width: 140, animationDelay: '1s', border: '1px solid var(--q-hairline)' }}
     >
       <div className="flex items-center gap-1.5 mb-1">
         <MapPin size={11} color="var(--qp-accent)" />
@@ -251,21 +253,21 @@ const HeroBookingCard: React.FC = () => (
         maxWidth: 280,
         top: 20,
         background: 'linear-gradient(145deg, var(--qp-surface-el) 0%, var(--qp-surface) 100%)',
-        border: '1px solid #0B0B0B',
+        border: '1px solid var(--q-hairline)',
       }}
     >
       {/* Card Header */}
-      <div className="p-4 sm:p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
+      <div className="p-4 sm:p-5" style={{ background: 'linear-gradient(135deg, var(--q-ink) 0%, #262626 100%)' }}>
         <div className="flex items-center justify-between mb-3">
           <QGoLogo size="sm" />
           <div
             className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}
+            style={{ background: 'rgba(232,52,42,0.20)', color: '#FFFFFF' }}
           >
             LIVE QUEUE
           </div>
         </div>
-        <div className="text-[#FFF4E8]">
+        <div className="text-white">
           <div className="text-xs font-medium opacity-75 mb-0.5">Apex Diagnostic Lab</div>
           <div className="text-2xl sm:text-3xl font-black tracking-tight">#A042</div>
         </div>
@@ -589,19 +591,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <div>
               <div
                 className="rounded-3xl overflow-hidden shadow-lg max-w-sm mx-auto"
-                style={{ background: '#FFFFFF', border: '1px solid #0B0B0B' }}
+                style={{ background: '#FFFFFF', border: '1px solid var(--q-hairline)' }}
               >
                 {/* Header */}
-                <div className="p-5" style={{ background: 'linear-gradient(135deg, #0B0B0B 0%, #262626 100%)' }}>
+                <div className="p-5" style={{ background: 'linear-gradient(135deg, var(--q-ink) 0%, #262626 100%)' }}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[#FFF4E8] font-semibold text-sm">City Medical Clinic</span>
+                    <span className="text-white font-semibold text-sm">City Medical Clinic</span>
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold"
-                      style={{ background: 'rgba(232,52,42,0.20)', color: '#FFF4E8' }}>
+                      style={{ background: 'rgba(232,52,42,0.20)', color: '#FFFFFF' }}>
                       <div className="w-1.5 h-1.5 rounded-full bg-[#E8342A] animate-pulse" />
                       LIVE
                     </div>
                   </div>
-                  <div className="text-[#FFF4E8]/70 text-xs">General Medicine · Dr. Priya S.</div>
+                  <div className="text-white/70 text-xs">General Medicine · Dr. Priya S.</div>
                 </div>
 
                 <div className="p-5 space-y-4">
@@ -646,7 +648,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                     <div className="rounded-full overflow-hidden" style={{ height: 8, background: 'var(--qp-border)' }}>
                       <div
                         className="h-full rounded-full animate-progress"
-                        style={{ background: 'linear-gradient(90deg, #0B0B0B, var(--qp-accent))' }}
+                        style={{ background: 'linear-gradient(90deg, var(--q-red-action), var(--q-red))' }}
                       />
                     </div>
                   </div>
@@ -816,7 +818,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             className="rounded-3xl p-12 lg:p-16 relative overflow-hidden"
             style={{
               background: 'linear-gradient(135deg, var(--qp-primary-soft) 0%, var(--qp-surface-el) 60%)',
-              border: '1px solid #0B0B0B',
+              border: '1px solid var(--q-hairline)',
             }}
           >
             <div
