@@ -55,4 +55,4 @@ try {
   storage = {} as FirebaseStorage;
 }
 
-export { app, auth, firebaseAuthReady, db, storage };
+export { app, auth, firebaseAuthReady, db, storage, isFirebaseConfigured };

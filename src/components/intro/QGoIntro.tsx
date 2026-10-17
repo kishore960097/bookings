@@ -91,11 +91,14 @@ function computeLayout(W: number, H: number) {
   const aspect = W / H;
   let Wf: number, M: number;
   if (W > H) {
-    Wf = Math.min(0.38 * W, 0.74 * H); M = 1.8;
+    Wf = Math.min(0.32 * W, 0.45 * H);
+    M = 1.0;
   } else if (aspect > 0.6) {
-    Wf = 0.62 * W; M = 1.15;
+    Wf = 0.62 * W;
+    M = 1.15;
   } else {
-    Wf = 0.72 * W; M = 1.0;
+    Wf = 0.72 * W;
+    M = 1.0;
   }
   const sf = Wf / introTimeline.vb.w;
   const cx = W / 2;
@@ -136,6 +139,8 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
   const doneRef   = useRef(false);
   const recordedRef = useRef(false);
   const elapsedRef  = useRef(0);
+  const onDoneRef   = useRef(onDone);
+  onDoneRef.current = onDone;
 
   const [variant] = useState<IntroVariant>(() => resolveIntroVariant({
     search: window.location.search,
@@ -366,7 +371,9 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
     let exiting        = false;
     let forceFinal     = false;
 
-    const frozen = new URLSearchParams(window.location.search).get('t');
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasDebugFlag = searchParams.get('introDebug') === '1';
+    const frozen = (import.meta.env.DEV && hasDebugFlag) ? searchParams.get('t') : null;
     const frozenTime = frozen && Number.isFinite(Number(frozen)) ? Math.max(0, Number(frozen)) : null;
     const minimum    = variant === 'full' ? introTimeline.duration.full
                      : variant === 'short' ? introTimeline.duration.short
@@ -376,25 +383,30 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
     const finish = () => {
       if (doneRef.current) return;
       doneRef.current = true;
-      onDone();
+      onDoneRef.current();
     };
 
     const beginExit = () => {
       if (exiting) return;
       exiting = true;
       stageRef.current?.classList.add('qgo-intro--exiting');
+      window.clearTimeout(exitTimer);
       exitTimer = window.setTimeout(finish, exitDuration);
     };
 
+    // Hard fallback: intro must always exit within timeout
+    exitTimer = window.setTimeout(beginExit, introTimeline.duration.timeout);
+
     const skip = () => {
-      if (elapsedRef.current < 800 || exiting) return;
+      if (elapsedRef.current < 400 || exiting) return;
       forceFinal = true;
-      if (readyRef.current) beginExit();
+      beginExit();
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
-        e.preventDefault(); skip();
+        e.preventDefault();
+        skip();
       }
     };
 

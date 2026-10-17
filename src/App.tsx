@@ -29,10 +29,10 @@ function AppContent() {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const handleIntroDone = React.useCallback(() => setIsIntroComplete(true), []);
 
-  // Hard fallback: if session loading hangs for more than 6 s, unblock the intro.
+  // Hard fallback: if session loading hangs for more than 4 s, unblock the intro.
   const [introReadyFallback, setIntroReadyFallback] = useState(false);
   React.useEffect(() => {
-    const t = window.setTimeout(() => setIntroReadyFallback(true), 6000);
+    const t = window.setTimeout(() => setIntroReadyFallback(true), 4000);
     return () => clearTimeout(t);
   }, []);
   const introReady = !isLoadingSession || introReadyFallback;

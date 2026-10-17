@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useTrans
 import { User, UserRole, Language } from '../types';
 import { translations } from '../i18n';
 import { api, AUTH_TOKEN_KEY } from '../services/api';
-import { auth, firebaseAuthReady } from '../lib/firebase';
+import { auth, firebaseAuthReady, isFirebaseConfigured } from '../lib/firebase';
 import {
   ConfirmationResult,
   GoogleAuthProvider,
@@ -73,10 +73,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Safety: always resolve loading within 5 s regardless of Firebase state.
+    if (!isFirebaseConfigured) {
+      setIsLoadingSession(false);
+      return;
+    }
+
+    // Safety: always resolve loading within 3 s regardless of Firebase state.
     const safetyTimer = window.setTimeout(() => {
       setIsLoadingSession(false);
-    }, 5000);
+    }, 3000);
 
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
