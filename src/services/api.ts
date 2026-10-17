@@ -29,57 +29,15 @@ function authHeaders(includeJson = true): HeadersInit {
 
 export const api = {
   // Auth
-  async requestOtp(phone: string): Promise<{ success: boolean; message: string; devOtp?: string; error?: string }> {
+  async loginWithFirebase(
+    idToken: string,
+    requestedRole?: 'consumer' | 'owner'
+  ): Promise<{ success: boolean; user?: User; error?: string; code?: string }> {
     try {
-      const res = await fetch(`${API_BASE}/auth/otp/request`, {
+      const res = await fetch(`${API_BASE}/auth/firebase/session`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      return await res.json();
-    } catch (e: any) {
-      return { success: false, message: e?.message || 'Network error', error: e?.message };
-    }
-  },
-
-  async verifyOtp(phone: string, otp: string, name?: string): Promise<{ success: boolean; user?: User; token?: string; error?: string }> {
-    try {
-      const res = await fetch(`${API_BASE}/auth/otp/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp, name }),
-      });
-      return await res.json();
-    } catch (e: any) {
-      return { success: false, error: e?.message || 'Network error' };
-    }
-  },
-
-  async loginWithGoogle(
-    credential: string,
-    requestedRole: string,
-    accessToken?: string,
-    name?: string,
-    picture?: string
-  ): Promise<{ success: boolean; user?: User; token?: string; error?: string; code?: string }> {
-    try {
-      const res = await fetch(`${API_BASE}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential, accessToken, requestedRole, name, picture }),
-      });
-      return await res.json();
-    } catch (e: any) {
-      return { success: false, error: e?.message || 'Network error' };
-    }
-  },
-
-  async loginAsDemo(role: 'consumer' | 'owner'): Promise<{ success: boolean; user?: User; token?: string; error?: string }> {
-    try {
-      const res = await fetch(`${API_BASE}/auth/demo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify({ requestedRole }),
       });
       return await res.json();
     } catch (e: any) {
@@ -100,7 +58,7 @@ export const api = {
     }
   },
 
-  async switchRole(role: 'consumer' | 'owner'): Promise<{ success: boolean; user?: User; token?: string; error?: string }> {
+  async switchRole(role: 'consumer' | 'owner'): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
       const res = await fetch(`${API_BASE}/auth/switch-role`, {
         method: 'POST',

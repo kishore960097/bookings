@@ -246,11 +246,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
     setOtpLoading(true);
     setError(null);
     try {
-      const res = await loginWithOtp(otpPhone.trim(), otpCode.trim(), otpName.trim() || undefined);
+      const res = await loginWithOtp(otpPhone.trim(), otpCode.trim(), otpName.trim() || undefined, role);
       if (res.success) {
-        if (role === 'owner') {
-          await switchRole('owner');
-        }
         onSuccess?.();
       } else {
         setError({ message: res.error || 'OTP verification failed.' });

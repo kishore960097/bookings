@@ -139,14 +139,7 @@ function AppContent() {
   // ─── Main App (Authenticated) ───
   return withIntro(
     <>
-      {currentRole === 'consumer' && (
-        <CustomerPage
-          onOpenNotifications={() => setIsNotificationOpen(true)}
-          onLogout={logout}
-        />
-      )}
-
-      {currentRole === 'owner' && (
+      {currentRole === 'owner' ? (
         <div className="min-h-screen flex flex-col font-sans" style={{ background: '#FFF4E8', color: '#0B0B0B' }}>
           <main className="flex-1">
             <OwnerDashboard
@@ -157,10 +150,16 @@ function AppContent() {
             />
           </main>
         </div>
-      )}
-
-      {currentRole === 'admin' && (
+      ) : currentRole === 'admin' ? (
         <AdminDashboard />
+      ) : (
+        <CustomerPage
+          onOpenNotifications={() => setIsNotificationOpen(true)}
+          onLogout={() => {
+            logout();
+            setPage('landing');
+          }}
+        />
       )}
 
       {/* Global Modals & Drawers */}

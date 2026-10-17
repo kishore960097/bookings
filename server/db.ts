@@ -13,10 +13,12 @@ import {
 } from '../src/types';
 import { adminDb } from './firebaseAdmin';
 import { buildQueueKey, buildSlotKey } from './keys';
+import crypto from 'crypto';
 
 // Write-through cache map that persists to Firestore
 class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
   public collectionName: string;
+  private readonly proxies = new Map<K, V>();
 
   constructor(collectionName: string) {
     super();
@@ -32,11 +34,13 @@ class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
       console.log(`[DB] Loaded ${snap.size} items from ${this.collectionName}`);
     } catch (err) {
       console.error(`[DB Error] Failed to load ${this.collectionName}:`, err);
+      throw err;
     }
   }
 
   set(key: K, value: V): this {
     super.set(key, value);
+    this.proxies.delete(key);
     adminDb.collection(this.collectionName).doc(key).set(value).catch(err => {
       console.error(`[Firestore Error] Failed to save ${this.collectionName}/${key}:`, err);
     });
@@ -45,6 +49,7 @@ class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
 
   delete(key: K): boolean {
     const existed = super.delete(key);
+    this.proxies.delete(key);
     if (existed) {
       adminDb.collection(this.collectionName).doc(key).delete().catch(err => {
         console.error(`[Firestore Error] Failed to delete ${this.collectionName}/${key}:`, err);
@@ -55,6 +60,7 @@ class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
 
   clear(): void {
     super.clear();
+    this.proxies.clear();
     adminDb.collection(this.collectionName).get().then(snap => {
       const batch = adminDb.batch();
       snap.docs.forEach(doc => batch.delete(doc.ref));
@@ -62,6 +68,59 @@ class FirestoreBackedMap<K extends string, V> extends Map<K, V> {
     }).catch(err => {
       console.error(`[Firestore Error] Failed to clear ${this.collectionName}:`, err);
     });
+  }
+
+  cache(key: K, value: V): void {
+    super.set(key, value);
+    this.proxies.delete(key);
+  }
+
+  get(key: K): V | undefined {
+    const value = super.get(key);
+    if (!value || typeof value !== 'object') return value;
+
+    const existingProxy = this.proxies.get(key);
+    if (existingProxy) return existingProxy;
+
+    const seen = new WeakMap<object, object>();
+    const persist = () => {
+      adminDb.collection(this.collectionName).doc(key).set(value).catch(err => {
+        console.error(`[Firestore Error] Failed to save ${this.collectionName}/${key}:`, err);
+      });
+    };
+    const wrap = (target: any): any => {
+      if (!target || typeof target !== 'object') return target;
+      const cached = seen.get(target);
+      if (cached) return cached;
+      const proxy = new Proxy(target, {
+        get(object, property, receiver) {
+          return wrap(Reflect.get(object, property, receiver));
+        },
+        set(object, property, nextValue, receiver) {
+          const result = Reflect.set(object, property, nextValue, receiver);
+          persist();
+          return result;
+        },
+        deleteProperty(object, property) {
+          const result = Reflect.deleteProperty(object, property);
+          persist();
+          return result;
+        },
+      });
+      seen.set(target, proxy);
+      return proxy;
+    };
+
+    const proxy = wrap(value) as V;
+    this.proxies.set(key, proxy);
+    return proxy;
+  }
+
+  *values(): IterableIterator<V> {
+    for (const key of super.keys()) {
+      const value = this.get(key);
+      if (value !== undefined) yield value;
+    }
   }
 }
 
@@ -215,11 +274,89 @@ class QGoDatabase {
     return true;
   }
 
-  public releaseSlotLock(salonId: string, staffId: string, date: string, time: string, customerId: string): void {
+  public releaseSlotLock(salonId: string, staffId: string, date: string, time: string, customerId?: string): void {
     const key = buildSlotKey(salonId, staffId, date, time);
-    if (this.slotLocks.get(key) === customerId) {
+    if (!customerId || this.slotLocks.get(key) === customerId) {
       this.slotLocks.delete(key);
     }
+  }
+
+  public async createBookingWithSlotReservation(
+    booking: Booking,
+    staffOrResourceId: string
+  ): Promise<boolean> {
+    if (!booking.scheduledDate || !booking.scheduledTime) return false;
+
+    const startMinutes = this.timeToMinutes(booking.scheduledTime);
+    const endMinutes = booking.slotEndTime
+      ? this.timeToMinutes(booking.slotEndTime)
+      : startMinutes + booking.serviceDuration;
+    const duration = endMinutes <= startMinutes ? endMinutes + 1440 - startMinutes : endMinutes - startMinutes;
+    const slotStarts = Array.from(
+      { length: Math.max(1, Math.ceil(duration / 15)) },
+      (_, index) => startMinutes + index * 15
+    );
+    const reservationRefs = slotStarts.map((minute) => {
+      const reservationKey = `${booking.salonId}:${staffOrResourceId}:${booking.scheduledDate}:${minute}`;
+      const reservationId = crypto.createHash('sha256').update(reservationKey).digest('hex');
+      return adminDb.collection('slotReservations').doc(reservationId);
+    });
+
+    const created = await adminDb.runTransaction(async (transaction) => {
+      const existingReservations = await Promise.all(reservationRefs.map((reference) => transaction.get(reference)));
+      if (existingReservations.some((reservation) => reservation.exists)) return false;
+
+      transaction.set(adminDb.collection('bookings').doc(booking.id), booking);
+      reservationRefs.forEach((reference, index) => {
+        transaction.set(reference, {
+          bookingId: booking.id,
+          salonId: booking.salonId,
+          staffOrResourceId,
+          date: booking.scheduledDate,
+          minute: slotStarts[index],
+          createdAt: booking.createdAt,
+        });
+      });
+      return true;
+    });
+
+    if (created) {
+      this.bookings.cache(booking.id, booking);
+    }
+    return created;
+  }
+
+  public releaseBookingSlotReservation(booking: Booking): void {
+    const staffOrResourceId = booking.resourceId || booking.staffId;
+    if (!staffOrResourceId || !booking.scheduledDate || !booking.scheduledTime) return;
+
+    const startMinutes = this.timeToMinutes(booking.scheduledTime);
+    const endMinutes = booking.slotEndTime
+      ? this.timeToMinutes(booking.slotEndTime)
+      : startMinutes + booking.serviceDuration;
+    const duration = endMinutes <= startMinutes ? endMinutes + 1440 - startMinutes : endMinutes - startMinutes;
+    const slotStarts = Array.from(
+      { length: Math.max(1, Math.ceil(duration / 15)) },
+      (_, index) => startMinutes + index * 15
+    );
+
+    void adminDb.runTransaction(async (transaction) => {
+      const references = slotStarts.map((minute) => {
+        const reservationKey = `${booking.salonId}:${staffOrResourceId}:${booking.scheduledDate}:${minute}`;
+        return adminDb.collection('slotReservations').doc(crypto.createHash('sha256').update(reservationKey).digest('hex'));
+      });
+      const reservations = await Promise.all(references.map((reference) => transaction.get(reference)));
+      reservations.forEach((reservation, index) => {
+        if (reservation.exists && reservation.data()?.bookingId === booking.id) {
+          transaction.delete(references[index]);
+        }
+      });
+    }).catch((error) => console.error('Failed to release booking slot reservation:', error));
+  }
+
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
   }
 
   // Helper method to clear everything except demo data for testing

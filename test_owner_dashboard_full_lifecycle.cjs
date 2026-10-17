@@ -5,7 +5,7 @@ function makeRequest(path, method = 'GET', body = null, headers = {}) {
     const dataString = body ? JSON.stringify(body) : '';
     const options = {
       hostname: 'localhost',
-      port: 3001,
+      port: Number(process.env.PORT) || 3000,
       path,
       method,
       headers: {

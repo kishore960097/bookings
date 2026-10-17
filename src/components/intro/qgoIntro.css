@@ -1,63 +1,50 @@
+/* ─── Body / document state ─────────────────────────────────────────────────── */
 .qgo-intro-active { overflow: hidden; }
-html[data-qgo-intro-background="red"] body { background-color: #E8342A; }
 
+/* ─── Root container ────────────────────────────────────────────────────────── */
 .qgo-intro {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  display: grid;
-  place-items: center;
-  min-height: 100svh;
   overflow: hidden;
   isolation: isolate;
-  background: #E8342A;
+  background: #E8342A;   /* initial red; layers paint over this */
   cursor: default;
   touch-action: none;
   transition: opacity 400ms ease, transform 400ms ease;
 }
 
-.qgo-intro--exiting { opacity: 0; transform: scale(1.02); pointer-events: none; }
-
-.qgo-intro__scene { position: absolute; inset: 0; will-change: clip-path, opacity; }
-.qgo-intro__scene--red { background: #E8342A; }
-.qgo-intro__scene--black { background: #0B0B0B; clip-path: circle(0 at 60% 52%); }
-.qgo-intro__scene--white { background: #FFF4E8; clip-path: circle(0 at 50% 50%); }
-
-.qgo-intro__art {
-  position: relative;
-  z-index: 1;
-  width: min(72vw, 74dvh);
-  aspect-ratio: 734 / 278;
-  transform: translateY(-3dvh);
+.qgo-intro--exiting {
+  opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
 }
 
-.qgo-intro__wordmark {
+/* ─── Layers (built imperatively by JS) ──────────────────────────────────────── */
+.qgi-layer {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  transform-origin: center;
-  will-change: transform, opacity;
+  will-change: clip-path;
 }
 
-.qgo-intro__wordmark--cream { color: #FFF4E8; }
-.qgo-intro__wordmark--final { color: #0B0B0B; opacity: 0; }
-.qgo-intro__letter, .qgo-intro__object, .qgo-intro__clock-hand { transform-box: fill-box; transform-origin: center; will-change: transform, opacity; }
-
+/* ─── Tagline ────────────────────────────────────────────────────────────────── */
 .qgo-intro__tagline {
   position: absolute;
   z-index: 2;
-  top: calc(50% + min(15vw, 15dvh));
+  left: 0;
+  right: 0;
   margin: 0;
-  color: #0B0B0B;
-  font-size: clamp(14px, calc(1.6vw + 8px), 22px);
+  text-align: center;
+  color: #333333;
+  font-family: Inter, "Helvetica Neue", Helvetica, Arial, "DejaVu Sans", sans-serif;
   font-weight: 500;
-  letter-spacing: .02em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
   opacity: 0;
   will-change: transform, opacity;
 }
 
+/* ─── SR-only ────────────────────────────────────────────────────────────────── */
 .qgo-intro__sr-only {
   position: absolute;
   width: 1px;
@@ -70,14 +57,14 @@ html[data-qgo-intro-background="red"] body { background-color: #E8342A; }
   border: 0;
 }
 
-@media (min-width: 600px) {
-  .qgo-intro__art { width: min(46vw, 74dvh); }
+/* ─── Clock hand elements (transform-origin at group origin = clock centre) ──── */
+.qgi-hour,
+.qgi-min {
+  transform-box: fill-box;
+  transform-origin: 0 0;  /* group is already centred on clock pivot */
 }
 
-@media (min-width: 1024px) {
-  .qgo-intro__art { width: min(30vw, 74dvh); }
-}
-
+/* ─── Reduced-motion: shorten transitions ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .qgo-intro, .qgo-intro__scene { transition-duration: 300ms; }
+  .qgo-intro { transition-duration: 300ms; }
 }

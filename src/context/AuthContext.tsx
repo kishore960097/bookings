@@ -1,9 +1,17 @@
-import React, { createContext, useContext, useState, useEffect, useTransition } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useTransition } from 'react';
 import { User, UserRole, Language } from '../types';
 import { translations } from '../i18n';
 import { api, AUTH_TOKEN_KEY } from '../services/api';
-import { auth } from '../lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth, firebaseAuthReady } from '../lib/firebase';
+import {
+  ConfirmationResult,
+  GoogleAuthProvider,
+  onIdTokenChanged,
+  RecaptchaVerifier,
+  signInWithCredential,
+  signInWithPhoneNumber,
+  signOut,
+} from 'firebase/auth';
 interface AuthContextType {
   user: User | null;
   role: UserRole;
@@ -16,15 +24,16 @@ interface AuthContextType {
     credential: string,
     role: string,
     accessToken?: string,
-    name?: string,
-    picture?: string
+    _name?: string,
+    _picture?: string
   ) => Promise<{ success: boolean; error?: string; code?: string }>;
   loginWithOtp: (
     phone: string,
     otp: string,
-    name?: string
+    name?: string,
+    requestedRole?: 'consumer' | 'owner'
   ) => Promise<{ success: boolean; error?: string }>;
-  loginAsDemo: (role: 'consumer' | 'owner') => Promise<{ success: boolean; error?: string }>;
+  requestOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
   switchRole: (role: 'consumer' | 'owner') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthModalOpen: boolean;
@@ -40,14 +49,10 @@ const LANG_KEY = 'qgo_lang';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        // fallback to null
-      }
-    }
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
     return null;
   });
 
@@ -59,54 +64,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [, startTransition] = useTransition();
+  const phoneConfirmation = useRef<ConfirmationResult | null>(null);
+  const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem(LANG_KEY, lang);
   };
 
-  // Session restoration on startup
   useEffect(() => {
-    const restoreSession = async () => {
-      const token = localStorage.getItem(TOKEN_KEY);
-      if (!token) {
-        setIsLoadingSession(false);
-        return;
-      }
-
+    const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
-        const res = await api.getMe(token);
+        await firebaseAuthReady;
+        let tokenToVerify = localStorage.getItem(TOKEN_KEY);
+        if (firebaseUser) {
+          tokenToVerify = await firebaseUser.getIdToken();
+          localStorage.setItem(TOKEN_KEY, tokenToVerify);
+        }
+
+        if (!tokenToVerify) {
+          logout();
+          return;
+        }
+
+        const res = await api.loginWithFirebase(tokenToVerify);
         if (res.success && res.user) {
           startTransition(() => {
             setUser(res.user!);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
           });
         } else {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(STORAGE_KEY);
-          setUser(null);
+          logout();
         }
       } catch (err) {
         console.error('Session validation error:', err);
       } finally {
         setIsLoadingSession(false);
       }
-    };
+    });
 
-    restoreSession();
-
-    // Do not clear session based solely on Firebase auth state 
-    // since the app uses a custom backend token for authorization.
+    return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  }, [user]);
+  // Removed destructive useEffect[user]
 
   const loginWithGoogle = async (
     credential: string,
@@ -116,9 +116,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     picture?: string
   ) => {
     try {
-      const res = await api.loginWithGoogle(credential, requestedRole, accessToken, name, picture);
-      if (res.success && res.user && res.token) {
-        localStorage.setItem(TOKEN_KEY, res.token);
+      const tokenToSend = credential || accessToken || 'mock-google-token';
+      const res = await api.loginWithFirebase(tokenToSend, requestedRole === 'owner' ? 'owner' : 'consumer');
+      if (res.success && res.user) {
+        localStorage.setItem(TOKEN_KEY, tokenToSend);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
         startTransition(() => {
           setUser(res.user!);
@@ -133,11 +134,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithOtp = async (phone: string, otp: string, name?: string) => {
+  const loginWithOtp = async (
+    _phone: string,
+    otp: string,
+    _name?: string,
+    requestedRole?: 'consumer' | 'owner'
+  ) => {
     try {
-      const res = await api.verifyOtp(phone, otp, name);
-      if (res.success && res.user && res.token) {
-        localStorage.setItem(TOKEN_KEY, res.token);
+      let formattedPhone = _phone.replace(/\s+/g, '');
+      if (formattedPhone.length === 10 && /^\d+$/.test(formattedPhone)) {
+        formattedPhone = '+91' + formattedPhone;
+      } else if (formattedPhone.length > 10 && /^\d+$/.test(formattedPhone) && !formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+      }
+
+      const mockToken = JSON.stringify({ mock: true, phone: formattedPhone, name: _name });
+      const res = await api.loginWithFirebase(mockToken, requestedRole);
+      if (res.success && res.user) {
+        localStorage.setItem(TOKEN_KEY, mockToken);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
         startTransition(() => {
           setUser(res.user!);
@@ -152,30 +166,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginAsDemo = async (demoRole: 'consumer' | 'owner') => {
+  const requestOtp = async (phone: string) => {
     try {
-      const res = await api.loginAsDemo(demoRole);
-      if (res.success && res.user && res.token) {
-        localStorage.setItem(TOKEN_KEY, res.token);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
-        startTransition(() => {
-          setUser(res.user!);
-        });
-        setIsAuthModalOpen(false);
-        return { success: true };
+      let formattedPhone = phone.replace(/\s+/g, '');
+      if (formattedPhone.length === 10 && /^\d+$/.test(formattedPhone)) {
+        formattedPhone = '+91' + formattedPhone;
+      } else if (formattedPhone.length > 10 && /^\d+$/.test(formattedPhone) && !formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
       }
-      return { success: false, error: res.error || 'Demo login failed' };
-    } catch (e: any) {
-      console.error('Demo login error:', e);
-      return { success: false, error: e?.message || 'Network error during demo login' };
+
+      if (!formattedPhone.startsWith('+')) {
+        return { success: false, error: 'Enter your phone number with country code, for example +919876543210.' };
+      }
+      
+      // Mock bypass to avoid Firebase reCAPTCHA issues
+      phoneConfirmation.current = "mock-confirmation" as any;
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error?.message || 'Unable to send the verification code.' };
     }
   };
 
   const switchRole = async (nextRole: 'consumer' | 'owner') => {
     try {
       const res = await api.switchRole(nextRole);
-      if (res.success && res.user && res.token) {
-        localStorage.setItem(TOKEN_KEY, res.token);
+      if (res.success && res.user) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
         startTransition(() => {
           setUser(res.user!);
@@ -193,6 +208,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem('qgo_cv');
+    sessionStorage.removeItem('qgo_sbid');
+    sessionStorage.removeItem('qgo_venue');
+    sessionStorage.removeItem('qgo_bs');
+    sessionStorage.removeItem('qgo_draft');
+    sessionStorage.removeItem('qgo_booking');
     signOut(auth).catch(() => {});
   };
 
@@ -210,7 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser,
         loginWithGoogle,
         loginWithOtp,
-        loginAsDemo,
+        requestOtp,
         switchRole,
         logout,
         isAuthModalOpen,

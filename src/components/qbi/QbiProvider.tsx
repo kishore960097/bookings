@@ -142,24 +142,24 @@ export const QbiProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Outside AuthProvider fallback
   }
 
-  // Language resolution
+  // Language resolution: Qbi defaults to English
   const [lang, setLang] = useState<QbiLang>(() => {
     try {
-      const saved = localStorage.getItem('qgo_lang');
-      return resolveLang(saved || authContextLang);
+      const explicit = localStorage.getItem('qgo_qbi_lang');
+      return explicit === 'ta' ? 'ta' : 'en';
     } catch {
-      return resolveLang(authContextLang);
+      return 'en';
     }
   });
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('qgo_lang');
-      setLang(resolveLang(authContextLang || saved));
+      const explicit = localStorage.getItem('qgo_qbi_lang');
+      setLang(explicit === 'ta' ? 'ta' : 'en');
     } catch {
-      setLang(resolveLang(authContextLang));
+      setLang('en');
     }
-  }, [authContextLang]);
+  }, []);
 
   // Current screen tracking
   const [currentScreenId, setCurrentScreenId] = useState<string | null>(null);

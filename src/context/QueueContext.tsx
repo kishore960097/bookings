@@ -121,18 +121,20 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [user]);
 
-  // Live polling every 5 seconds for real-time queue synchronization
+  // Live polling every 15 seconds for real-time queue synchronization (avoids 429)
   useEffect(() => {
+    if (!user) return;
     refreshActiveBooking();
     refreshNotifications();
 
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       refreshActiveBooking();
       refreshNotifications();
-    }, 5000);
+    }, 15000);
 
     return () => clearInterval(interval);
-  }, [refreshActiveBooking, refreshNotifications]);
+  }, [user, refreshActiveBooking, refreshNotifications]);
 
   const markAllNotificationsRead = async () => {
     if (!user) return;

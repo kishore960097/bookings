@@ -133,7 +133,16 @@ export const QBI_TIPS: Record<QbiLang, Record<string, string[]>> = {
 };
 
 export function resolveLang(lang?: string | null): QbiLang {
-  return lang === 'ta' ? 'ta' : 'en';
+  // Qbi defaults to English by default across mobile and web
+  if (lang === 'ta') {
+    try {
+      if (typeof window !== 'undefined' && localStorage.getItem('qgo_qbi_lang') === 'ta') {
+        return 'ta';
+      }
+    } catch {}
+    return 'en';
+  }
+  return 'en';
 }
 
 export function t(lang: string | null | undefined, key: QbiCopyKey): string {
