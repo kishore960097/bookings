@@ -1,8 +1,8 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component } from 'react';
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 interface State {
@@ -11,16 +11,24 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
+  props: Props;
+  state: State = {
     hasError: false,
     error: null,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  declare setState: (state: Partial<State> | ((prevState: State) => Partial<State>)) => void;
+
+  constructor(props: Props) {
+    super(props);
+    this.props = props;
+  }
+
+  static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: unknown, errorInfo: unknown) {
     console.error('[QGo ErrorBoundary] Uncaught render error:', error, errorInfo);
   }
 
