@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { QbiContext } from './QbiProvider';
 import { Qbi } from './Qbi';
 import { t, getTips } from './qbiCopy';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, AuthContext } from '../../context/AuthContext';
 
 // Self-contained Error Boundary so a render error in Qbi never white-screens the app
 export class QbiBoundary extends Component<
@@ -36,19 +36,9 @@ export class QbiBoundary extends Component<
 
 export const QbiLayerContent: React.FC = () => {
   const ctx = useContext(QbiContext);
-  let authUser: any = null;
-  let authRole: string = 'consumer';
-
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const auth = useAuth();
-    if (auth) {
-      authUser = auth.user;
-      authRole = auth.currentRole || auth.role || 'consumer';
-    }
-  } catch {
-    // ignore
-  }
+  const auth = useContext(AuthContext);
+  const authUser = auth?.user || null;
+  const authRole = auth?.currentRole || auth?.role || 'consumer';
 
   if (!ctx) return null;
 

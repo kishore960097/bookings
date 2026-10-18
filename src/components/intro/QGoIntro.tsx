@@ -15,13 +15,8 @@ const P = introTimeline.palette;
 
 // ─── SVG defs (shared between layers) ────────────────────────────────────────
 const DEFS_SVG = `<defs>
-  <filter id="qgi-felt" x="-25%" y="-25%" width="150%" height="160%" color-interpolation-filters="sRGB">
-    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="noise"/>
-    <feColorMatrix in="noise" type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 0 1" result="gray"/>
-    <feBlend in="SourceGraphic" in2="gray" mode="multiply" result="mult"/>
-    <feComposite in="mult" in2="SourceGraphic" operator="arithmetic" k1="0" k2="0.12" k3="0.88" k4="0" result="mixed"/>
-    <feComposite in="mixed" in2="SourceGraphic" operator="in" result="felt"/>
-    <feDropShadow in="felt" dx="0" dy="9" stdDeviation="8" flood-color="#000" flood-opacity="0.28"/>
+  <filter id="qgi-felt" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.22"/>
   </filter>
   <linearGradient id="qgi-hi" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/>
@@ -367,6 +362,7 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
     // ── Animation loop ────────────────────────────────────────────────────────
     let animationFrame = 0;
     let exitTimer      = 0;
+    let hardFinishTimer = 0;
     let startedAt      = performance.now();
     let exiting        = false;
     let forceFinal     = false;
@@ -375,7 +371,8 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
     const hasDebugFlag = searchParams.get('introDebug') === '1';
     const frozen = (import.meta.env.DEV && hasDebugFlag) ? searchParams.get('t') : null;
     const frozenTime = frozen && Number.isFinite(Number(frozen)) ? Math.max(0, Number(frozen)) : null;
-    const minimum    = variant === 'full' ? introTimeline.duration.full
+    const hardTimeout = Math.min(introTimeline.duration.timeout, 2500);
+    const minimum    = variant === 'full' ? Math.min(introTimeline.duration.full, 2500)
                      : variant === 'short' ? introTimeline.duration.short
                      : introTimeline.duration.reduced;
     const exitDuration = variant === 'full' ? introTimeline.duration.exit : 300;
@@ -383,6 +380,7 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
     const finish = () => {
       if (doneRef.current) return;
       doneRef.current = true;
+      console.log('[QGo] Intro splash complete -> transitioning to app');
       onDoneRef.current();
     };
 
@@ -394,11 +392,13 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
       exitTimer = window.setTimeout(finish, exitDuration);
     };
 
-    // Hard fallback: intro must always exit within timeout
-    exitTimer = window.setTimeout(beginExit, introTimeline.duration.timeout);
+    // Hard fallback: intro must always exit within bounded timeout (max 2.5s)
+    exitTimer = window.setTimeout(beginExit, hardTimeout);
+    // Absolute safety fallback: always invoke finish within 2.8s even if RAF stalls
+    hardFinishTimer = window.setTimeout(finish, hardTimeout + 300);
 
     const skip = () => {
-      if (elapsedRef.current < 400 || exiting) return;
+      if (exiting) return;
       forceFinal = true;
       beginExit();
     };
@@ -420,7 +420,7 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
 
       if (frozenTime === null) {
         if (
-          elapsed >= introTimeline.duration.timeout ||
+          elapsed >= hardTimeout ||
           (readyRef.current && (elapsed >= minimum || forceFinal))
         ) beginExit();
         if (!exiting) animationFrame = window.requestAnimationFrame(tick);
@@ -437,6 +437,7 @@ export const QGoIntro: React.FC<QGoIntroProps> = ({ ready, onDone }) => {
     return () => {
       window.cancelAnimationFrame(animationFrame);
       window.clearTimeout(exitTimer);
+      window.clearTimeout(hardFinishTimer);
       window.removeEventListener('keydown', onKeyDown);
       stageRef.current?.removeEventListener('pointerup', skip);
       document.body.classList.remove('qgo-intro-active');

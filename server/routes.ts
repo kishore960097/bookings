@@ -1290,6 +1290,16 @@ apiRouter.patch('/staff/:id/status', requireAuth, requireRole('owner'), (req: Au
   return res.json({ success: true, staff: staffMember });
 });
 
+apiRouter.get('/staff/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.auth!.userId;
+  const staffMember = Array.from(db.staff.values()).find((s) => s.userId === userId);
+  if (!staffMember) {
+    return res.json({ success: false, error: 'No staff assignment found' });
+  }
+  const salon = db.salons.get(staffMember.salonId);
+  return res.json({ success: true, staff: staffMember, salon: salon || undefined });
+});
+
 // ----------------------------------------------------
 // 4. AVAILABILITY ENGINE & TIME SLOTS (SALONS & TURFS)
 // ----------------------------------------------------
@@ -1724,6 +1734,27 @@ function calculateTurfSlotsForDate(
     resources,
   };
 }
+
+apiRouter.get('/salons/:id/turf-slots', (req: Request, res: Response) => {
+  const { id: salonId } = req.params;
+  const { date } = req.query;
+  const salon = db.salons.get(salonId);
+  if (!salon) {
+    return res.status(404).json({ error: 'Salon/Turf not found' });
+  }
+  const queryDate = (date as string) || new Date().toISOString().split('T')[0];
+  const turfResult = calculateTurfSlotsForDate(salon, queryDate);
+  return res.json({
+    success: true,
+    date: queryDate,
+    dayName: turfResult.dayName,
+    isOpen: turfResult.isOpen,
+    message: turfResult.message,
+    slots: turfResult.slots,
+    resources: turfResult.resources,
+    isTurf: true,
+  });
+});
 
 apiRouter.get('/salons/:id/availability', (req: Request, res: Response) => {
   const { id: salonId } = req.params;
@@ -3048,29 +3079,6 @@ apiRouter.post('/checkin/scan', requireAuth, requireRole('owner'), (req: Authent
     message: `Booking found for ${booking.customerName}. Review details and accept check-in.`,
     booking,
   });
-
-  // Mark checked in!
-  booking.status = 'checked_in';
-  booking.checkedInAt = new Date().toISOString();
-
-  const qe = db.queueEntries.get(`qe_${booking.id}`);
-  if (qe) {
-    qe.isArriving = true;
-  }
-
-  sendNotification(booking.customerId, {
-    userId: booking.customerId,
-    type: 'checked_in',
-    title: 'Check-in Verified! ✅',
-    message: `You are successfully checked in at ${booking.salonName}. Please take a seat.`,
-    bookingId: booking.id,
-  });
-
-  return res.json({
-    valid: true,
-    message: `Welcome ${booking.customerName}! Verified for ${booking.serviceName}.`,
-    booking,
-  });
 });
 
 apiRouter.post('/checkin/accept', requireAuth, requireRole('owner'), (req: AuthenticatedRequest, res: Response) => {
@@ -3177,15 +3185,6 @@ apiRouter.post('/checkin/manual-code', requireAuth, requireRole('owner'), (req: 
     valid: true,
     needsAcceptance: true,
     message: `Booking found: ${booking.customerName} (${booking.tokenNumber}). Review and accept check-in.`,
-    booking,
-  });
-
-  booking.status = 'checked_in';
-  booking.checkedInAt = new Date().toISOString();
-
-  return res.json({
-    valid: true,
-    message: `Checked in: ${booking.customerName} (${booking.tokenNumber})`,
     booking,
   });
 });

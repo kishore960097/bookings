@@ -41,7 +41,7 @@ interface AuthContextType {
   isLoadingSession: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'qgo_user';
 const TOKEN_KEY = AUTH_TOKEN_KEY;
@@ -78,48 +78,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Safety: always resolve loading within 3 s regardless of Firebase state.
+    // Safety: always resolve loading within 2s regardless of Firebase state.
     const safetyTimer = window.setTimeout(() => {
+      console.log('[QGo Auth] Safety timer expired - resolving loading state');
       setIsLoadingSession(false);
-    }, 3000);
+    }, 2000);
+
+    let isMounted = true;
 
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
+        if (!isMounted) return;
+
         // Wait for persistence to be configured, but don't let it block forever.
         await Promise.race([
           firebaseAuthReady,
-          new Promise<void>((resolve) => setTimeout(resolve, 3000)),
+          new Promise<void>((resolve) => setTimeout(resolve, 1500)),
         ]);
 
         let tokenToVerify = localStorage.getItem(TOKEN_KEY);
         if (firebaseUser) {
-          tokenToVerify = await firebaseUser.getIdToken();
-          localStorage.setItem(TOKEN_KEY, tokenToVerify);
+          try {
+            tokenToVerify = await firebaseUser.getIdToken();
+            if (tokenToVerify) {
+              localStorage.setItem(TOKEN_KEY, tokenToVerify);
+            }
+          } catch (tokErr) {
+            console.warn('[QGo Auth] Error retrieving id token:', tokErr);
+          }
         }
 
         if (!tokenToVerify) {
-          logout();
+          // Do NOT call logout() here! logout() calls signOut(auth), which re-emits onIdTokenChanged in an infinite loop!
+          if (isMounted) {
+            setUser(null);
+          }
           return;
         }
 
         const res = await api.loginWithFirebase(tokenToVerify);
-        if (res.success && res.user) {
+        if (res.success && res.user && isMounted) {
           startTransition(() => {
             setUser(res.user!);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(res.user));
           });
-        } else {
-          logout();
+        } else if (isMounted) {
+          // Invalidate stale local tokens cleanly without triggering another signOut event
+          setUser(null);
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(STORAGE_KEY);
         }
       } catch (err) {
-        console.error('Session validation error:', err);
+        console.error('[QGo Auth] Session validation error:', err);
       } finally {
         clearTimeout(safetyTimer);
-        setIsLoadingSession(false);
+        if (isMounted) {
+          setIsLoadingSession(false);
+        }
       }
     });
 
     return () => {
+      isMounted = false;
       clearTimeout(safetyTimer);
       unsubscribe();
     };
@@ -231,9 +251,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     sessionStorage.removeItem('qgo_sbid');
     sessionStorage.removeItem('qgo_venue');
     sessionStorage.removeItem('qgo_bs');
-    sessionStorage.removeItem('qgo_draft');
     sessionStorage.removeItem('qgo_booking');
-    signOut(auth).catch(() => {});
+    if (auth && auth.currentUser) {
+      signOut(auth).catch(() => {});
+    }
   };
 
   const currentT = translations[language] || translations['en'];

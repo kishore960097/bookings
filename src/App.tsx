@@ -29,13 +29,22 @@ function AppContent() {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
   const handleIntroDone = React.useCallback(() => setIsIntroComplete(true), []);
 
-  // Hard fallback: if session loading hangs for more than 4 s, unblock the intro.
+  // Hard fallback: if session loading hangs for more than 2 s, unblock the intro.
   const [introReadyFallback, setIntroReadyFallback] = useState(false);
   React.useEffect(() => {
-    const t = window.setTimeout(() => setIntroReadyFallback(true), 4000);
+    const t = window.setTimeout(() => setIntroReadyFallback(true), 2000);
     return () => clearTimeout(t);
   }, []);
   const introReady = !isLoadingSession || introReadyFallback;
+
+  // Hard fallback: intro MUST complete within 2.5s max so it always continues to the app
+  React.useEffect(() => {
+    const t = window.setTimeout(() => {
+      console.log('[QGo App] Hard fallback triggered: completing intro');
+      setIsIntroComplete(true);
+    }, 2500);
+    return () => clearTimeout(t);
+  }, []);
 
   // Page routing — landing for unauthenticated, app for authenticated
   const [page, setPage] = useState<AppPage>(user ? 'app' : isAdminPath ? 'login' : 'landing');
@@ -48,7 +57,7 @@ function AppContent() {
 
   const withIntro = (content: React.ReactNode) => (
     <>
-      <div aria-hidden={!isIntroComplete} inert={!isIntroComplete}>
+      <div aria-hidden={!isIntroComplete} inert={!isIntroComplete ? true : undefined}>
         {content}
       </div>
       {!isIntroComplete && <QGoIntro ready={introReady} onDone={handleIntroDone} />}

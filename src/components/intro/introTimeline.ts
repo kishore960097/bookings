@@ -20,7 +20,7 @@ export const introTimeline = {
     cream:  PAL.cream,
     ink:    PAL.ink,
   },
-  duration: { full: 4000, exit: 400, short: 1100, reduced: 600, timeout: 8000 },
+  duration: { full: 4000, exit: 400, short: 1100, reduced: 600, timeout: 2500 },
   easings: {
     enter:  'cubic-bezier(0.22, 1, 0.36, 1)',
     wipe:   'cubic-bezier(0.76, 0, 0.24, 1)',

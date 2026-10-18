@@ -1,11 +1,28 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import './index.css';
+
+console.log('[QGo] Booting QGo web application...');
+
+// Clean up any stale service workers from localhost:3000
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      console.log('[QGo] Unregistering stale service worker:', registration.scope);
+      registration.unregister();
+    }
+  }).catch((err) => {
+    console.warn('[QGo] Service worker cleanup warning:', err);
+  });
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );
 
@@ -15,3 +32,4 @@ document.addEventListener("wheel", function (e) {
     e.preventDefault();
   }
 }, { passive: false });
+

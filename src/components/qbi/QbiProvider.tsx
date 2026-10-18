@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, AuthContext } from '../../context/AuthContext';
 import { QbiLang, resolveLang, t, getTips } from './qbiCopy';
 
 export type QbiFailure = 'offline' | 'slot_full' | 'failed';
@@ -124,23 +124,11 @@ export function useQbiScreen(id: string | null): void {
 
 export const QbiProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Safe Auth consumption with fallback
-  let authContextUser: any = null;
-  let authContextRole: string = 'consumer';
-  let authContextLang: string = 'en';
-  let authIsLoading = false;
-
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const auth = useAuth();
-    if (auth) {
-      authContextUser = auth.user;
-      authContextRole = auth.currentRole || auth.role || 'consumer';
-      authContextLang = auth.language || 'en';
-      authIsLoading = auth.isLoadingSession;
-    }
-  } catch {
-    // Outside AuthProvider fallback
-  }
+  const auth = useContext(AuthContext);
+  const authContextUser = auth?.user || null;
+  const authContextRole = auth?.currentRole || auth?.role || 'consumer';
+  const authContextLang = auth?.language || 'en';
+  const authIsLoading = auth?.isLoadingSession ?? false;
 
   // Language resolution: Qbi defaults to English
   const [lang, setLang] = useState<QbiLang>(() => {
