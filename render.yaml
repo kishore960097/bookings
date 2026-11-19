@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: qgo-backend
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: QGO_SESSION_SECRET
+        generateValue: true
+      - key: QGO_ALLOWED_ORIGINS
+        value: https://qgo.app,capacitor://localhost,http://localhost,https://localhost

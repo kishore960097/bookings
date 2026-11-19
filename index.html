@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="only light" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -13,25 +14,14 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#FFFFFF" />
-    <script>
-      (() => {
-        try {
-          const intro = new URLSearchParams(window.location.search).get('intro');
-          const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-          const useRed = intro === 'full' || (!intro && !reduced);
-          document.documentElement.dataset.qgoIntroBackground = useRed ? 'red' : 'white';
-          const themeMeta = document.querySelector('meta[name="theme-color"]');
-          document.documentElement.dataset.qgoIntroThemeRestore = themeMeta?.getAttribute('content') || '';
-          themeMeta?.setAttribute('content', useRed ? '#E8342A' : '#FFF4E8');
-        } catch { /* A cream first paint is the safe fallback when storage is unavailable. */ }
-      })();
-    </script>
+    <script type="module" src="/src/theme-init.ts"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <div id="qgo-phone-recaptcha"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

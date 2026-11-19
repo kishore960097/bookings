@@ -1,50 +1,148 @@
 /* ─── Body / document state ─────────────────────────────────────────────────── */
-.qgo-intro-active { overflow: hidden; }
+.qgo-intro-active {
+  overflow: hidden !important;
+  touch-action: none;
+}
 
-/* ─── Root container ────────────────────────────────────────────────────────── */
+/* ─── Root Container ────────────────────────────────────────────────────────── */
 .qgo-intro {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 99999;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   isolation: isolate;
-  background: #E8342A;   /* initial red; layers paint over this */
+  background-color: #E8342A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
   cursor: default;
   touch-action: none;
-  transition: opacity 400ms ease, transform 400ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1), transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
 
 .qgo-intro--exiting {
-  opacity: 0;
-  transform: scale(1.02);
-  pointer-events: none;
+  opacity: 0 !important;
+  transform: scale(1.02) !important;
+  pointer-events: none !important;
 }
 
-/* ─── Layers (built imperatively by JS) ──────────────────────────────────────── */
-.qgi-layer {
+/* ─── Multi-Scene Circular Reveal Layers ────────────────────────────────────── */
+.qgo-intro__layer {
   position: absolute;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
   will-change: clip-path;
 }
 
-/* ─── Tagline ────────────────────────────────────────────────────────────────── */
-.qgo-intro__tagline {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  margin: 0;
-  text-align: center;
-  color: #4A4A4F;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', 'Noto Sans Tamil', system-ui, sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  opacity: 0;
-  will-change: transform, opacity;
+.qgo-intro__layer--red-base {
+  background-color: #E8342A;
+  z-index: 1;
 }
 
-/* ─── SR-only ────────────────────────────────────────────────────────────────── */
+.qgo-intro__layer--black {
+  background-color: #0B0B0B;
+  z-index: 2;
+}
+
+.qgo-intro__layer--red-wipe {
+  background-color: #E8342A;
+  z-index: 3;
+}
+
+.qgo-intro__layer--white {
+  background-color: #FFFFFF;
+  z-index: 4;
+}
+
+/* ─── Responsive Stage Container ─────────────────────────────────────────────── */
+/* Scales seamlessly across Mobile (<600px), Tablet (600-1023px), PC/Desktop (1024-1919px), and 4K (>=1920px) */
+/* Capped to 72vh in landscape mode so the logo never clips or overflows */
+.qgo-intro-stage {
+  position: relative;
+  width: clamp(260px, 72vw, 400px);
+  aspect-ratio: 734 / 278;
+  min-height: 98px;
+  max-height: 72vh;
+  max-width: calc(72vh * 734 / 278);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  flex-shrink: 0;
+  will-change: transform;
+}
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  .qgo-intro-stage {
+    width: clamp(360px, 46vw, 500px);
+    min-height: 136px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1919px) {
+  .qgo-intro-stage {
+    width: clamp(420px, 28vw, 620px);
+    min-height: 159px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .qgo-intro-stage {
+    width: clamp(540px, 28vw, 734px);
+    min-height: 204px;
+  }
+}
+
+/* ─── Brand Tagline (Scene 5) ────────────────────────────────────────────────── */
+.qgo-intro-tagline {
+  position: absolute;
+  top: calc(100% + 1.25rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #333333;
+  pointer-events: none;
+  white-space: nowrap;
+  will-change: opacity, transform;
+}
+
+/* ─── Hold / Status Loading Intimation ───────────────────────────────────────── */
+.qgo-intro-hold-text {
+  position: absolute;
+  top: calc(100% + 3.25rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #9CA3AF;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 300ms ease;
+}
+
+/* ─── Accessibility & Screen Reader Only ─────────────────────────────────────── */
 .qgo-intro__sr-only {
   position: absolute;
   width: 1px;
@@ -55,16 +153,4 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* ─── Clock hand elements (transform-origin at group origin = clock centre) ──── */
-.qgi-hour,
-.qgi-min {
-  transform-box: fill-box;
-  transform-origin: 0 0;  /* group is already centred on clock pivot */
-}
-
-/* ─── Reduced-motion: shorten transitions ───────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .qgo-intro { transition-duration: 300ms; }
 }

@@ -2,6 +2,112 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    function isOwnerOf(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. Users collection: users can only read their own profile; mutations restricted to server
+    match /users/{userId} {
+      allow read: if isOwnerOf(userId) || isAdmin();
+      allow write: if false; // Only Admin SDK modifies user profiles, roles, and admin statuses
+    }
+
+    // 2. Salons collection: owners can read their venues; admins can read all; public reads route through sanitized Express API
+    match /salons/{salonId} {
+      allow read: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) || isAdmin();
+      allow write: if false; // All updates, verifications, and approvals must route through backend API
+    }
+
+    // 3. Services collection: authenticated clients can read; write restricted to server
+    match /services/{serviceId} {
+      allow read: if isAuthenticated() || isAdmin();
+      allow write: if false;
+    }
+
+    // 4. Staff collection: venue owner or admin only; unauthenticated reads denied to prevent phone/userId leaks
+    match /staff/{staffId} {
+      allow read: if (isAuthenticated() && resource.data.ownerId == request.auth.uid) || isAdmin();
+      allow write: if false;
+    }
+
+    // 5. Bookings collection: customers can only read their own bookings; owners can read their venue bookings; write restricted to server
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if false; // All booking creations, payments, status transitions must route through server Admin SDK
+    }
+
+    // 6. Queue Entries collection: readable by the customer or the venue owner
+    match /queueEntries/{entryId} {
+      allow read: if isAuthenticated() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if false;
+    }
+
+    // 7. Reviews collection: public read for customer reviews; write restricted to server
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 8. User Notifications: strictly readable only by the notification recipient
+    match /notifications/{userId} {
+      allow read: if isOwnerOf(userId) || isAdmin();
+      allow write: if false;
+    }
+
+    // 9. User Roles mapping: readable only by the user themselves
+    match /userRoles/{roleId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    // 10. Support Tickets: readable by author or admin
+    match /supportTickets/{ticketId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if false;
+    }
+
+    // 11. Feature Requests & Votes: readable by authenticated users
+    match /featureRequests/{requestId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /featureRequestVotes/{voteId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // 12. Highly Sensitive Server-Only Collections: NEVER accessible from clients
+    match /otpStore/{docId} {
+      allow read, write: if false;
+    }
+
+    match /authAccounts/{docId} {
+      allow read, write: if false;
+    }
+
+    match /adminAuditLogs/{docId} {
+      allow read, write: if false;
+    }
+
+    // Default deny for all other collections and subcollections
     match /{document=**} {
       allow read, write: if false;
     }

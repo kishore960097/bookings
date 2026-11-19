@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Salon, TurfAvailabilitySchedule, GeneratedTurfSlot } from '../../types';
 import { CalendarDays, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
 import { api } from '../../services/api';
+import { getBusinessTodayStr } from '../../utils/timeFormat';
 
 interface ScheduleManagerViewProps {
   salon: Salon;
@@ -9,7 +10,7 @@ interface ScheduleManagerViewProps {
 }
 
 export const ScheduleManagerView: React.FC<ScheduleManagerViewProps> = ({ salon, onUpdateSalon }) => {
-  const [sourceDate, setSourceDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [sourceDate, setSourceDate] = useState<string>(() => getBusinessTodayStr());
   const [targetMonth, setTargetMonth] = useState<string>('');
   const [sourceSlots, setSourceSlots] = useState<GeneratedTurfSlot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,67 +89,67 @@ export const ScheduleManagerView: React.FC<ScheduleManagerViewProps> = ({ salon,
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-8">
-      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-8 shadow-2xs">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center">
-            <CalendarDays className="w-6 h-6" />
+    <div className="w-full min-w-0 max-w-2xl mx-auto mt-4 px-3 sm:px-4">
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[rgba(10,10,10,0.12)] p-4 sm:p-6 shadow-2xs">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-[rgba(231,50,41,0.08)] text-[#C9281F] flex items-center justify-center shrink-0">
+            <CalendarDays className="w-5 h-5" />
           </div>
-          <div>
-            <h2 className="text-2xl font-black text-[#171717]">Unblock / Open Future Slots</h2>
-            <p className="text-[rgba(23,23,23,0.70)] font-medium">Easily open slots for upcoming months using existing setups.</p>
+          <div className="min-w-0">
+            <h2 className="text-[20px] font-bold text-[#0A0A0A] truncate">Unblock / Open Future Slots</h2>
+            <p className="text-[13px] text-[rgba(10,10,10,0.70)] font-medium truncate">Easily open slots for upcoming months using existing setups.</p>
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Step 1: Source */}
-          <div className="bg-[#FFFFFF] p-5 rounded-2xl border border-[rgba(23,23,23,0.12)]">
-            <label className="block text-sm font-bold text-[#171717] mb-2">1. Select existing date to copy slots from</label>
+          <div className="bg-[#FFFFFF] p-4 rounded-xl border border-[rgba(10,10,10,0.12)]">
+            <label className="block text-[13px] font-semibold text-[#0A0A0A] mb-2">1. Select existing date to copy slots from</label>
             <input 
               type="date" 
               value={sourceDate}
               onChange={(e) => setSourceDate(e.target.value)}
-              className="w-full bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-[#FF9F1C] focus:border-[#FF9F1C] transition-colors duration-150 outline-none"
+              className="w-full bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)] rounded-xl px-3.5 py-2.5 text-[14px] font-medium focus:ring-2 focus:ring-[#E73229] focus:border-[#E73229] transition-colors duration-150 outline-none min-h-[40px]"
             />
             
             {fetchingSlots ? (
-              <div className="mt-4 text-sm text-[rgba(23,23,23,0.70)]">Loading slots...</div>
+              <div className="mt-3 text-[13px] text-[rgba(10,10,10,0.70)]">Loading slots...</div>
             ) : sourceSlots.length > 0 ? (
-              <div className="mt-4">
-                <p className="text-xs font-bold text-[rgba(23,23,23,0.70)] uppercase tracking-wider mb-2">Existing Slot Setup ({sourceSlots.length} slots)</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="mt-3">
+                <p className="text-[11px] font-semibold text-[rgba(10,10,10,0.70)] uppercase tracking-wider mb-2">Existing Slot Setup ({sourceSlots.length} slots)</p>
+                <div className="flex flex-wrap gap-1.5">
                   {sourceSlots.slice(0, 8).map((slot, i) => (
-                    <div key={i} className="px-3 py-1.5 bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] text-xs font-bold rounded-lg flex items-center gap-1">
+                    <div key={i} className="px-2.5 py-1 bg-[rgba(231,50,41,0.08)] text-[#C9281F] text-xs font-semibold rounded-lg flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {slot.startTime}
                     </div>
                   ))}
                   {sourceSlots.length > 8 && (
-                    <div className="px-3 py-1.5 bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] text-xs font-bold rounded-lg">
+                    <div className="px-2.5 py-1 bg-[#FFFFFF] text-[rgba(10,10,10,0.70)] text-xs font-semibold rounded-lg border border-[rgba(10,10,10,0.12)]">
                       +{sourceSlots.length - 8} more
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="mt-4 text-sm text-[#FF9F1C] font-medium">No slots found on this date.</div>
+              <div className="mt-3 text-[13px] text-[#C9281F] font-medium">No slots found on this date.</div>
             )}
           </div>
 
-          <div className="flex justify-center -my-4 relative z-10">
-            <div className="w-10 h-10 bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] rounded-full flex items-center justify-center text-[rgba(23,23,23,0.70)] shadow-sm">
-              <ArrowRight className="w-5 h-5 rotate-90" />
+          <div className="flex justify-center -my-3 relative z-10">
+            <div className="w-8 h-8 bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)] rounded-full flex items-center justify-center text-[rgba(10,10,10,0.70)] shadow-sm">
+              <ArrowRight className="w-4 h-4 rotate-90" />
             </div>
           </div>
 
           {/* Step 2: Target */}
-          <div className="bg-[rgba(255,159,28,0.15)] p-5 rounded-2xl border border-[rgba(23,23,23,0.12)]">
-            <label className="block text-sm font-bold text-[#171717] mb-2">2. Select future month to open</label>
+          <div className="bg-[rgba(231,50,41,0.08)] p-4 rounded-xl border border-[rgba(10,10,10,0.12)]">
+            <label className="block text-[13px] font-semibold text-[#0A0A0A] mb-2">2. Select future month to open</label>
             <input 
               type="month" 
               value={targetMonth}
               onChange={(e) => setTargetMonth(e.target.value)}
-              className="w-full bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] rounded-xl px-4 py-3 font-semibold focus:ring-2 focus:ring-[#FF9F1C] focus:border-[#FF9F1C] transition-colors duration-150 outline-none"
+              className="w-full bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)] rounded-xl px-3.5 py-2.5 text-[14px] font-medium focus:ring-2 focus:ring-[#E73229] focus:border-[#E73229] transition-colors duration-150 outline-none min-h-[40px]"
             />
           </div>
 
@@ -156,10 +157,10 @@ export const ScheduleManagerView: React.FC<ScheduleManagerViewProps> = ({ salon,
           <button 
             disabled={loading || !sourceDate || !targetMonth || sourceSlots.length === 0}
             onClick={handleApply}
-            className="w-full py-4 bg-[#FF9F1C] hover:bg-[#FF9F1C] disabled:bg-[#FFFFFF] disabled:cursor-not-allowed text-[#171717] rounded-xl font-black text-lg flex items-center justify-center gap-2 shadow-xl shadow-xs transition-colors duration-150"
+            className="w-full py-3 px-4 bg-[#E73229] hover:bg-[#D42B22] disabled:bg-[#ECECEF] disabled:text-[rgba(10,10,10,0.40)] disabled:cursor-not-allowed text-[#FFFFFF] rounded-xl font-semibold text-[13px] min-h-[40px] flex items-center justify-center gap-2 shadow-sm transition-colors duration-150"
           >
             {loading ? 'Applying...' : 'Apply & Open Slots'}
-            {!loading && <CheckCircle2 className="w-5 h-5" />}
+            {!loading && <CheckCircle2 className="w-4 h-4" />}
           </button>
         </div>
       </div>

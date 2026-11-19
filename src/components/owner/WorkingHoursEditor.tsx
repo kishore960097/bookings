@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SalonHours, SalonHoliday } from '../../types';
 import { Clock, Plus, X, ToggleLeft, ToggleRight, CalendarDays } from 'lucide-react';
 import { TimeInput } from '../common/TimeInput';
+import { getBusinessTodayStr } from '../../utils/timeFormat';
 
 interface WorkingHoursEditorProps {
   workingHours: SalonHours[];
@@ -49,7 +50,7 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
   const [newHolidayReason, setNewHolidayReason] = useState('');
   const [isLeaveMode, setIsLeaveMode] = useState(false);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getBusinessTodayStr();
 
   // Auto-filter: remove holidays whose end date is in the past
   const activeHolidays = holidays.filter((h) => {
@@ -111,12 +112,12 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
             key={day.dayOfWeek}
             className={`flex items-center gap-3 p-3 rounded-xl border transition-colors duration-150 ${
               day.isOpen
-                ? 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)]'
-                : 'bg-[#FFFFFF] border-[rgba(23,23,23,0.12)] opacity-70'
+                ? 'bg-[#FFFFFF] border-[rgba(10,10,10,0.12)]'
+                : 'bg-[#FFFFFF] border-[rgba(10,10,10,0.12)] opacity-70'
             }`}
           >
             {/* Day label */}
-            <div className="w-10 text-xs font-black text-[rgba(23,23,23,0.70)] uppercase tracking-wider shrink-0">
+            <div className="w-10 text-[11px] font-bold text-[rgba(10,10,10,0.70)] uppercase tracking-wider shrink-0">
               {DAY_LABELS[day.dayOfWeek]}
             </div>
 
@@ -128,34 +129,34 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
               title={day.isOpen ? 'Mark as closed' : 'Mark as open'}
             >
               {day.isOpen ? (
-                <ToggleRight className="w-6 h-6 text-[#FF9F1C]" />
+                <ToggleRight className="w-6 h-6 text-[#C9281F]" />
               ) : (
-                <ToggleLeft className="w-6 h-6 text-[rgba(23,23,23,0.70)]" />
+                <ToggleLeft className="w-6 h-6 text-[rgba(10,10,10,0.70)]" />
               )}
             </button>
 
             {day.isOpen ? (
               <div className="flex items-center gap-2 flex-1 flex-wrap">
                 <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[rgba(23,23,23,0.70)]" />
+                  <Clock className="w-3.5 h-3.5 text-[rgba(10,10,10,0.70)]" />
                   <TimeInput
                     value={day.openTime}
                     onChange={(val) => updateDay(day.dayOfWeek, { openTime: val })}
-                    className="text-xs font-semibold text-[#171717] border border-[rgba(23,23,23,0.12)] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                    className="text-xs font-semibold text-[#0A0A0A] border border-[rgba(10,10,10,0.12)] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                   />
-                  <span className="text-xs text-[rgba(23,23,23,0.70)]">to</span>
+                  <span className="text-xs text-[rgba(10,10,10,0.70)]">to</span>
                   <TimeInput
                     value={day.closeTime}
                     onChange={(val) => updateDay(day.dayOfWeek, { closeTime: val })}
-                    className="text-xs font-semibold text-[#171717] border border-[rgba(23,23,23,0.12)] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                    className="text-xs font-semibold text-[#0A0A0A] border border-[rgba(10,10,10,0.12)] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                   />
-                  <span className="text-[11px] text-[rgba(23,23,23,0.70)] hidden sm:inline">
+                  <span className="text-[11px] text-[rgba(10,10,10,0.70)] hidden sm:inline">
                     ({fmt12(day.openTime)} – {fmt12(day.closeTime)})
                   </span>
                 </div>
               </div>
             ) : (
-              <span className="text-xs text-[rgba(23,23,23,0.70)] font-semibold flex-1">Closed</span>
+              <span className="text-xs text-[rgba(10,10,10,0.70)] font-semibold flex-1">Closed</span>
             )}
           </div>
         ))}
@@ -165,22 +166,22 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
       <button
         type="button"
         onClick={applyToAllWeekdays}
-        className="text-xs font-bold text-[#FF9F1C] hover:text-[#FF9F1C] underline underline-offset-2"
+        className="text-xs font-bold text-[#C9281F] hover:text-[#C9281F] underline underline-offset-2"
       >
         Apply Monday's hours to all weekdays (Mon–Fri)
       </button>
 
       {/* ── Closed / Holiday Dates Section ── */}
       {!compact && (
-        <div className="border-t border-[rgba(23,23,23,0.12)] pt-5 space-y-4">
+        <div className="border-t border-[rgba(10,10,10,0.12)] pt-5 space-y-4">
 
           {/* Section Header */}
           <div>
-            <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[rgba(23,23,23,0.70)]">
-              <CalendarDays className="w-4 h-4 text-[rgba(23,23,23,0.70)]" />
+            <h4 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[rgba(10,10,10,0.70)]">
+              <CalendarDays className="w-4 h-4 text-[rgba(10,10,10,0.70)]" />
               Closed / Holiday Dates
             </h4>
-            <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-0.5">
+            <p className="text-[11px] text-[rgba(10,10,10,0.70)] mt-0.5">
               Block specific dates — these override your weekly schedule.
             </p>
           </div>
@@ -190,10 +191,10 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
             <button
               type="button"
               onClick={() => { setIsLeaveMode(false); setNewHolidayEndDate(''); }}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 cursor-pointer ${
                 !isLeaveMode
-                  ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-sm'
-                  : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] border-[rgba(23,23,23,0.12)] hover:border-[rgba(23,23,23,0.12)]'
+                  ? 'bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] border-[#E73229] shadow-sm'
+                  : 'bg-[#FFFFFF] text-[rgba(10,10,10,0.70)] border-[rgba(10,10,10,0.12)] hover:border-[rgba(10,10,10,0.20)]'
               }`}
             >
               🚫 Block Day
@@ -201,10 +202,10 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
             <button
               type="button"
               onClick={() => setIsLeaveMode(true)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors duration-150 cursor-pointer ${
                 isLeaveMode
-                  ? 'bg-[#FF9F1C] text-[#171717] border-[#FF9F1C] shadow-sm'
-                  : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)] border-[rgba(23,23,23,0.12)] hover:border-[rgba(23,23,23,0.12)]'
+                  ? 'bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] border-[#E73229] shadow-sm'
+                  : 'bg-[#FFFFFF] text-[rgba(10,10,10,0.70)] border-[rgba(10,10,10,0.12)] hover:border-[rgba(10,10,10,0.20)]'
               }`}
             >
               🏖️ Add Leave
@@ -216,7 +217,7 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
 
             {/* DATE field */}
             <div className="w-full sm:w-auto">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                 {isLeaveMode ? 'From Date' : 'Date'}
               </label>
               <div className="relative">
@@ -225,16 +226,16 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
                   value={newHolidayDate}
                   min={todayStr}
                   onChange={(e) => setNewHolidayDate(e.target.value)}
-                  className="w-full sm:w-44 h-11 pl-3 pr-9 rounded-lg border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] text-xs font-semibold text-[rgba(23,23,23,0.70)] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] appearance-none"
+                  className="w-full sm:w-44 h-11 pl-3 pr-9 rounded-lg border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF] text-xs font-semibold text-[rgba(10,10,10,0.70)] focus:outline-none focus:ring-2 focus:ring-[#E73229] appearance-none"
                 />
-                <CalendarDays className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(23,23,23,0.70)] pointer-events-none" />
+                <CalendarDays className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(10,10,10,0.70)] pointer-events-none" />
               </div>
             </div>
 
             {/* TO DATE (leave mode) */}
             {isLeaveMode && (
               <div className="w-full sm:w-auto">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                   To Date
                 </label>
                 <div className="relative">
@@ -243,16 +244,16 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
                     value={newHolidayEndDate}
                     min={newHolidayDate || todayStr}
                     onChange={(e) => setNewHolidayEndDate(e.target.value)}
-                    className="w-full sm:w-44 h-11 pl-3 pr-9 rounded-lg border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] text-xs font-semibold text-[rgba(23,23,23,0.70)] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] appearance-none"
+                    className="w-full sm:w-44 h-11 pl-3 pr-9 rounded-lg border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF] text-xs font-semibold text-[rgba(10,10,10,0.70)] focus:outline-none focus:ring-2 focus:ring-[#E73229] appearance-none"
                   />
-                  <CalendarDays className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(23,23,23,0.70)] pointer-events-none" />
+                  <CalendarDays className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(10,10,10,0.70)] pointer-events-none" />
                 </div>
               </div>
             )}
 
             {/* REASON field */}
             <div className="flex-1 w-full">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                 Reason (Optional)
               </label>
               <input
@@ -261,7 +262,7 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
                 onChange={(e) => setNewHolidayReason(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') addHoliday(); }}
                 placeholder={isLeaveMode ? 'e.g. Vacation, Training...' : 'e.g. Diwali, Maintenance...'}
-                className="w-full h-11 px-3 rounded-lg border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] text-xs font-semibold text-[rgba(23,23,23,0.70)] placeholder:text-[rgba(23,23,23,0.70)] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                className="w-full h-11 px-3 rounded-lg border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF] text-xs font-semibold text-[rgba(10,10,10,0.70)] placeholder:text-[rgba(10,10,10,0.70)] focus:outline-none focus:ring-2 focus:ring-[#E73229]"
               />
             </div>
 
@@ -274,11 +275,7 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
                 type="button"
                 onClick={addHoliday}
                 disabled={!newHolidayDate || (isLeaveMode && !newHolidayEndDate)}
-                className={`w-full sm:w-auto h-11 flex items-center justify-center gap-1.5 px-5 rounded-full text-[#171717] text-xs font-bold transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm ${
-                  isLeaveMode
-                    ? 'bg-[#FF9F1C] hover:bg-[#FF9F1C] '
-                    : 'bg-[#FF9F1C] hover:bg-[#FF9F1C] '
-                }`}
+                className="w-full sm:w-auto h-11 flex items-center justify-center gap-1.5 px-5 rounded-full text-white text-xs font-bold transition-opacity duration-150 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] hover:opacity-95 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 {isLeaveMode ? 'Add Leave' : 'Block Date'}
@@ -287,7 +284,7 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
           </div>
 
           {/* Divider */}
-          <div className="border-t border-[rgba(23,23,23,0.12)]" />
+          <div className="border-t border-[rgba(10,10,10,0.12)]" />
 
           {/* ── Active Blocked / Leave Dates List ── */}
           {activeHolidays.length > 0 ? (
@@ -299,23 +296,23 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
                     key={h.date}
                     className={`flex items-start justify-between p-3 rounded-xl border text-xs ${
                       isLeave
-                        ? 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)]'
-                        : 'bg-[rgba(255,159,28,0.15)] border-[rgba(23,23,23,0.12)]'
+                        ? 'bg-[rgba(231,50,41,0.08)] border-[rgba(10,10,10,0.12)]'
+                        : 'bg-[rgba(231,50,41,0.08)] border-[rgba(10,10,10,0.12)]'
                     }`}
                   >
                     <div className="flex items-start gap-2">
                       <span className="text-base leading-none mt-0.5">{isLeave ? '🏖️' : '🚫'}</span>
                       <div>
-                        <p className={`font-black text-sm ${isLeave ? 'text-[#FF9F1C]' : 'text-[#FF9F1C]'}`}>
+                        <p className={`font-bold text-[13px] ${isLeave ? 'text-[#C9281F]' : 'text-[#C9281F]'}`}>
                           {isLeave
                             ? `${formatDisplayDate(h.date)} → ${formatDisplayDate(h.endDate!)}`
                             : formatDisplayDate(h.date)}
                         </p>
-                        <p className={`text-[11px] mt-0.5 ${isLeave ? 'text-[#FF9F1C]' : 'text-[#FF9F1C]'}`}>
+                        <p className={`text-[11px] mt-0.5 ${isLeave ? 'text-[#C9281F]' : 'text-[#C9281F]'}`}>
                           {h.reason}
-                          <span className="ml-2 text-[rgba(23,23,23,0.70)] font-normal">(auto-expires after date)</span>
+                          <span className="ml-2 text-[rgba(10,10,10,0.70)] font-normal">(auto-expires after date)</span>
                         </p>
-                        <p className={`text-[11px] mt-1 font-bold uppercase tracking-wider ${isLeave ? 'text-[#FF9F1C]' : 'text-[#FF9F1C]'}`}>
+                        <p className={`text-[11px] mt-1 font-bold uppercase tracking-wider ${isLeave ? 'text-[#C9281F]' : 'text-[#C9281F]'}`}>
                           {isLeave ? '🔒 All slots in this range are blocked' : '🔒 All slots on this day are blocked'}
                         </p>
                       </div>
@@ -323,7 +320,7 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
                     <button
                       type="button"
                       onClick={() => removeHoliday(h.date)}
-                      className="p-1 rounded-lg hover:bg-[rgba(23,23,23,0.05)] text-[rgba(23,23,23,0.70)] hover:text-[rgba(23,23,23,0.70)] transition-colors ml-2 shrink-0"
+                      className="p-1 rounded-lg hover:bg-[rgba(10,10,10,0.05)] text-[rgba(10,10,10,0.70)] hover:text-[rgba(10,10,10,0.70)] transition-colors ml-2 shrink-0"
                       title="Remove"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -333,9 +330,9 @@ export const WorkingHoursEditor: React.FC<WorkingHoursEditorProps> = ({
               })}
             </div>
           ) : (
-            <div className="py-4 text-center rounded-xl border-2 border-dashed border-[rgba(23,23,23,0.12)]">
-              <CalendarDays className="w-5 h-5 mx-auto text-[rgba(23,23,23,0.70)] mb-1" />
-              <p className="text-xs text-[rgba(23,23,23,0.70)]">No blocked dates. Add a date above to close your shop.</p>
+            <div className="py-4 text-center rounded-xl border-2 border-dashed border-[rgba(10,10,10,0.12)]">
+              <CalendarDays className="w-5 h-5 mx-auto text-[rgba(10,10,10,0.70)] mb-1" />
+              <p className="text-xs text-[rgba(10,10,10,0.70)]">No blocked dates. Add a date above to close your shop.</p>
             </div>
           )}
         </div>

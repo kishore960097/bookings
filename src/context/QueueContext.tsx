@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Booking, NotificationItem } from '../types';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
@@ -52,6 +52,9 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       osc.start();
       osc.stop(ctx.currentTime + 0.35);
+      osc.onended = () => {
+        void ctx.close().catch(() => {});
+      };
     } catch (e) {
       // Audio might be blocked by browser policy until interaction
     }
@@ -66,9 +69,13 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const res = await api.getBookings();
       if (res && res.bookings) {
+        const todayLocal = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+
         // Find most recent active booking / token
         const active = res.bookings.find(
-          (b) => b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'in_progress'
+          (b) =>
+            (!b.scheduledDate || b.scheduledDate >= todayLocal) &&
+            (b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'in_progress')
         );
 
         if (active) {
@@ -136,22 +143,26 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => clearInterval(interval);
   }, [user, refreshActiveBooking, refreshNotifications]);
 
-  const markAllNotificationsRead = async () => {
+  const markAllNotificationsRead = useCallback(async () => {
     if (!user) return;
+    const prevNotifications = notifications;
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     try {
       await api.markAllNotificationsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (e) {
       console.error('Error marking notifications read:', e);
+      setNotifications(prevNotifications);
     }
-  };
+  }, [user, notifications]);
 
-  const cancelCurrentBooking = async (reason?: string) => {
+  const cancelCurrentBooking = useCallback(async (reason?: string) => {
     if (!activeBooking) return false;
+    const bookingToCancel = activeBooking;
+    // Optimistic cancellation
+    setActiveBooking(null);
     try {
-      const res = await api.cancelBooking(activeBooking.id, reason);
+      const res = await api.cancelBooking(bookingToCancel.id, reason);
       if (res.success) {
-        setActiveBooking(null);
         setToastMessage({
           title: 'Booking Cancelled',
           message: (res as any).refund?.refundAmount
@@ -162,20 +173,24 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         refreshActiveBooking();
         return true;
       }
+      // Rollback on failure
+      setActiveBooking(bookingToCancel);
       if ((res as any).error) return { error: (res as any).error };
       return false;
     } catch (e: any) {
+      // Rollback on error
+      setActiveBooking(bookingToCancel);
       console.error('Error cancelling booking:', e);
       return { error: e?.message || 'Error cancelling booking' };
     }
-  };
+  }, [activeBooking, refreshActiveBooking]);
 
-  const notifyArriving = async () => {
+  const notifyArriving = useCallback(async () => {
     if (!activeBooking) return false;
     try {
       const res = await api.markArriving(activeBooking.id);
       if (res.success) {
-        setActiveBooking(res.booking);
+        if (res.booking) setActiveBooking(res.booking);
         setToastMessage({
           title: 'Shop Notified!',
           message: `${activeBooking.salonName} knows you are on your way.`,
@@ -188,26 +203,41 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Error sending arrival alert:', e);
       return false;
     }
-  };
+  }, [activeBooking]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const contextValue = useMemo(
+    () => ({
+      activeBooking,
+      notifications,
+      unreadCount,
+      refreshActiveBooking,
+      refreshNotifications,
+      markAllNotificationsRead,
+      cancelCurrentBooking,
+      notifyArriving,
+      setActiveBooking,
+      toastMessage,
+      setToastMessage,
+    }),
+    [
+      activeBooking,
+      notifications,
+      unreadCount,
+      refreshActiveBooking,
+      refreshNotifications,
+      markAllNotificationsRead,
+      cancelCurrentBooking,
+      notifyArriving,
+      setActiveBooking,
+      toastMessage,
+      setToastMessage,
+    ]
+  );
+
   return (
-    <QueueContext.Provider
-      value={{
-        activeBooking,
-        notifications,
-        unreadCount,
-        refreshActiveBooking,
-        refreshNotifications,
-        markAllNotificationsRead,
-        cancelCurrentBooking,
-        notifyArriving,
-        setActiveBooking,
-        toastMessage,
-        setToastMessage,
-      }}
-    >
+    <QueueContext.Provider value={contextValue}>
       {children}
     </QueueContext.Provider>
   );

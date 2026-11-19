@@ -1,29 +1,32 @@
 import React from 'react';
-import { motion, LayoutGroup } from 'motion/react';
+import { createPortal } from 'react-dom';
+import { motion, LayoutGroup, useReducedMotion } from 'motion/react';
 import { Home, CalendarDays, Plus, Heart, UserRound } from 'lucide-react';
+import { haptics } from '../../utils/haptics';
 
 export type CustomerTabKey = 'home' | 'turf' | 'booking' | 'add' | 'favorites' | 'profile';
 
-interface TabItem {
+export interface TabItem {
   id: CustomerTabKey;
   label: string;
   icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
   isCenterAction?: boolean;
 }
 
-const TABS: TabItem[] = [
+export const TABS: TabItem[] = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'booking', label: 'Booking', icon: CalendarDays },
-  { id: 'add', label: 'Add', icon: Plus, isCenterAction: true },
+  { id: 'booking', label: 'Bookings', icon: CalendarDays },
+  { id: 'add', label: 'Book', icon: Plus, isCenterAction: true },
   { id: 'favorites', label: 'Favorites', icon: Heart },
   { id: 'profile', label: 'Profile', icon: UserRound },
 ];
 
-interface LiquidBottomNavProps {
+export interface LiquidBottomNavProps {
   activeTab: CustomerTabKey;
   onTabChange: (tab: CustomerTabKey) => void;
   onPlusClick?: () => void;
   visible?: boolean;
+  labels?: Partial<Record<CustomerTabKey, string>>;
 }
 
 export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
@@ -31,21 +34,28 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
   onTabChange,
   onPlusClick,
   visible = true,
+  labels,
 }) => {
-  return (
+  const prefersReducedMotion = useReducedMotion();
+  const springEase = [0.34, 1.56, 0.64, 1] as const;
+
+  const navContent = (
     <div
-      className={`fixed left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-[420px] pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
-        visible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'
+      className={`fixed left-0 right-0 bottom-0 z-50 flex justify-center pointer-events-none px-3 pb-[max(12px,env(safe-area-inset-bottom))] transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+        visible
+          ? 'translate-y-0 opacity-100'
+          : `${prefersReducedMotion ? 'translate-y-0' : 'translate-y-24'} opacity-0`
       }`}
-      style={{
-        bottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
-      }}
       role="navigation"
       aria-label="Bottom Navigation"
     >
-      {/* ── Floating Capsule Bottom Bar (Image 1 Style) ── */}
+      {/* Apple iOS Liquid Glass Floating Capsule */}
       <nav
-        className="relative w-full h-[70px] q-glass-frosted rounded-full px-2 py-1.5 flex items-center justify-between border border-[var(--q-hairline)] shadow-[0_1px_2px_rgba(23,23,23,0.06),0_8px_24px_rgba(23,23,23,0.06)] select-none"
+        className="pointer-events-auto relative w-full max-w-[420px] h-[66px] rounded-full px-2.5 flex items-center justify-between select-none bg-white/45 dark:bg-zinc-900/45 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/15 shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.9),0_10px_30px_-8px_rgba(15,23,42,0.14)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_12px_32px_-8px_rgba(0,0,0,0.5)]"
+        style={{
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+        }}
         role="tablist"
         aria-label="Navigation Tabs"
       >
@@ -56,76 +66,91 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
                 tab.id === activeTab || (tab.id === 'home' && activeTab === 'turf');
               const Icon = tab.icon;
 
-              // ── Center "Add" Button (Image 2 Style: Black squircle + bold white plus + "Add" text) ──
+              // ── Center Action Button (Raised Red Circle + Apple Rim + Ambient Glow + Book label) ──
               if (tab.isCenterAction) {
                 return (
                   <motion.button
                     key={tab.id}
                     type="button"
                     role="tab"
-                    aria-label="Add"
-                    whileTap={{ scale: 0.88 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    aria-current={activeTab === tab.id ? 'page' : undefined}
+                    aria-label="Book Turf Slot"
+                    whileTap={prefersReducedMotion ? { opacity: 0.75 } : { scale: 0.94 }}
+                    transition={prefersReducedMotion ? { duration: 0.12 } : { type: 'spring', stiffness: 500, damping: 25 }}
                     onClick={() => {
+                      haptics.light();
                       if (onPlusClick) {
                         onPlusClick();
                       } else {
                         onTabChange(tab.id);
                       }
                     }}
-                    className="relative z-20 flex-1 h-full min-w-0 flex flex-col items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--q-red)] rounded-full select-none"
+                    className="relative z-20 flex-1 h-full min-w-0 min-h-[44px] flex flex-col items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E73229] rounded-full select-none active:scale-95 transition-transform duration-150"
                   >
-                    {/* Black squircle as in Image 2 */}
-                    <div className="w-11 h-11 -mt-3.5 rounded-[16px] bg-[var(--q-red-action)] text-white flex items-center justify-center shadow-[0_4px_14px_rgba(214,46,40,0.35)] active:bg-[var(--q-red-pressed)] transition-colors">
-                      <Plus size={22} strokeWidth={2.8} className="text-white" />
+                    <div
+                      className="w-10 h-10 -mt-6 sm:-mt-7 rounded-full bg-[#E73229] text-white flex items-center justify-center ring-2 ring-white/75 dark:ring-white/20 shadow-[0_8px_20px_-4px_rgba(231,50,41,0.45)]"
+                    >
+                      <Plus size={20} strokeWidth={2.8} className="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]" />
                     </div>
-                    {/* "Add" label underneath */}
-                    <span className="text-[11px] tracking-tight leading-normal font-bold text-[var(--q-ink)] mt-0.5">
-                      {tab.label}
+                    <span className="text-[11px] leading-tight font-bold text-[#111111] dark:text-[#FFFFFF] mt-0.5 whitespace-nowrap drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]">
+                      {labels?.[tab.id] || tab.label}
                     </span>
                   </motion.button>
                 );
               }
 
-              // ── Regular Navigation Items (Home, Booking, Favorites, Profile) ──
+              // ── Regular Navigation Items (Home, Bookings, Favorites, Profile) ──
+              const rawLabel = labels?.[tab.id] || tab.label;
+              const displayLabel = rawLabel === 'My Bookings' ? 'Bookings' : rawLabel;
               return (
                 <motion.button
                   key={tab.id}
                   type="button"
                   role="tab"
                   aria-selected={isTabActive}
-                  aria-label={tab.label}
-                  whileTap={{ scale: 0.92 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-                  onClick={() => onTabChange(tab.id)}
-                  className="relative z-10 flex-1 h-full min-w-0 flex flex-col items-center justify-center py-1 px-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--q-red)] rounded-full select-none"
+                  aria-current={isTabActive ? 'page' : undefined}
+                  aria-label={displayLabel}
+                  whileTap={prefersReducedMotion ? { opacity: 0.75 } : { scale: 0.92 }}
+                  transition={prefersReducedMotion ? { duration: 0.12 } : { type: 'spring', stiffness: 500, damping: 28 }}
+                  onClick={() => {
+                    haptics.selection();
+                    onTabChange(tab.id);
+                  }}
+                  className="relative z-10 flex-1 h-full min-w-0 min-h-[44px] flex flex-col items-center justify-center py-1 px-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E73229] rounded-full select-none active:scale-95 transition-transform duration-150"
                 >
-                  {/* ── iPhone-Style Smooth Gliding Active Pill (Orange Capsule from Image 1) ── */}
                   {isTabActive && (
                     <motion.div
-                      layoutId="activeTabPill"
-                      className="absolute inset-x-1 inset-y-1 sm:inset-x-1.5 sm:inset-y-1 bg-[var(--q-red-wash)] rounded-full border border-[rgba(232,52,42,0.15)] -z-0 pointer-events-none"
+                      layoutId={prefersReducedMotion ? undefined : 'activeTabPill'}
+                      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 1, scaleX: 1 }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scaleX: [1, 1.25, 1] }}
+                      className="absolute inset-x-1 inset-y-1 sm:inset-x-1.5 sm:inset-y-1 rounded-full z-0 pointer-events-none bg-[#E73229]/12 border border-[#E73229]/25 shadow-[inset_0_1px_0.5px_rgba(255,255,255,0.8)] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                       transition={{
-                        type: 'spring',
-                        stiffness: 450,
-                        damping: 34,
-                        mass: 0.75,
+                        duration: prefersReducedMotion ? 0.18 : 0.45,
+                        ease: springEase,
                       }}
                     />
                   )}
 
-                  {/* Icon */}
-                  <div className={`relative z-10 flex items-center justify-center mb-0.5 ${isTabActive ? 'text-[var(--q-red)]' : 'text-[var(--q-muted)]'}`}>
-                    <Icon size={20} strokeWidth={isTabActive ? 2.4 : 2.0} />
-                  </div>
-
-                  {/* Label */}
-                  <span
-                    className={`relative z-10 text-[11px] tracking-tight leading-normal truncate max-w-full px-0.5 ${
-                      isTabActive ? 'font-bold text-[var(--q-red)]' : 'font-semibold text-[var(--q-muted)]'
+                  {/* Icon: Accent Red when active, Crisp text when inactive */}
+                  <div
+                    className={`relative z-10 flex items-center justify-center mb-0.5 transition-colors ${
+                      isTabActive
+                        ? '!text-[#E73229] [&>svg]:!text-[#E73229] [&>svg]:!stroke-[#E73229] drop-shadow-[0_1px_2px_rgba(231,50,41,0.35)]'
+                        : 'text-neutral-700 dark:text-neutral-200'
                     }`}
                   >
-                    {tab.label}
+                    <Icon size={19} strokeWidth={isTabActive ? 2.5 : 2.0} />
+                  </div>
+
+                  {/* Label: Accent Red when active, Crisp text when inactive */}
+                  <span
+                    className={`relative z-10 text-[11px] leading-tight whitespace-nowrap transition-colors ${
+                      isTabActive
+                        ? 'font-bold !text-[#E73229] drop-shadow-[0_1px_2px_rgba(231,50,41,0.25)]'
+                        : 'font-semibold text-neutral-700 dark:text-neutral-200'
+                    }`}
+                  >
+                    {displayLabel}
                   </span>
                 </motion.button>
               );
@@ -135,4 +160,10 @@ export const LiquidBottomNav: React.FC<LiquidBottomNavProps> = ({
       </nav>
     </div>
   );
+
+  if (typeof document === 'undefined' || !document.body) {
+    return navContent;
+  }
+
+  return createPortal(navContent, document.body);
 };

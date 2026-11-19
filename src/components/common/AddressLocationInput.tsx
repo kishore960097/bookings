@@ -99,44 +99,69 @@ export const AddressLocationInput: React.FC<AddressLocationInputProps> = ({
     setLocationError(null);
 
     try {
-      let lat: number;
-      let lon: number;
+      let lat: number | undefined;
+      let lon: number | undefined;
+      let isPermissionDenied = false;
 
+      // 1. Try Capacitor Geolocation if available with strict high accuracy & no stale cache
       try {
-        const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 8000 });
+        const permStatus = await Geolocation.checkPermissions().catch(() => null);
+        if (permStatus?.location === 'prompt' || permStatus?.location === 'prompt-with-rationale') {
+          await Geolocation.requestPermissions().catch(() => null);
+        }
+        const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
         lat = position.coords.latitude;
         lon = position.coords.longitude;
-      } catch {
-        if (!navigator.geolocation) {
-          throw new Error('Geolocation is not supported by your browser.');
+      } catch (capError: any) {
+        if (capError?.message?.toLowerCase().includes('denied') || capError?.code === 1) {
+          isPermissionDenied = true;
         }
-        const pos: GeolocationPosition = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
-            timeout: 8000,
-            maximumAge: 60000,
-          });
-        });
-        lat = pos.coords.latitude;
-        lon = pos.coords.longitude;
+
+        // 2. Try browser standard navigator.geolocation with high accuracy
+        if (typeof navigator !== 'undefined' && navigator.geolocation) {
+          try {
+            const pos: GeolocationPosition = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 12000,
+                maximumAge: 0,
+              });
+            });
+            lat = pos.coords.latitude;
+            lon = pos.coords.longitude;
+            isPermissionDenied = false;
+          } catch (browserError: any) {
+            if (browserError?.code === 1 || browserError?.message?.toLowerCase().includes('denied')) {
+              isPermissionDenied = true;
+            }
+            console.warn('GPS location unavailable or denied:', browserError?.message || browserError);
+          }
+        }
       }
 
-      const res = await api.reverseGeocode(lat, lon);
-      if (res && res.success && res.address) {
-        setQuery(res.address);
-        onChange(res.address, lat, lon, res.city || undefined);
+      // 3. If GPS succeeded, reverse-geocode real coordinates via Nominatim
+      if (lat !== undefined && lon !== undefined) {
+        const res = await api.reverseGeocode(lat, lon);
+        if (res && res.success && res.address) {
+          setQuery(res.address);
+          onChange(res.address, lat, lon, res.city || undefined);
+          return;
+        } else if (res && res.address) {
+          setQuery(res.address);
+          onChange(res.address, lat, lon, res.city || undefined);
+          return;
+        }
+      }
+
+      // 4. If GPS was denied or failed, provide clear user-friendly guidance
+      if (isPermissionDenied) {
+        setLocationError('Location permission was denied. Please search or type your address in the box above.');
       } else {
-        setLocationError('Unable to detect your location address. Please try again.');
+        setLocationError('Unable to acquire high-accuracy GPS location. Please search or enter your address manually.');
       }
     } catch (error: any) {
-      console.error('Location error:', error);
-      if (error.code === 1 || error?.message?.toLowerCase().includes('permission') || error?.code?.toLowerCase() === 'permission_denied') {
-        setLocationError('Location permission is required. Please enable it in your device settings.');
-      } else if (error.code === 2 || error?.message?.toLowerCase().includes('unavailable') || error?.code?.toLowerCase() === 'position_unavailable') {
-        setLocationError('GPS position unavailable. Please ensure your device location services are turned on.');
-      } else {
-        setLocationError('Unable to access your location. Please try again or enter manually.');
-      }
+      console.warn('Location detection failed:', error?.message || error);
+      setLocationError('Unable to detect your location. Please type your address manually above.');
     } finally {
       setIsLocating(false);
     }

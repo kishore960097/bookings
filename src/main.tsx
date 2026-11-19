@@ -18,6 +18,17 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   });
 }
 
+// Apply the persisted preference before React renders to avoid a light-theme flash.
+try {
+  const savedTheme = localStorage.getItem('qgo-theme') || localStorage.getItem('qgo_theme') || 'system';
+  const resolvedTheme = savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ? 'dark'
+    : 'light';
+  document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+  document.documentElement.dataset.theme = resolvedTheme;
+  document.documentElement.style.colorScheme = resolvedTheme;
+} catch {}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

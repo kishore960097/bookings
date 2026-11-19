@@ -7,6 +7,23 @@
 		"hostname": "qgo.app"
 	},
 	"android": {
-		"allowMixedContent": true
+		"allowMixedContent": false
+	},
+	"plugins": {
+		"SplashScreen": {
+			"backgroundColor": "#E73229",
+			"launchAutoHide": true,
+			"showSpinner": false
+		},
+		"FirebaseAuthentication": {
+			"skipNativeAuth": false,
+			"providers": [
+				"google.com",
+				"phone"
+			]
+		},
+		"CapacitorHttp": {
+			"enabled": true
+		}
 	}
 }

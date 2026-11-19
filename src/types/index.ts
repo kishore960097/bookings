@@ -12,7 +12,144 @@ export interface User {
   salonId?: string;
   staffId?: string;
   profileImage?: string;
+  photoUrl?: string;
+  isBlocked?: boolean;
+  blockedAt?: string;
+  blockedReason?: string;
+  settledPayoutAmount?: number;
+  lastPayoutDate?: string;
+  lastActiveAt?: string | null;
   createdAt: string;
+}
+
+export interface SystemAlert {
+  id: string;
+  severity: 'critical' | 'warning' | 'info';
+  category: 'approval' | 'refund' | 'payment' | 'reliability' | 'venue' | 'system';
+  title: string;
+  message: string;
+  targetTab: 'venues' | 'bookings' | 'payments' | 'owners' | 'customers' | 'intimations';
+  entityId?: string;
+  createdAt: string;
+}
+
+export interface AdminOverviewKPIs {
+  totalGmv: number;
+  qgoNetEarnings: number;
+  gstCollected: number;
+  totalRefunds: number;
+  payoutsDue: number;
+  payoutsSettled: number;
+  todayBookingsCount: number;
+  todayCompletedCount: number;
+  todayConfirmedCount: number;
+  todayCancelledCount: number;
+  todayNoShowCount: number;
+  todayCheckInCount: number;
+  activeSalonsCount: number;
+  activeTurfsCount: number;
+  pendingApprovalsCount: number;
+  totalCustomersCount: number;
+  totalOwnersCount: number;
+}
+
+export interface AdminTimeSeriesPoint {
+  date: string;
+  gmv: number;
+  qgoEarnings: number;
+  bookings: number;
+}
+
+export interface AdminOverviewResponse {
+  success: boolean;
+  kpis: AdminOverviewKPIs;
+  timeSeries: {
+    '7d': AdminTimeSeriesPoint[];
+    '30d': AdminTimeSeriesPoint[];
+    '90d': AdminTimeSeriesPoint[];
+  };
+  statusBreakdown: Record<string, number>;
+  categorySplit: { salon: number; turf: number };
+  paymentModeSplit: { paid: number; partially_paid: number; pay_at_shop: number };
+  alerts: SystemAlert[];
+}
+
+export interface AdminOwnerRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+  isBlocked?: boolean;
+  blockedReason?: string;
+  isOnline: boolean;
+  lastActiveAt?: string | null;
+  categories: string[];
+  primaryCategory: 'turf' | 'salon' | 'other';
+  averageRating: number;
+  venues: Salon[];
+  totalBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  grossRevenue: number;
+  qgoFeeDeducted: number;
+  refundsDeducted: number;
+  netPayable: number;
+  settledPayoutAmount: number;
+  pendingPayoutBalance: number;
+  lastPayoutDate?: string;
+}
+
+export interface AdminCustomerRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  createdAt: string;
+  isBlocked?: boolean;
+  blockedReason?: string;
+  isOnline: boolean;
+  lastActiveAt?: string | null;
+  totalBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  noShowCount: number;
+  reliabilityScore: number;
+  totalSpent: number;
+  totalRefundsReceived: number;
+  lastBookingDate?: string | null;
+}
+
+export interface AdminCustomersResponse {
+  success: boolean;
+  totalCustomers?: number;
+  onlineCustomers?: number;
+  activeTodayCustomers?: number;
+  customers: AdminCustomerRecord[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminOwnersResponse {
+  success: boolean;
+  totalOwners?: number;
+  onlineOwners?: number;
+  categoryCounts?: {
+    turf: number;
+    salon: number;
+    other: number;
+  };
+  owners: AdminOwnerRecord[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface AuthAccount {
@@ -195,7 +332,7 @@ export interface GeneratedTurfSlot {
   available: boolean;
   isBooked?: boolean;
   isBlocked?: boolean;
-  status?: 'available' | 'booked' | 'blocked' | 'disabled';
+  status?: 'available' | 'booked' | 'blocked' | 'disabled' | 'closed' | 'completed';
   bookingId?: string;
   customerName?: string;
   customerPhone?: string;
@@ -311,6 +448,15 @@ export interface Salon {
   distanceKm?: number;
   facilities?: string[];
   photos?: string[];
+  // Payout & Settlement Agreements
+  payoutCycle?: 'weekly' | 'monthly';
+  upiId?: string;
+  bankAccountHolder?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  payoutAgreementAccepted?: boolean;
+  payoutAgreementAcceptedAt?: string;
   createdAt: string;
 }
 
@@ -374,6 +520,8 @@ export interface Booking {
   scheduledDate?: string; // YYYY-MM-DD for appointments/turf slots
   scheduledTime?: string; // HH:MM for appointments/turf slots
   slotEndTime?: string;   // HH:MM for turf slots (e.g. "10:00")
+  slotId?: string;
+  slotStatus?: BookingStatus;
   status: BookingStatus;
   qrCodeId: string;
   qrSignature: string;
@@ -384,7 +532,9 @@ export interface Booking {
   estimatedStartTime?: string;
   joinedQueueAt?: string;
   checkedInAt?: string;
+  checkedInBy?: string;
   completedAt?: string;
+  completedBy?: string;
   notes?: string;
   cancellationReason?: string;
   cancelledAt?: string;
@@ -397,17 +547,29 @@ export interface Booking {
   reminderMinutesBefore?: number;
   reminderSent?: boolean;
   isArriving?: boolean;
-  paymentType?: 'FULL' | 'ADVANCE';
+  paymentType?: 'FULL' | 'ADVANCE' | 'BOTH';
+  bookingSource?: 'customer' | 'owner_manual';
   totalAmount?: number;
   paidAmount?: number;
   advanceAmount?: number;
   balanceAmount?: number;
-  paymentStatus: 'paid' | 'pending' | 'pay_at_shop' | 'PARTIALLY_PAID' | 'FULLY_PAID';
+  paymentStatus: 'paid' | 'partially_paid' | 'pay_at_shop' | 'pending' | 'refunded' | 'PARTIALLY_PAID' | 'FULLY_PAID' | 'PAID';
   balanceStatus?: 'PENDING' | 'COLLECTED';
+  balanceCollected?: boolean;
   balanceCollectedAt?: string;
   balanceCollectedBy?: string;
+  balanceReminderSent?: boolean;
+  convenienceFee?: number;
+  gstAmount?: number;
+  paymentId?: string;
+  orderId?: string;
+  paymentSignature?: string;
   amount: number;
+  payoutSettled?: boolean;
+  payoutSettlementId?: string;
+  payoutSettledAt?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface QueueEntry {
@@ -454,6 +616,8 @@ export interface NotificationItem {
   read: boolean;
   createdAt: string;
   bookingId?: string;
+  targetAudience?: 'customers' | 'owners' | 'all';
+  severity?: 'info' | 'warning' | 'critical';
 }
 
 export interface AnalyticsData {
@@ -480,3 +644,128 @@ export interface AnalyticsSummary {
 }
 
 export type Language = 'en' | 'ta';
+
+export interface SettlementCalculation {
+  salonId: string;
+  salonName: string;
+  category: string;
+  ownerId: string;
+  ownerName: string;
+  ownerPhone: string;
+  payoutCycle: 'weekly' | 'monthly';
+  upiId?: string;
+  bankAccountHolder?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  payoutAgreementAccepted?: boolean;
+  payoutAgreementAcceptedAt?: string;
+  totalBookings: number;
+  grossSlotValue: number;
+  totalOnlineCollected: number;
+  qgoConvenienceFee: number;
+  qgoGstCollected: number;
+  qgoTotalRetained: number;
+  netOwnerPayable: number;
+  venueBalanceCollected: number;
+  cyclePeriodLabel: string;
+  nextPayoutDate: string;
+  isPayoutDue: boolean;
+  unsettledBookingIds: string[];
+  allTimeBookingsCount?: number;
+  allTimeGrossSlotValue?: number;
+  allTimeQgoFee?: number;
+  allTimeQgoRetained?: number;
+}
+
+export interface SettlementPayoutRecord {
+  id: string;
+  salonId: string;
+  salonName: string;
+  ownerId: string;
+  ownerName: string;
+  ownerPhone: string;
+  payoutCycle: 'weekly' | 'monthly';
+  amountPaid: number;
+  paymentMethod: string;
+  utrReference: string;
+  notes?: string;
+  totalBookingsSettled: number;
+  bookingIds: string[];
+  settledAt: string;
+  settledByAdminId: string;
+  settledByAdminName: string;
+}
+
+export interface AdminSettlementsResponse {
+  success: boolean;
+  summary: {
+    totalOnlineCollected: number;
+    qgoPlatformFee: number;
+    gstCollected: number;
+    netPayableToOwners: number;
+    totalSettledHistorical: number;
+    vaultGrossQgoPlatformIncome?: number;
+    vaultStatutoryGst?: number;
+    vaultEstimatedGatewayCost?: number;
+    vaultNetProfit?: number;
+    totalPendingPayable?: number;
+    totalDisbursedHistorical?: number;
+    turfMetrics?: {
+      venueCount: number;
+      totalBookings: number;
+      qgoFeeIncome: number;
+      disbursedPayouts: number;
+      pendingPayouts: number;
+    };
+    salonMetrics?: {
+      venueCount: number;
+      totalBookings: number;
+      qgoFeeIncome: number;
+      disbursedPayouts: number;
+      pendingPayouts: number;
+    };
+  };
+  settlements: SettlementCalculation[];
+  payoutHistory: SettlementPayoutRecord[];
+}
+
+export interface AdminReminderRecord {
+  id: string;
+  adminId?: string;
+  targetTime: string; // e.g. "12:40 PM" or "12:40"
+  targetDate?: string; // e.g. "YYYY-MM-DD"
+  scheduledDate?: string; // e.g. "YYYY-MM-DD"
+  scheduledTime?: string; // e.g. "12:40"
+  targetTimestamp?: number; // epoch ms
+  targetMinutesOfDay: number; // 0 to 1439
+  title: string;
+  note?: string;
+  triggered: boolean;
+  triggeredAt?: string;
+  acknowledged: boolean;
+  acknowledgedAt?: string;
+  notifyPhone: string; // default "9600971886"
+  createdAt: string;
+}
+
+export interface QbeAutonomousAction {
+  type:
+    | 'schedule_reminder'
+    | 'approve_venues'
+    | 'export_excel'
+    | 'send_whatsapp'
+    | 'auto_reply_reviews'
+    | 'demand_analysis'
+    | 'broadcast'
+    | 'navigate'
+    | 'navigate_tab'
+    | 'venue_drilldown'
+    | 'set_theme'
+    | 'set_language'
+    | 'safety_guard_refusal';
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'blocked';
+  trace: string[];
+  resultText: string;
+  data?: any;
+}

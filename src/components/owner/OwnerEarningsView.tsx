@@ -43,9 +43,13 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
 
   const handleExportCsv = () => {
     if (!revenueData || !revenueData.transactions) return;
+    const safe = (value: unknown) => {
+      const text = String(value ?? '').replaceAll('"', '""');
+      return `"${/^[=+\-@\t\r]/.test(text) ? `'${text}` : text}"`;
+    };
     let csv = 'BookingID,TokenNumber,CustomerName,Phone,Service,Amount,RefundAmount,Status,PaymentStatus,Date,Created\n';
     revenueData.transactions.forEach((t) => {
-      csv += `"${t.bookingId}","${t.tokenNumber || ''}","${t.customerName}","${t.customerPhone}","${t.serviceName}",${t.amount},${t.refundAmount || 0},"${t.status}","${t.paymentStatus}","${t.scheduledDate || ''}","${t.createdAt}"\n`;
+      csv += `${safe(t.bookingId)},${safe(t.tokenNumber || '')},${safe(t.customerName)},${safe(t.customerPhone)},${safe(t.serviceName)},${Number(t.amount) || 0},${Number(t.refundAmount) || 0},${safe(t.status)},${safe(t.paymentStatus)},${safe(t.scheduledDate || '')},${safe(t.createdAt)}\n`;
     });
 
     const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csv);
@@ -58,15 +62,15 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
+    <div className="space-y-4 animate-in fade-in duration-150">
       {/* ── 1. HEADER & PERIOD SELECTOR ── */}
-      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[rgba(10,10,10,0.12)] p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-black text-[#171717]">Revenue &amp; Earnings</h2>
-          <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">Real-time accounting of bookings, refunds, and net payout</p>
+          <h2 className="text-[20px] font-bold text-[#0A0A0A]">Revenue &amp; Earnings</h2>
+          <p className="text-[11px] text-[rgba(10,10,10,0.70)] mt-0.5">Real-time accounting of bookings, refunds, and net payout</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-0 w-full sm:w-auto">
           <div className="bg-[#FFFFFF] p-1 rounded-xl flex flex-wrap items-center gap-1">
             {(
               [
@@ -79,8 +83,8 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
               <button
                 key={p.id}
                 onClick={() => setPeriod(p.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-colors duration-150 ${
-                  period === p.id ? 'bg-[#FFFFFF] text-[#171717] shadow-2xs' : 'text-[rgba(23,23,23,0.70)] hover:text-[#171717]'
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-colors duration-150 min-h-[36px] ${
+                  period === p.id ? 'bg-[#FFFFFF] text-[#0A0A0A] shadow-2xs' : 'text-[rgba(10,10,10,0.70)] hover:text-[#0A0A0A]'
                 }`}
               >
                 {p.label}
@@ -90,7 +94,7 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
 
           <button
             onClick={handleExportCsv}
-            className="px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(23,23,23,0.05)] text-[#171717] font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors"
+            className="px-3.5 py-1.5 rounded-xl bg-[#FFFFFF] hover:bg-[rgba(10,10,10,0.05)] text-[#0A0A0A] font-semibold text-[13px] flex items-center gap-1.5 shadow-2xs transition-colors min-h-[36px]"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -99,146 +103,199 @@ export const OwnerEarningsView: React.FC<OwnerEarningsViewProps> = ({ salon }) =
       </div>
 
       {/* ── 2. REVENUE METRICS CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
         {/* Net Revenue */}
-        <div className="bg-gradient-to-br from-[#FF9F1C] to-[#FF9F1C]/80 text-[#171717] rounded-3xl p-5 shadow-sm lg:col-span-2 flex flex-col justify-between">
+        <div className="bg-[linear-gradient(135deg,#F0554A_0%,#E73229_100%)] text-[#0A0A0A] rounded-2xl p-3 sm:p-4 shadow-sm lg:col-span-2 flex flex-col justify-between min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#FF9F1C]">Net Revenue</span>
-            <TrendingUp className="w-5 h-5 text-[#FF9F1C]" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#FFFFFF]/90">Net Revenue</span>
+            <TrendingUp className="w-4 h-4 text-[#FFFFFF]" />
           </div>
-          <div className="mt-4">
-            <span className="text-3xl sm:text-4xl font-black font-mono">
+          <div className="mt-3">
+            <span className="text-2xl sm:text-3xl font-bold font-mono text-[#FFFFFF]">
               ₹{(revenueData?.netRevenue || 0).toLocaleString()}
             </span>
-            <p className="text-xs text-[#FF9F1C] mt-1 font-medium">
+            <p className="text-[11px] text-[#FFFFFF]/80 mt-0.5 font-medium">
               Gross bookings minus customer cancellation refunds
             </p>
           </div>
         </div>
 
         {/* Gross Revenue */}
-        <div className="bg-[#FFFFFF] rounded-3xl p-5 border border-[rgba(23,23,23,0.12)] shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center mb-2">
-            <DollarSign className="w-4 h-4" />
+        <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[rgba(10,10,10,0.12)] shadow-2xs min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-[rgba(231,50,41,0.08)] text-[#C9281F] flex items-center justify-center mb-1.5">
+            <DollarSign className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] block">Gross Bookings</span>
-          <span className="text-2xl font-black text-[#171717] mt-1 block font-mono">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[rgba(10,10,10,0.70)] block truncate">Gross Bookings</span>
+          <span className="text-[18px] font-bold text-[#0A0A0A] mt-0.5 block font-mono">
             ₹{(revenueData?.grossRevenue || 0).toLocaleString()}
           </span>
         </div>
 
         {/* Completed Bookings */}
-        <div className="bg-[#FFFFFF] rounded-3xl p-5 border border-[rgba(23,23,23,0.12)] shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center mb-2">
-            <CheckCircle2 className="w-4 h-4" />
+        <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[rgba(10,10,10,0.12)] shadow-2xs min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-[rgba(231,50,41,0.08)] text-[#C9281F] flex items-center justify-center mb-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] block">Completed Bookings</span>
-          <span className="text-2xl font-black text-[#171717] mt-1 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[rgba(10,10,10,0.70)] block truncate">Completed Bookings</span>
+          <span className="text-[18px] font-bold text-[#0A0A0A] mt-0.5 block">
             {revenueData?.completedBookingsCount || 0}
           </span>
         </div>
 
         {/* Refunds */}
-        <div className="bg-[#FFFFFF] rounded-3xl p-5 border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-[rgba(255,159,28,0.15)] text-[#FF9F1C] flex items-center justify-center mb-2">
-            <RotateCcw className="w-4 h-4" />
+        <div className="bg-[#FFFFFF] rounded-2xl p-3 sm:p-4 border border-[rgba(10,10,10,0.12)] bg-[rgba(231,50,41,0.08)] shadow-2xs min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-[rgba(231,50,41,0.08)] text-[#C9281F] flex items-center justify-center mb-1.5">
+            <RotateCcw className="w-3.5 h-3.5" />
           </div>
-          <span className="text-[11px] font-black uppercase tracking-wider text-[#FF9F1C] block">Refunds Processed</span>
-          <span className="text-2xl font-black text-[#FF9F1C] mt-1 block font-mono">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#C9281F] block truncate">Refunds Processed</span>
+          <span className="text-[18px] font-bold text-[#C9281F] mt-0.5 block font-mono">
             ₹{(revenueData?.totalRefunds || 0).toLocaleString()}
           </span>
         </div>
       </div>
 
       {/* ── 3. TRANSACTION HISTORY ── */}
-      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[rgba(23,23,23,0.12)]">
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[rgba(10,10,10,0.12)] p-3 sm:p-4 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2.5 border-b border-[rgba(10,10,10,0.12)]">
           <div>
-            <h3 className="font-black text-base text-[#171717]">Transaction History</h3>
-            <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">Itemized record of all bookings and cancellations</p>
+            <h3 className="font-bold text-[15px] text-[#0A0A0A]">Transaction History</h3>
+            <p className="text-[11px] text-[rgba(10,10,10,0.70)] mt-0.5">Itemized record of all bookings and cancellations</p>
           </div>
-          <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">
+          <span className="text-[11px] font-semibold text-[rgba(10,10,10,0.70)]">
             {revenueData?.transactions?.length || 0} Transactions
           </span>
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-[rgba(23,23,23,0.70)]">
-            <div className="w-8 h-8 border-3 border-[rgba(23,23,23,0.12)] border-t-emerald-600 rounded-full animate-spin mx-auto mb-2" />
-            <p className="text-xs font-bold">Loading transactions...</p>
+          <div className="py-8 text-center text-[rgba(10,10,10,0.70)]">
+            <div className="w-7 h-7 border-2 border-[rgba(10,10,10,0.12)] border-t-emerald-600 rounded-full animate-spin mx-auto mb-2" />
+            <p className="text-xs font-semibold">Loading transactions...</p>
           </div>
         ) : !revenueData?.transactions || revenueData.transactions.length === 0 ? (
-          <div className="py-12 text-center text-[rgba(23,23,23,0.70)] space-y-2">
-            <DollarSign className="w-10 h-10 mx-auto text-[rgba(23,23,23,0.70)] stroke-1" />
-            <p className="text-sm font-bold text-[rgba(23,23,23,0.70)]">No transactions recorded for this period</p>
-            <p className="text-xs text-[rgba(23,23,23,0.70)]">
+          <div className="py-8 text-center text-[rgba(10,10,10,0.70)] space-y-2">
+            <DollarSign className="w-8 h-8 mx-auto text-[rgba(10,10,10,0.70)] stroke-1" />
+            <p className="text-sm font-bold text-[rgba(10,10,10,0.70)]">No transactions recorded for this period</p>
+            <p className="text-xs text-[rgba(10,10,10,0.70)]">
               Transactions will automatically populate as customers make bookings.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-[rgba(23,23,23,0.12)] text-[11px] font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] bg-[rgba(23,23,23,0.05)]">
-                  <th className="py-3 px-3.5">Booking / ID</th>
-                  <th className="py-3 px-3.5">Customer</th>
-                  <th className="py-3 px-3.5">Slot Date &amp; Time</th>
-                  <th className="py-3 px-3.5 text-right">Amount</th>
-                  <th className="py-3 px-3.5 text-center">Status</th>
-                  <th className="py-3 px-3.5 text-right">Refund</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium">
-                {revenueData.transactions.map((t) => {
-                  const isCancelled = t.status === 'cancelled';
-                  const isCompleted = t.status === 'completed';
-                  const shortId = `QGO-${t.bookingId.split('_').pop()?.toUpperCase()}`;
+          <div>
+            {/* Desktop Table View */}
+            <div className="overflow-x-auto hidden md:block">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[rgba(10,10,10,0.12)] text-[10px] font-semibold uppercase tracking-wider text-[rgba(10,10,10,0.70)] bg-[rgba(10,10,10,0.05)]">
+                    <th className="py-2.5 px-3">Booking / ID</th>
+                    <th className="py-2.5 px-3">Customer</th>
+                    <th className="py-2.5 px-3">Slot Date &amp; Time</th>
+                    <th className="py-2.5 px-3 text-right">Amount</th>
+                    <th className="py-2.5 px-3 text-center">Status</th>
+                    <th className="py-2.5 px-3 text-right">Refund</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {revenueData.transactions.map((t) => {
+                    const isCancelled = t.status === 'cancelled';
+                    const isCompleted = t.status === 'completed';
+                    const shortId = `QGO-${t.bookingId.split('_').pop()?.toUpperCase()}`;
 
-                  return (
-                    <tr key={t.bookingId} className="hover:bg-[rgba(23,23,23,0.05)] transition-colors">
-                      <td className="py-3.5 px-3.5 font-bold text-[#171717] font-mono">
-                        <span className="text-[#FF9F1C]">{shortId}</span>
-                      </td>
+                    return (
+                      <tr key={t.bookingId} className="hover:bg-[rgba(10,10,10,0.05)] transition-colors">
+                        <td className="py-2.5 px-3 font-semibold text-[#0A0A0A] font-mono text-[11px]">
+                          <span className="text-[#C9281F]">{shortId}</span>
+                        </td>
 
-                      <td className="py-3.5 px-3.5 text-[#171717]">
-                        <div className="font-bold">{t.customerName}</div>
-                        <div className="text-[11px] text-[rgba(23,23,23,0.70)] font-mono">{t.customerPhone}</div>
-                      </td>
+                        <td className="py-2.5 px-3 text-[#0A0A0A]">
+                          <div className="font-semibold text-[13px]">{t.customerName}</div>
+                          <div className="text-[10px] text-[rgba(10,10,10,0.70)] font-mono">{t.customerPhone}</div>
+                        </td>
 
-                      <td className="py-3.5 px-3.5 text-[rgba(23,23,23,0.70)] font-mono">
-                        {t.scheduledDate || 'Today'} {t.scheduledTime ? `· ${t.scheduledTime}` : ''}
-                      </td>
+                        <td className="py-2.5 px-3 text-[rgba(10,10,10,0.70)] font-mono text-[11px]">
+                          {t.scheduledDate || 'Today'} {t.scheduledTime ? `· ${t.scheduledTime}` : ''}
+                        </td>
 
-                      <td className="py-3.5 px-3.5 text-right font-black text-[#171717] font-mono">
-                        ₹{t.amount}
-                      </td>
+                        <td className="py-2.5 px-3 text-right font-bold text-[#0A0A0A] font-mono text-[13px]">
+                          ₹{t.amount}
+                        </td>
 
-                      <td className="py-3.5 px-3.5 text-center">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-wider ${
-                            isCompleted
-                              ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
-                              : isCancelled
-                              ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
-                              : 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
-                          }`}
-                        >
-                          {t.status}
-                        </span>
-                      </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <span
+                            className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              isCompleted
+                                ? 'bg-[rgba(231,50,41,0.08)] text-[#C9281F]'
+                                : isCancelled
+                                ? 'bg-[rgba(231,50,41,0.08)] text-[#C9281F]'
+                                : 'bg-[rgba(231,50,41,0.08)] text-[#C9281F]'
+                            }`}
+                          >
+                            {t.status}
+                          </span>
+                        </td>
 
-                      <td className="py-3.5 px-3.5 text-right font-mono font-bold">
+                        <td className="py-2.5 px-3 text-right font-mono font-semibold text-[11px]">
+                          {t.refundAmount ? (
+                            <span className="text-[#C9281F]">-₹{t.refundAmount}</span>
+                          ) : (
+                            <span className="text-[rgba(10,10,10,0.70)]">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Stacked Cards Layout */}
+            <div className="md:hidden space-y-2">
+              {revenueData.transactions.map((t) => {
+                const isCancelled = t.status === 'cancelled';
+                const isCompleted = t.status === 'completed';
+                const shortId = `QGO-${t.bookingId.split('_').pop()?.toUpperCase()}`;
+
+                return (
+                  <div
+                    key={t.bookingId}
+                    className="p-3 rounded-xl border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF] space-y-2 min-w-0"
+                  >
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <span className="text-[11px] font-mono font-bold text-[#C9281F]">
+                        {shortId}
+                      </span>
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          isCompleted
+                            ? 'bg-[rgba(231,50,41,0.08)] text-[#C9281F]'
+                            : isCancelled
+                            ? 'bg-[rgba(231,50,41,0.08)] text-[#C9281F]'
+                            : 'bg-[rgba(231,50,41,0.08)] text-[#C9281F]'
+                        }`}
+                      >
+                        {t.status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-[13px] text-[#0A0A0A] truncate">{t.customerName}</div>
+                        <div className="text-[10px] text-[rgba(10,10,10,0.70)] font-mono">{t.customerPhone}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-bold text-[14px] text-[#0A0A0A] font-mono">₹{t.amount}</div>
                         {t.refundAmount ? (
-                          <span className="text-[#FF9F1C]">-₹{t.refundAmount}</span>
-                        ) : (
-                          <span className="text-[rgba(23,23,23,0.70)]">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                          <div className="text-[10px] text-[#C9281F] font-mono font-semibold">-₹{t.refundAmount}</div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] text-[rgba(10,10,10,0.70)] font-mono pt-1.5 border-t border-[rgba(10,10,10,0.08)]">
+                      {t.scheduledDate || 'Today'} {t.scheduledTime ? `· ${t.scheduledTime}` : ''}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

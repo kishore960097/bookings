@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   Eye, EyeOff, ArrowRight, ArrowLeft, MapPin, Clock,
   Users, CheckCircle2, Smartphone, KeyRound,
-  User, Building2, ChevronRight, X} from 'lucide-react';
+  User, Building2, ChevronRight, X, Settings
+} from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { QGoLogo } from './QGoLogo';
 import { useAuth } from '../../context/AuthContext';
 import { GoogleAuthButton } from '../auth/GoogleAuthButton';
-import { api } from '../../services/api';
+import { api, getEffectiveApiOrigin, setCustomApiUrl } from '../../services/api';
 
 /* ─── Google SVG Logo ─── */
 const GoogleIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
@@ -174,13 +176,58 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onClose, onSuccess }) => {
   const { loginWithGoogle, loginWithOtp, requestOtp, switchRole } = useAuth();
 
-  const [role, setRole] = useState<'consumer' | 'owner'>('consumer');
+  const [role, setRole] = useState<'consumer' | 'owner'>(() => {
+    if (typeof window !== 'undefined' && /^\/(owner|dashboard)/i.test(window.location.pathname)) {
+      return 'owner';
+    }
+    return 'consumer';
+  });
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<{ message: string; code?: string } | null>(null);
   const [otpPhone, setOtpPhone] = useState('');
   const [otpName, setOtpName] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(0);
+
+  // Server settings configuration for mobile APK
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [currentApiOrigin, setCurrentApiOrigin] = useState(() => getEffectiveApiOrigin());
+  const [serverUrlInput, setServerUrlInput] = useState(() => getEffectiveApiOrigin() || 'http://192.168.137.1:3000');
+  const [testStatus, setTestStatus] = useState<{ testing: boolean; message: string; ok?: boolean } | null>(null);
+
+  const handleTestServer = async (testUrl?: string) => {
+    const target = (testUrl || serverUrlInput).trim().replace(/\/+$/, '');
+    if (!target) return;
+    setTestStatus({ testing: true, message: `Connecting to ${target}...` });
+    try {
+      const res = await fetch(`${target}/health`, { signal: AbortSignal.timeout(4000) });
+      if (res.ok) {
+        setTestStatus({ testing: false, ok: true, message: '✔ Connected to QGo Server!' });
+      } else {
+        setTestStatus({ testing: false, ok: false, message: `✕ Server responded with HTTP ${res.status}` });
+      }
+    } catch (e: any) {
+      setTestStatus({ testing: false, ok: false, message: `✕ Cannot reach server (${e?.message || 'timeout'})` });
+    }
+  };
+
+  const handleSaveServer = (newUrl: string) => {
+    setCustomApiUrl(newUrl.trim());
+    setCurrentApiOrigin(getEffectiveApiOrigin());
+    setShowServerModal(false);
+    setError(null);
+  };
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleGoogleSuccess = async (tokenResponse: any) => {
     setGoogleLoading(true);
@@ -215,22 +262,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
   };
 
   const handleRequestOtp = async () => {
-    if (!otpPhone.trim()) {
-      setError({ message: 'Enter a phone number to request OTP.' });
+    const rawPhone = otpPhone.trim();
+    if (!rawPhone) {
+      setError({ message: 'Enter your phone number to receive a verification code.' });
+      return;
+    }
+    const clean = rawPhone.replace(/[\s\-()]/g, '');
+    if (!/^(?:\+?[1-9]\d{9,14}|[6-9]\d{9})$/.test(clean)) {
+      setError({ message: 'Please enter a valid 10-digit mobile number (e.g. 9876543210).' });
       return;
     }
 
     setOtpLoading(true);
     setError(null);
     try {
-      const res = await requestOtp(otpPhone.trim());
+      const res = await requestOtp(rawPhone);
       if (!res.success) {
-        setError({ message: res.error || 'Could not send OTP.' });
+        setError({ message: res.error || 'Could not send verification code.' });
         return;
       }
-      setOtpCode('123456');
+      setDevOtpCode(res.devOtp || null);
+      setOtpSent(true);
+      setCountdown(30);
+      setOtpCode(res.devOtp || '');
     } catch (e: any) {
-      setError({ message: e?.message || 'Could not request OTP.' });
+      setError({ message: e?.message || 'Could not request verification code.' });
     } finally {
       setOtpLoading(false);
     }
@@ -238,19 +294,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
 
   const handleOtpLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpPhone.trim() || !otpCode.trim()) {
-      setError({ message: 'Phone and OTP are required.' });
+    if (!otpPhone.trim()) {
+      setError({ message: 'Phone number is required.' });
+      return;
+    }
+
+    const codeToUse = otpCode.trim();
+    if (!/^\d{6}$/.test(codeToUse)) {
+      setError({ message: 'Please enter a valid 6-digit verification code.' });
       return;
     }
 
     setOtpLoading(true);
     setError(null);
     try {
-      const res = await loginWithOtp(otpPhone.trim(), otpCode.trim(), otpName.trim() || undefined, role);
+      const res = await loginWithOtp(otpPhone.trim(), codeToUse, otpName.trim() || undefined, role);
       if (res.success) {
         onSuccess?.();
       } else {
-        setError({ message: res.error || 'OTP verification failed.' });
+        setError({ message: res.error || 'Verification failed. Please check the code and try again.' });
       }
     } finally {
       setOtpLoading(false);
@@ -266,58 +328,97 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
 
       {/* Right Panel — Auth Form */}
       <div
-        className="flex flex-col justify-center min-h-screen relative"
-        style={{ background: 'var(--qp-bg)', borderLeft: '1px solid var(--qp-border)' }}
+        className="flex flex-col min-h-screen relative overflow-y-auto"
+        style={{
+          background: 'var(--qp-bg)',
+          borderLeft: '1px solid var(--qp-border)',
+          // Push content below the Android status bar on native (safe-area-inset-top)
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+        }}
       >
         <div id="qgo-phone-recaptcha" />
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-xl text-[var(--q-muted)] hover:text-[var(--q-ink)] hover:bg-[var(--q-canvas-soft)] transition-colors"
+            className="absolute right-6 p-2 rounded-xl text-[var(--q-muted)] hover:text-[var(--q-ink)] hover:bg-[var(--q-canvas-soft)] transition-colors z-10"
+            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 1.5rem)' }}
             title="Back to home"
           >
             <X size={20} />
           </button>
         )}
 
-        {/* Mobile header */}
-        <div className="lg:hidden px-6 pt-8 pb-4">
+        {/* Mobile header — extra top spacing reserved for safe-area on native */}
+        <div className="lg:hidden px-6 pb-4" style={{ paddingTop: '2rem' }}>
           <QGoLogo size="md" />
         </div>
 
         <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-12 xl:px-16 py-12">
-          <div className="max-w-md mx-auto w-full">
+          <div className="max-w-md mx-auto w-full bg-[#FFFFFF] rounded-[28px] p-6 sm:p-8 shadow-[0_8px_32px_rgba(10,10,10,0.07)] border border-[rgba(10,10,10,0.08)]">
             {/* Header */}
             <div className="mb-8 text-center">
               <div className="hidden lg:flex justify-center mb-5">
                 <QGoLogo size="sm" />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--qp-text)' }}>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0A0A0A]">
                 {defaultView === 'register' ? 'Get Started with QGo' : 'Welcome to QGo'}
               </h1>
-              <p className="mt-2 text-sm" style={{ color: 'var(--qp-text-muted)' }}>
+              <p className="mt-2 text-sm text-[#5C5C5C]">
                 Book Before You Go. Know Before You Wait.
               </p>
             </div>
 
-            {/* Error Banner with Role Mismatch Resolution */}
+            {/* Server connection pill for native mobile app */}
+            {Capacitor.isNativePlatform() && (
+              <div className="flex justify-center mb-5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowServerModal(true);
+                    setTestStatus(null);
+                  }}
+                  className="px-3 py-1 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] text-xs font-semibold text-[#4B5563] flex items-center gap-1.5 transition-colors cursor-pointer border border-gray-200"
+                  title="Configure Backend Server Address"
+                >
+                  <Settings size={13} className="text-[#E73229]" />
+                  <span>Server: {currentApiOrigin ? currentApiOrigin.replace(/^https?:\/\//, '') : 'Tap to set URL'}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Error Banner with Role Mismatch and Server Resolution */}
             {error && (
               <div className="mb-6 p-4 rounded-2xl bg-[rgba(179,38,30,0.12)] border border-[rgba(179,38,30,0.20)] text-[var(--q-error)] text-sm space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="flex items-start gap-2.5">
                   <X size={18} className="mt-0.5 shrink-0 text-[var(--q-error)]" />
                   <span className="font-medium text-[var(--q-error)]">{error.message}</span>
                 </div>
+                {Capacitor.isNativePlatform() && (
+                  <div className="pt-2 border-t border-[rgba(179,38,30,0.20)]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowServerModal(true);
+                        setTestStatus(null);
+                      }}
+                      className="text-xs font-bold text-[#b91c1c] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Settings size={13} />
+                      <span>Change Server Address (Connect to Hotspot or Cloud)</span>
+                    </button>
+                  </div>
+                )}
                 {(error.code === 'OWNER_ACCESS_DENIED' || error.code === 'STAFF_ACCESS_DENIED' || error.message.includes('access')) && (
                   <div className="flex items-center gap-2 pt-2 border-t border-[var(--q-hairline)]">
                     <button
                       onClick={() => setError(null)}
-                      className="px-3 py-1.5 rounded-lg bg-[var(--q-canvas-soft)] hover:bg-[rgba(23,23,23,0.08)] text-xs font-bold text-[var(--q-ink)] transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-[#ECECEF] hover:bg-[#E2E2E6] text-xs font-bold text-[#0A0A0A] transition-colors cursor-pointer"
                     >
                       Try Again
                     </button>
                     <button
                       onClick={handleSwitchToCustomer}
-                      className="px-3 py-1.5 rounded-lg bg-[var(--q-ink)] hover:opacity-90 text-xs font-bold text-white transition-colors flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-lg bg-[var(--q-grad-cta)] hover:opacity-90 text-xs font-bold text-white transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <User size={13} />
                       <span>Use Customer Login</span>
@@ -327,138 +428,222 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
               </div>
             )}
 
-            {/* ── ROLE SELECTOR (Customer | Owner) ── */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-[var(--q-muted)]">
-                  Select your role
-                </label>
-                <span className="text-[11px] text-[var(--q-muted)]">
-                  Role is locked after login
-                </span>
-              </div>
+            {!otpSent ? (
+              <>
+                {/* ── ROLE SELECTOR (Customer | Owner) ── */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-[#5C5C5C]">
+                      Select your role
+                    </label>
+                    <span className="text-[11px] text-[#5C5C5C]">
+                      Role is locked after login
+                    </span>
+                  </div>
 
-              {/* Segmented Control with 2 roles */}
-              <div
-                role="radiogroup"
-                aria-label="User role selection"
-                className="p-1 rounded-xl bg-[var(--q-canvas-soft)] border border-[var(--q-hairline)] grid grid-cols-2 gap-1 shadow-inner"
-              >
-                {([
-                  { id: 'consumer', label: 'Customer', icon: User },
-                  { id: 'owner', label: 'Owner', icon: Building2 },
-                ] as const).map(({ id, label, icon: Icon }) => {
-                  const isSelected = role === id;
-                  return (
+                  {/* Segmented Control with 2 roles */}
+                  <div
+                    role="radiogroup"
+                    aria-label="User role selection"
+                    className="p-1 rounded-xl bg-[#ECECEF] border border-[rgba(10,10,10,0.06)] grid grid-cols-2 gap-1 shadow-inner"
+                  >
+                    {([
+                      { id: 'consumer', label: 'Customer', icon: User },
+                      { id: 'owner', label: 'Owner', icon: Building2 },
+                    ] as const).map(({ id, label, icon: Icon }) => {
+                      const isSelected = role === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          onClick={() => {
+                            setRole(id);
+                            setError(null);
+                          }}
+                          className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer ${
+                            isSelected
+                              ? 'shadow-xs bg-white text-[#0A0A0A]'
+                              : 'text-[#5C5C5C] hover:text-[#0A0A0A] hover:bg-black/5'
+                          }`}
+                        >
+                          <Icon
+                            size={15}
+                            className={isSelected ? 'text-[#0A0A0A]' : 'text-[#5C5C5C]'}
+                          />
+                          <span>{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── GOOGLE AUTH BUTTON ── */}
+                <div className="space-y-4">
+                  <GoogleAuthButton
+                    role={role}
+                    loading={googleLoading}
+                    onSuccess={handleGoogleSuccess}
+                    onError={(err) => setError({ message: err.message })}
+                  />
+
+                  <div className="text-center">
+                    <p className="text-[11px] text-[#5C5C5C]">
+                      Secured with Google OAuth 2.0 &amp; OpenID Connect
+                    </p>
+                  </div>
+                </div>
+
+                {/* ── DIVIDER ── */}
+                <div className="relative my-6 text-center">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-[rgba(10,10,10,0.08)]" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-[#FFFFFF] px-3 text-[#767676] font-medium">or continue with mobile number</span>
+                  </div>
+                </div>
+
+                {/* ── PHONE NUMBER REQUEST SECTION ── */}
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={otpName}
+                    onChange={(e) => setOtpName(e.target.value)}
+                    placeholder="Your name (optional)"
+                    className="w-full px-3.5 py-3 rounded-[12px] border border-[rgba(10,10,10,0.10)] bg-[#F3F3F5] text-[#0A0A0A] placeholder:text-[#767676] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E73229]"
+                  />
+
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={otpPhone}
+                      onChange={(e) => setOtpPhone(e.target.value)}
+                      placeholder="10-digit mobile number"
+                      className="min-w-0 flex-1 px-3.5 py-3 rounded-[12px] border border-[rgba(10,10,10,0.10)] bg-[#F3F3F5] text-[#0A0A0A] placeholder:text-[#767676] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#E73229]"
+                    />
                     <button
-                      key={id}
                       type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      onClick={() => {
-                        setRole(id);
-                        setError(null);
-                      }}
-                      className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-colors duration-150 ${
-                        isSelected
-                          ? 'bg-[var(--q-ink)] text-white shadow-xs'
-                          : 'text-[var(--q-muted)] hover:text-[var(--q-ink)] hover:bg-[rgba(23,23,23,0.04)]'
-                      }`}
+                      id="request-otp-btn"
+                      onClick={handleRequestOtp}
+                      disabled={otpLoading}
+                      className="px-5 py-3 rounded-[12px] bg-[#0A0A0A] hover:bg-[#222222] disabled:opacity-50 text-white font-bold text-sm flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-sm"
                     >
-                      <Icon
-                        size={15}
-                        className={isSelected ? 'text-white' : 'text-[var(--q-muted)]'}
-                      />
-                      <span>{label}</span>
+                      {otpLoading ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Smartphone size={16} />
+                          <span>Send Code</span>
+                        </>
+                      )}
                     </button>
-                  );
-                })}
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* ── DEDICATED MOBILE-OPTIMIZED OTP VERIFICATION VIEW ── */
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-3 duration-200">
+                <div className="flex items-center justify-between pb-3 border-b border-[rgba(10,10,10,0.08)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtpCode('');
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-[#5C5C5C] hover:text-[#0A0A0A] transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft size={16} />
+                    <span>Change Number</span>
+                  </button>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-[#ECECEF] text-[#0A0A0A]">
+                    {role === 'owner' ? 'Owner Account' : 'Customer Account'}
+                  </span>
+                </div>
+
+                <div className="text-left space-y-1">
+                  <h2 className="text-lg font-bold text-[#0A0A0A]">Enter Verification Code</h2>
+                  <p className="text-xs text-[#5C5C5C]">
+                    We sent a 6-digit SMS verification code to <strong className="text-[#0A0A0A] font-semibold">{otpPhone}</strong>
+                  </p>
+                </div>
+
+                <form onSubmit={handleOtpLogin} className="space-y-4">
+                  {devOtpCode && (
+                    <div className="p-3 bg-[#FEF3C7] border border-[#F59E0B]/30 rounded-xl flex items-center justify-between text-xs text-[#92400E]">
+                      <div>
+                        <span className="font-semibold text-[#78350F]">Verification Code: </span>
+                        <span className="font-mono font-black text-sm tracking-widest text-[#92400E] ml-1">{devOtpCode}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOtpCode(devOtpCode)}
+                        className="px-2.5 py-1 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-lg font-bold text-xs transition-colors cursor-pointer"
+                      >
+                        Autofill
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="• • • • • •"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      className="w-full py-3.5 px-4 rounded-xl border-2 border-[rgba(10,10,10,0.14)] bg-[#F8F8FA] text-[#0A0A0A] placeholder:text-[#AAAAAA] text-2xl font-bold tracking-[0.5em] text-center focus:outline-none focus:border-[#E73229] focus:ring-2 focus:ring-[#E73229]/20 transition-all shadow-inner"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    id="otp-login-go-btn"
+                    disabled={otpLoading || otpCode.trim().length < 6}
+                    className="w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all duration-150 bg-[#E73229] hover:bg-[#D42B23] text-white active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {otpLoading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span className="text-white font-bold tracking-wide">Verify &amp; Continue</span>
+                        <ArrowRight size={16} className="text-white stroke-[2.5]" />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-center pt-2">
+                    {countdown > 0 ? (
+                      <span className="text-xs text-[#767676] font-medium">
+                        Resend code in <strong className="text-[#0A0A0A]">{countdown}s</strong>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleRequestOtp}
+                        disabled={otpLoading}
+                        className="text-xs font-bold text-[#E73229] hover:underline transition-colors cursor-pointer"
+                      >
+                        Didn't receive code? Resend
+                      </button>
+                    )}
+                  </div>
+                </form>
               </div>
-            </div>
-
-            {/* ── GOOGLE AUTH BUTTON ── */}
-            <div className="space-y-4">
-              <GoogleAuthButton
-                role={role}
-                loading={googleLoading}
-                onSuccess={handleGoogleSuccess}
-                onError={(err) => setError({ message: err.message })}
-              />
-
-              <div className="text-center">
-                <p className="text-[11px] text-[rgba(11,11,11,0.70)]">
-                  Secured with Google OAuth 2.0 & OpenID Connect
-                </p>
-              </div>
-
-
-            </div>
-
-            {/* Local development OTP login */}
-            <form onSubmit={handleOtpLogin} className="mt-6 pt-6 border-t border-[var(--q-hairline)] space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-[var(--q-muted)]">
-                  Local OTP Preview
-                </label>
-                <span className="text-[11px] text-[var(--q-muted)]">Development only</span>
-              </div>
-
-              <input
-                type="text"
-                value={otpName}
-                onChange={(e) => setOtpName(e.target.value)}
-                placeholder="Your name"
-                className="w-full px-3.5 py-2.5 rounded-[8px] border border-[var(--q-hairline)] bg-[var(--q-canvas)] text-[var(--q-ink)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--q-red)]"
-              />
-
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  value={otpPhone}
-                  onChange={(e) => setOtpPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-[8px] border border-[var(--q-hairline)] bg-[var(--q-canvas)] text-[var(--q-ink)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--q-red)]"
-                />
-                <button
-                  type="button"
-                  onClick={handleRequestOtp}
-                  disabled={otpLoading}
-                  className="px-3.5 py-2.5 rounded-[8px] bg-[var(--q-canvas)] hover:bg-[var(--q-canvas-soft)] border border-[var(--q-hairline)] disabled:opacity-50 text-[var(--q-ink)] font-bold text-xs flex items-center gap-1.5"
-                >
-                  <Smartphone size={14} />
-                  <span>OTP</span>
-                </button>
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                  placeholder="Enter OTP"
-                  inputMode="numeric"
-                  className="min-w-0 flex-1 px-3.5 py-2.5 rounded-[8px] border border-[var(--q-hairline)] bg-[var(--q-canvas)] text-[var(--q-ink)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--q-red)]"
-                />
-                <button
-                  type="submit"
-                  disabled={otpLoading}
-                  className="px-4 py-2.5 rounded-[8px] bg-[var(--q-red-action)] hover:bg-[var(--q-red-pressed)] disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5"
-                >
-                  <KeyRound size={14} />
-                  <span>Enter</span>
-                </button>
-              </div>
-            </form>
+            )}
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-[var(--q-hairline)] text-center">
-              <p className="text-[11px] text-[var(--q-muted)]">
+            <div className="mt-8 pt-6 border-t border-[rgba(10,10,10,0.08)] text-center">
+              <p className="text-[11px] text-[#5C5C5C]">
                 By continuing, you agree to our{' '}
-                <a href="#" className="text-[var(--q-muted)] hover:text-[var(--q-ink)] underline">
+                <a href="#" className="text-[#0A0A0A] underline hover:text-[#E73229]">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-[var(--q-muted)] hover:text-[var(--q-ink)] underline">
+                <a href="#" className="text-[#0A0A0A] underline hover:text-[#E73229]">
                   Privacy Policy
                 </a>
                 .
@@ -466,6 +651,99 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
             </div>
           </div>
         </div>
+
+        {/* Server Settings Modal for mobile */}
+        {showServerModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                  <Settings size={18} className="text-[#E73229]" />
+                  <span>Backend Server Settings</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowServerModal(false)}
+                  className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Connect your mobile app to your laptop hotspot, Wi-Fi, or 24/7 cloud server:
+              </p>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-700">Server URL:</label>
+                <input
+                  type="text"
+                  value={serverUrlInput}
+                  onChange={(e) => setServerUrlInput(e.target.value)}
+                  placeholder="http://192.168.137.1:3000"
+                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E73229] font-mono"
+                />
+              </div>
+
+              {/* Quick Presets */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Quick Presets:</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServerUrlInput('http://192.168.137.1:3000');
+                      handleTestServer('http://192.168.137.1:3000');
+                    }}
+                    className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-left transition-colors cursor-pointer"
+                  >
+                    <div className="text-xs font-bold text-gray-800">Mobile Hotspot</div>
+                    <div className="text-[10px] text-gray-500 font-mono">192.168.137.1:3000</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServerUrlInput('http://10.10.117.15:3000');
+                      handleTestServer('http://10.10.117.15:3000');
+                    }}
+                    className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-left transition-colors cursor-pointer"
+                  >
+                    <div className="text-xs font-bold text-gray-800">Home Wi-Fi</div>
+                    <div className="text-[10px] text-gray-500 font-mono">10.10.117.15:3000</div>
+                  </button>
+                </div>
+              </div>
+
+              {testStatus && (
+                <div className={`p-2.5 rounded-xl text-xs font-semibold ${
+                  testStatus.ok ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  testStatus.testing ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                  'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {testStatus.message}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleTestServer()}
+                  disabled={testStatus?.testing}
+                  className="flex-1 py-2.5 text-xs font-bold rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors cursor-pointer"
+                >
+                  Test
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveServer(serverUrlInput)}
+                  className="flex-1 py-2.5 text-xs font-bold rounded-xl bg-[#E73229] hover:bg-[#c9241c] text-white transition-colors cursor-pointer"
+                >
+                  Save & Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

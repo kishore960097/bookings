@@ -33,7 +33,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Layers,
-  Pencil} from 'lucide-react';
+  Pencil,
+  Check} from 'lucide-react';
 
 interface BusinessSetupWizardProps {
   existingSalon?: Salon | null;
@@ -73,7 +74,21 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
   const { user } = useAuth();
   const startStep = existingSalon?.setupStep || 1;
 
-  const [step, setStep] = useState(startStep);
+  const [step, setStepState] = useState(() => {
+    const saved = sessionStorage.getItem('qgo_wizard_step');
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 8) return parsed;
+    }
+    return startStep;
+  });
+  const setStep = (s: number | ((prev: number) => number)) => {
+    setStepState((prev) => {
+      const next = typeof s === 'function' ? s(prev) : s;
+      sessionStorage.setItem('qgo_wizard_step', String(next));
+      return next;
+    });
+  };
   const [salonId, setSalonId] = useState<string | null>(existingSalon?.id || null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -98,6 +113,51 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
   const [photos, setPhotos] = useState<string[]>(
     existingSalon?.photos?.length ? existingSalon.photos : (existingSalon?.coverUrl ? [existingSalon.coverUrl] : [])
   );
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+
+  const handleUploadLogo = async (file: File) => {
+    try {
+      setUploadingLogo(true);
+      setError('');
+      const targetFolder = salonId ? `salons/${salonId}` : 'salons/general';
+      const result = await api.uploadImage(file, targetFolder);
+      if (result.success && result.url) {
+        setLogoUrl(result.url);
+      } else {
+        setError(result.error || 'Failed to upload logo.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to upload logo.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleUploadPhotos = async (files: File[]) => {
+    if (files.length === 0) return;
+    try {
+      setUploadingPhotos(true);
+      setError('');
+      const targetFolder = salonId ? `salons/${salonId}` : 'salons/general';
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const result = await api.uploadImage(file, targetFolder);
+        if (result.success && result.url) {
+          uploadedUrls.push(result.url);
+        } else {
+          setError(result.error || 'One or more photos failed to upload.');
+        }
+      }
+      if (uploadedUrls.length > 0) {
+        setPhotos(prev => [...prev, ...uploadedUrls]);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to upload photos.');
+    } finally {
+      setUploadingPhotos(false);
+    }
+  };
 
   // Turf-Specific State (Steps 4 & 5 for Turf)
   const isTurf = isTurfBusiness(category);
@@ -181,9 +241,19 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
   const goBack = () => setStep((s) => Math.max(1, s - 1));
 
   // ─── Save Draft to Backend ───
+  // ─── Save Draft to Backend (Non-blocking step transition) ───
   const saveDraft = async (updates: Record<string, unknown>, nextStep: number) => {
-    setSaving(true);
+    // Advance step immediately so the user never experiences delay
+    setStep(nextStep);
     setError('');
+
+    // Cache locally
+    try {
+      const draftObj = { name, category, phone, email, description, website, instagram, address, city, lat, lng, logoUrl, photos, turfs, turfSchedule, ...updates };
+      localStorage.setItem('qgo_wizard_draft', JSON.stringify(draftObj));
+    } catch {}
+
+    setSaving(true);
     try {
       const bookingMode = isTurf ? 'resource_slot' : 'appointment';
       if (!salonId) {
@@ -208,10 +278,8 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
         } as any);
         if (res?.salon) {
           setSalonId(res.salon.id);
-          setStep(nextStep);
           return res.salon;
         }
-        throw new Error('Failed to create business profile');
       } else {
         const res = await api.updateSalon(salonId, {
           setupStep: nextStep,
@@ -221,13 +289,11 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           ...updates,
         } as any);
         if (res?.salon) {
-          setStep(nextStep);
           return res.salon;
         }
-        throw new Error('Failed to save progress');
       }
     } catch (e: any) {
-      setError(e?.message || 'Something went wrong. Please try again.');
+      console.warn('[BusinessSetupWizard] Draft sync note:', e?.message || e);
       return null;
     } finally {
       setSaving(false);
@@ -373,20 +439,49 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
   // ── Final Submit Handler ──
   const handleSubmit = async () => {
-    if (!salonId) return;
     setSaving(true);
     setError('');
     try {
-      const res = await api.updateSalon(salonId, {
+      let activeSalonId = salonId;
+      if (!activeSalonId) {
+        const createRes = await api.createSalon({
+          name: name.trim(),
+          category,
+          phone: phone.trim(),
+          email: email.trim(),
+          description: description.trim(),
+          website: website.trim(),
+          instagram: instagram.trim(),
+          address: address.trim() || 'To be added',
+          city: city.trim(),
+          lat,
+          lng,
+          bookingMode: isTurf ? 'resource_slot' : 'appointment',
+          status: 'under_review',
+          setupStep: totalSteps,
+          isPublished: true,
+          resources: isTurf ? turfs : [{ id: 'salon_general', salonId: 'new', name: 'General Appointments', type: 'General', isActive: true, pricePerHour: 0 }],
+          turfSchedule: turfSchedule,
+        } as any);
+        if (createRes?.salon) {
+          try { localStorage.removeItem('qgo_wizard_draft'); } catch {}
+          onComplete(createRes.salon);
+          return;
+        }
+        throw new Error('Could not create business profile');
+      }
+
+      const res = await api.updateSalon(activeSalonId, {
         status: 'under_review',
         setupStep: totalSteps,
         isPublished: true, // Go live on submit
         bookingMode: isTurf ? 'resource_slot' : 'appointment',
-        resources: isTurf ? turfs : [{ id: 'salon_general', salonId, name: 'General Appointments', type: 'General', isActive: true, pricePerHour: 0 }],
+        resources: isTurf ? turfs : [{ id: 'salon_general', salonId: activeSalonId, name: 'General Appointments', type: 'General', isActive: true, pricePerHour: 0 }],
         turfSchedule: turfSchedule,
       } as any);
 
       if (res?.salon) {
+        try { localStorage.removeItem('qgo_wizard_draft'); } catch {}
         onComplete(res.salon);
       }
     } catch (e: any) {
@@ -398,26 +493,26 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
   // ─── UI Helpers ───
   const stepHeader = (title: string, subtitle: string) => (
-    <div className="mb-5">
-      <p className="text-[11px] text-[#FF9F1C] font-black uppercase tracking-widest mb-0.5">
+    <div className="mb-4">
+      <p className="text-[11px] text-[#C9281F] font-semibold uppercase tracking-wider mb-0.5">
         Step {step} of {totalSteps}
       </p>
-      <h2 className="text-xl font-black text-[#171717]">{title}</h2>
-      <p className="text-xs text-[rgba(23,23,23,0.70)] mt-0.5">{subtitle}</p>
+      <h2 className="text-[20px] font-bold text-[#0A0A0A]">{title}</h2>
+      <p className="text-[13px] font-medium text-[rgba(10,10,10,0.70)] mt-0.5">{subtitle}</p>
     </div>
   );
 
   const formInput = (label: string, required = false, children: React.ReactNode) => (
     <div>
-      <label className="block text-xs font-bold uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
-        {label} {required && <span className="text-[#FF9F1C]">*</span>}
+      <label className="block text-[11px] font-semibold uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
+        {label} {required && <span className="text-[#C9281F]">*</span>}
       </label>
       {children}
     </div>
   );
 
   const inputCls =
-    'w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C] text-sm font-semibold text-[#171717] bg-[#FFFFFF]';
+    'w-full px-3.5 py-2.5 rounded-xl border border-[rgba(10,10,10,0.12)] focus:outline-none focus:ring-2 focus:ring-[#E73229] text-[14px] font-medium text-[#0A0A0A] bg-[#FFFFFF] min-h-[40px]';
 
   const navButtons = (
     onBackBtn?: () => void,
@@ -425,12 +520,12 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
     nextLabel = 'Save & Continue',
     canNext = true
   ) => (
-    <div className="flex items-center justify-between pt-6 mt-8 border-t border-[rgba(23,23,23,0.12)] gap-4">
+    <div className="flex items-center justify-between pt-4 mt-6 border-t border-[rgba(10,10,10,0.12)] gap-3">
       {onBackBtn ? (
         <button
           type="button"
           onClick={onBackBtn}
-          className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-[rgba(23,23,23,0.12)] text-sm font-bold text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)] transition-colors w-full sm:w-auto"
+          className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[40px] rounded-xl border border-[rgba(10,10,10,0.12)] text-[13px] font-semibold text-[rgba(10,10,10,0.70)] hover:bg-[rgba(10,10,10,0.05)] transition-colors w-full sm:w-auto"
         >
           <ChevronLeft className="w-4 h-4" />
           Back
@@ -443,7 +538,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           type="button"
           onClick={onNextBtn}
           disabled={saving || !canNext}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-[14px] bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] font-bold text-sm transition-colors duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 min-h-[40px] rounded-xl bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] font-semibold text-[13px] transition-colors duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <>
@@ -462,39 +557,49 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
   );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
-      <div className="bg-[#FFFFFF] rounded-3xl border border-[rgba(23,23,23,0.12)] shadow-xl p-6 sm:p-8">
-        {/* Step Progress Bar */}
-        <div className="flex items-center gap-1 mb-6 flex-wrap">
-          {steps.map((s) => {
-            const Icon = s.icon;
-            const done = step > s.id;
-            const current = step === s.id;
-            return (
-              <React.Fragment key={s.id}>
-                <div
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-black transition-colors duration-150 ${
-                    current
-                      ? 'bg-[#FF9F1C] text-[#171717] shadow-sm'
-                      : done
-                      ? 'bg-[rgba(255,159,28,0.15)] text-[#FF9F1C]'
-                      : 'bg-[#FFFFFF] text-[rgba(23,23,23,0.70)]'
-                  }`}
-                >
-                  <Icon className="w-3 h-3" />
-                  <span className="hidden sm:inline">{s.label}</span>
-                  <span className="sm:hidden">{s.id}</span>
+    <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6">
+      <div className="bg-[#FFFFFF] rounded-2xl border border-[rgba(10,10,10,0.12)] shadow-xl p-3 sm:p-5">
+        {/* Step Progress Bar: one row of equal 28px circles with connecting line, no wrapping */}
+        <div className="mb-6 w-full px-1">
+          <div className="relative flex items-center justify-between w-full">
+            {/* Background line */}
+            <div className="absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 h-0.5 bg-[rgba(10,10,10,0.10)] -z-0" />
+            {/* Active filled line */}
+            <div
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-0.5 bg-[#E73229] transition-all duration-300 -z-0"
+              style={{
+                width: `${((step - 1) / (steps.length - 1)) * 100}%`,
+                maxWidth: 'calc(100% - 28px)',
+              }}
+            />
+            {steps.map((s) => {
+              const done = step > s.id;
+              const current = step === s.id;
+              return (
+                <div key={s.id} className="relative z-10 flex flex-col items-center">
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-150 ${
+                      current
+                        ? 'bg-[#E73229] text-white ring-4 ring-[rgba(231,50,41,0.20)] shadow-sm'
+                        : done
+                        ? 'bg-[#E73229] text-white'
+                        : 'bg-white border border-[rgba(10,10,10,0.18)] text-[rgba(10,10,10,0.50)]'
+                    }`}
+                  >
+                    {done ? (
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    ) : (
+                      <span>{s.id}</span>
+                    )}
+                  </div>
                 </div>
-                {s.id < totalSteps && (
-                  <div className={`h-0.5 w-3 rounded ${done ? 'bg-[#FF9F1C]' : 'bg-[#FFFFFF]'}`} />
-                )}
-              </React.Fragment>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {error && (
-          <div className="mb-5 p-3.5 bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)] rounded-2xl text-xs font-semibold text-[#FF9F1C] flex items-center gap-2">
+          <div className="mb-5 p-3.5 bg-[rgba(231,50,41,0.08)] border border-[rgba(10,10,10,0.12)] rounded-2xl text-xs font-semibold text-[#C9281F] flex items-center gap-2">
             <X className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -506,14 +611,14 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {stepHeader("Let's set up your business", 'Tell players & customers who you are and what you offer.')}
 
             {formInput(
-              isTurf ? 'Turf / Sports Arena Name' : 'Business Name',
+              'Business Name',
               true,
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={isTurf ? 'e.g. QGo Turf Arena & Sports Club' : 'e.g. Royal Touch Barber'}
+                placeholder=""
                 className={inputCls}
               />
             )}
@@ -533,7 +638,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91 98765 00000"
+                placeholder=""
                 className={inputCls}
               />
             )}
@@ -545,11 +650,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder={
-                  isTurf
-                    ? 'e.g. Premium 7-a-side and box cricket turf with FIFA-grade grass and floodlights.'
-                    : 'e.g. Premium grooming studio in Anna Nagar.'
-                }
+                placeholder=""
                 className={inputCls}
               />
             )}
@@ -562,7 +663,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="hello@qgoturf.com"
+                  placeholder=""
                   className={inputCls}
                 />
               )}
@@ -573,7 +674,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   type="text"
                   value={instagram}
                   onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="@qgoturf"
+                  placeholder=""
                   className={inputCls}
                 />
               )}
@@ -582,7 +683,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <button
               type="submit"
               disabled={saving || !name.trim() || !phone.trim()}
-              className="w-full py-3.5 mt-6 rounded-[14px] bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 transition-colors duration-150 shadow-sm"
+              className="w-full py-3.5 mt-6 rounded-[14px] bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 transition-colors duration-150 shadow-sm"
             >
               {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               Save &amp; Continue
@@ -611,11 +712,11 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               required
             />
 
-            <div className="pt-6 mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[rgba(23,23,23,0.12)]">
+            <div className="pt-6 mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[rgba(10,10,10,0.12)]">
               <button
                 type="button"
                 onClick={goBack}
-                className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-[rgba(23,23,23,0.12)] text-sm font-bold text-[rgba(23,23,23,0.70)] hover:bg-[rgba(23,23,23,0.05)] w-full sm:w-auto"
+                className="flex items-center justify-center gap-1.5 px-5 py-3.5 rounded-[14px] border border-[rgba(10,10,10,0.12)] text-sm font-bold text-[rgba(10,10,10,0.70)] hover:bg-[rgba(10,10,10,0.05)] w-full sm:w-auto"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Back
@@ -624,7 +725,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               <button
                 type="submit"
                 disabled={saving || !address.trim()}
-                className="flex-1 sm:flex-none px-8 py-3.5 rounded-[14px] bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 text-[#171717] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+                className="flex-1 sm:flex-none px-8 py-3.5 rounded-[14px] bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
               >
                 Save &amp; Continue
                 <ChevronRight className="w-4 h-4" />
@@ -646,46 +747,44 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               false,
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(10,10,10,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(10,10,10,0.05)] transition-colors">
                     <input
                       id="logo-upload"
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={uploadingLogo}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setLogoUrl(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
+                        if (file) handleUploadLogo(file);
                       }}
                       className="hidden"
                     />
-                    <Image className="w-5 h-5 mx-auto text-[rgba(23,23,23,0.70)] mb-1" />
-                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Upload Gallery</span>
+                    <Image className="w-5 h-5 mx-auto text-[rgba(10,10,10,0.70)] mb-1" />
+                    <span className="text-xs font-bold text-[rgba(10,10,10,0.70)]">
+                      {uploadingLogo ? 'Compressing & Uploading...' : 'Upload Gallery'}
+                    </span>
                   </label>
-                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(10,10,10,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(10,10,10,0.05)] transition-colors">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                       capture="environment"
+                      disabled={uploadingLogo}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setLogoUrl(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
+                        if (file) handleUploadLogo(file);
                       }}
                       className="hidden"
                     />
                     
-                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Take Photo</span>
+                    <span className="text-xs font-bold text-[rgba(10,10,10,0.70)]">
+                      {uploadingLogo ? 'Uploading...' : 'Take Photo'}
+                    </span>
                   </label>
                 </div>
                 {logoUrl && (
                   <div className="flex items-start gap-4 mt-2">
-                    <img src={logoUrl} alt="Logo preview" className="h-16 rounded-md object-contain border border-[rgba(23,23,23,0.12)]" />
+                    <img src={logoUrl} alt="Logo preview" className="h-16 rounded-md object-contain border border-[rgba(10,10,10,0.12)]" />
                     <button
                       type="button"
                       onClick={() => {
@@ -693,7 +792,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                         const input = document.getElementById('logo-upload') as HTMLInputElement;
                         if (input) input.value = '';
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] text-xs font-bold hover:bg-[rgba(255,159,28,0.15)] transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(10,10,10,0.12)] text-[#C9281F] text-xs font-bold hover:bg-[rgba(231,50,41,0.08)] transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Remove
@@ -708,69 +807,47 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               false,
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(10,10,10,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(10,10,10,0.05)] transition-colors">
                     <input
                       id="photos-upload"
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                       multiple
+                      disabled={uploadingPhotos}
                       onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        if (files.length > 0) {
-                          const newPhotos: string[] = [];
-                          let loaded = 0;
-                          files.forEach((file: File) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              newPhotos.push(reader.result as string);
-                              loaded++;
-                              if (loaded === files.length) {
-                                setPhotos(prev => [...prev, ...newPhotos]);
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          });
-                        }
+                        const files = Array.from(e.target.files || []) as File[];
+                        if (files.length > 0) handleUploadPhotos(files);
                       }}
                       className="hidden"
                     />
-                    <Image className="w-5 h-5 mx-auto text-[rgba(23,23,23,0.70)] mb-1" />
-                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Upload Gallery</span>
+                    <Image className="w-5 h-5 mx-auto text-[rgba(10,10,10,0.70)] mb-1" />
+                    <span className="text-xs font-bold text-[rgba(10,10,10,0.70)]">
+                      {uploadingPhotos ? 'Compressing & Uploading...' : 'Upload Gallery'}
+                    </span>
                   </label>
-                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(23,23,23,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(23,23,23,0.05)] transition-colors">
+                  <label className="flex-1 cursor-pointer bg-[#FFFFFF] border-2 border-dashed border-[rgba(10,10,10,0.12)] rounded-xl p-4 text-center hover:bg-[rgba(10,10,10,0.05)] transition-colors">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp"
                       capture="environment"
+                      disabled={uploadingPhotos}
                       onChange={(e) => {
-                        const files = Array.from(e.target.files || []);
-                        if (files.length > 0) {
-                          const newPhotos: string[] = [];
-                          let loaded = 0;
-                          files.forEach((file: File) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              newPhotos.push(reader.result as string);
-                              loaded++;
-                              if (loaded === files.length) {
-                                setPhotos(prev => [...prev, ...newPhotos]);
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          });
-                        }
+                        const files = Array.from(e.target.files || []) as File[];
+                        if (files.length > 0) handleUploadPhotos(files);
                       }}
                       className="hidden"
                     />
                     
-                    <span className="text-xs font-bold text-[rgba(23,23,23,0.70)]">Take Photo</span>
+                    <span className="text-xs font-bold text-[rgba(10,10,10,0.70)]">
+                      {uploadingPhotos ? 'Uploading...' : 'Take Photo'}
+                    </span>
                   </label>
                 </div>
                 {photos.length > 0 && (
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     {photos.map((photo, idx) => (
                       <div key={idx} className="flex flex-col items-start gap-2">
-                        <img src={photo} alt={`Venue photo ${idx + 1}`} className="h-32 w-full object-cover rounded-md border border-[rgba(23,23,23,0.12)]" />
+                        <img src={photo} alt={`Venue photo ${idx + 1}`} className="h-32 w-full object-cover rounded-md border border-[rgba(10,10,10,0.12)]" />
                         <button
                           type="button"
                           onClick={() => {
@@ -780,7 +857,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                               if (input) input.value = '';
                             }
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(23,23,23,0.12)] text-[#FF9F1C] text-xs font-bold hover:bg-[rgba(255,159,28,0.15)] transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgba(10,10,10,0.12)] text-[#C9281F] text-xs font-bold hover:bg-[rgba(231,50,41,0.08)] transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           Remove
@@ -792,7 +869,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               </div>
             )}
 
-            <p className="text-[11px] text-[rgba(23,23,23,0.70)] italic">
+            <p className="text-[11px] text-[rgba(10,10,10,0.70)] italic">
               Upload an image file from your device.
             </p>
 
@@ -804,9 +881,9 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════
+        {/* ══════════════════════════════════════════════════
             TURF-SPECIFIC FLOW (Steps 4, 5, 6, 7)
-           ══════════════════════════════════════════════════ */}
+           ══════════════════════════════════════════════════ */}
 
         {/* ── TURF STEP 4: TURF DETAILS (Multiple Turfs) ── */}
         {isTurf && step === 4 && (
@@ -845,13 +922,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <div className="space-y-4">
               {/* Advance Booking Window */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                   How many days ahead can players book?
                 </label>
                 <select
                   value={advanceBookingDays}
                   onChange={(e) => setAdvanceBookingDays(Number(e.target.value))}
-                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                 >
                   <option value={1}>1 day ahead</option>
                   <option value={3}>3 days ahead</option>
@@ -865,13 +942,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
               {/* Minimum Notice */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                   Minimum notice before slot start
                 </label>
                 <select
                   value={minNoticeMinutes}
                   onChange={(e) => setMinNoticeMinutes(Number(e.target.value))}
-                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                 >
                   <option value={0}>No minimum notice (Book anytime)</option>
                   <option value={15}>15 minutes before</option>
@@ -882,34 +959,34 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               </div>
 
               {/* Player Cancellation Toggle */}
-              <div className="flex items-center justify-between p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF]">
+              <div className="flex items-center justify-between p-4 rounded-2xl border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF]">
                 <div>
-                  <p className="text-sm font-bold text-[#171717]">Allow Player Cancellations?</p>
-                  <p className="text-[11px] text-[rgba(23,23,23,0.70)]">Allow players to cancel their slot in advance</p>
+                  <p className="text-sm font-bold text-[#0A0A0A]">Allow Player Cancellations?</p>
+                  <p className="text-[11px] text-[rgba(10,10,10,0.70)]">Allow players to cancel their slot in advance</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCancellationAllowed(!cancellationAllowed)}
                 >
                   {cancellationAllowed ? (
-                    <ToggleRight className="w-8 h-8 text-[#FF9F1C]" />
+                    <ToggleRight className="w-8 h-8 text-[#C9281F]" />
                   ) : (
-                    <ToggleLeft className="w-8 h-8 text-[rgba(23,23,23,0.70)]" />
+                    <ToggleLeft className="w-8 h-8 text-[rgba(10,10,10,0.70)]" />
                   )}
                 </button>
               </div>
 
               {cancellationAllowed && (
-                <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] space-y-3.5">
+                <div className="p-4 rounded-2xl border border-[rgba(10,10,10,0.12)] bg-[rgba(231,50,41,0.08)] space-y-3.5">
                   {/* Cancellation Deadline */}
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                       Cancellation Deadline
                     </label>
                     <select
                       value={cancellationDeadlineHours}
                       onChange={(e) => setCancellationDeadlineHours(Number(e.target.value))}
-                      className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                      className="w-full px-3.5 py-3 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                     >
                       <option value={0.5}>30 minutes before slot</option>
                       <option value={1}>1 hour before slot</option>
@@ -919,20 +996,20 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       <option value={12}>12 hours before slot</option>
                       <option value={24}>24 hours before slot</option>
                     </select>
-                    <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-1">
+                    <p className="text-[11px] text-[rgba(10,10,10,0.70)] mt-1">
                       Cancellations made after this cutoff become disabled and non-refundable.
                     </p>
                   </div>
 
                   {/* Cancellation Refund Percentage */}
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+                    <label className="block text-xs font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                       Cancellation Refund Percentage
                     </label>
                     <select
                       value={refundPercentage}
                       onChange={(e) => setRefundPercentage(Number(e.target.value))}
-                      className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                      className="w-full px-3.5 py-3 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                     >
                       <option value={100}>100% Refund (Full Refund)</option>
                       <option value={80}>80% Refund</option>
@@ -948,14 +1025,14 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   </div>
 
                   {/* Live Refund Calculation Example Card */}
-                  <div className="p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] text-xs text-[rgba(23,23,23,0.70)] space-y-1">
-                    <p className="font-bold text-[#171717]">
+                  <div className="p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)] text-xs text-[rgba(10,10,10,0.70)] space-y-1">
+                    <p className="font-bold text-[#0A0A0A]">
                       💡 Policy Preview (on a ₹1,000 booking):
                     </p>
-                    <p className="text-[#FF9F1C] font-semibold">
+                    <p className="text-[#C9281F] font-semibold">
                       • Player receives: <strong>₹{Math.round((1000 * refundPercentage) / 100)}</strong> ({refundPercentage}%)
                     </p>
-                    <p className="text-[rgba(23,23,23,0.70)]">
+                    <p className="text-[rgba(10,10,10,0.70)]">
                       • Non-refundable fee retained: <strong>₹{1000 - Math.round((1000 * refundPercentage) / 100)}</strong> ({100 - refundPercentage}%)
                     </p>
                   </div>
@@ -964,20 +1041,20 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
               {/* Booking Reminder Notification Setting */}
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)] mb-1">
+                <label className="block text-xs font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)] mb-1">
                   Booking Reminder Notification
                 </label>
                 <select
                   value={reminderMinutesBefore}
                   onChange={(e) => setReminderMinutesBefore(Number(e.target.value))}
-                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#FF9F1C]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm font-semibold bg-[#FFFFFF] focus:outline-none focus:ring-2 focus:ring-[#E73229]"
                 >
                   <option value={15}>15 minutes before slot</option>
                   <option value={30}>30 minutes before slot (Default)</option>
                   <option value={60}>1 hour before slot</option>
                   <option value={120}>2 hours before slot</option>
                 </select>
-                <p className="text-[11px] text-[rgba(23,23,23,0.70)] mt-1">
+                <p className="text-[11px] text-[rgba(10,10,10,0.70)] mt-1">
                   Automated notification sent to customer before their booked slot starts.
                 </p>
               </div>
@@ -993,25 +1070,25 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {stepHeader('Review & Launch Turf', 'Review your setup and publish your turf on QGo.')}
 
             <div className="space-y-3">
-              <div className="p-4 rounded-2xl bg-[rgba(255,159,28,0.15)] border border-[rgba(23,23,23,0.12)]/80 flex items-start gap-3">
+              <div className="p-4 rounded-2xl bg-[rgba(231,50,41,0.08)] border border-[rgba(10,10,10,0.12)]/80 flex items-start gap-3">
                 <span className="text-2xl">🏟️</span>
                 <div>
-                  <h4 className="text-base font-black text-[#171717]">{name}</h4>
-                  <p className="text-xs text-[#FF9F1C] font-bold mt-0.5">{category}</p>
-                  <p className="text-xs text-[rgba(23,23,23,0.70)] mt-1">{address}, {city}</p>
+                  <h4 className="text-base font-black text-[#0A0A0A]">{name}</h4>
+                  <p className="text-xs text-[#C9281F] font-bold mt-0.5">{category}</p>
+                  <p className="text-xs text-[rgba(10,10,10,0.70)] mt-1">{address}, {city}</p>
                 </div>
               </div>
 
               {/* Turf Resources Summary */}
-              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] space-y-2">
+              <div className="p-4 rounded-2xl border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)]">
+                  <span className="text-xs font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)]">
                     Turfs / Pitches ({turfs.length})
                   </span>
                   <button
                     type="button"
                     onClick={() => setStep(4)}
-                    className="text-xs font-bold text-[#FF9F1C] hover:underline"
+                    className="text-xs font-bold text-[#C9281F] hover:underline"
                   >
                     Edit
                   </button>
@@ -1019,36 +1096,36 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {turfs.map((t, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)] text-xs">
-                      <p className="font-black text-[#171717]">{t.name}</p>
-                      <p className="text-[11px] text-[rgba(23,23,23,0.70)]">{t.type} · Max {t.capacity || 14} players</p>
+                    <div key={idx} className="p-2.5 rounded-xl bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)] text-xs">
+                      <p className="font-black text-[#0A0A0A]">{t.name}</p>
+                      <p className="text-[11px] text-[rgba(10,10,10,0.70)]">{t.type} · Max {t.capacity || 14} players</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Rules summary */}
-              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[#FFFFFF] space-y-2 text-xs">
+              <div className="p-4 rounded-2xl border border-[rgba(10,10,10,0.12)] bg-[#FFFFFF] space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-black uppercase tracking-wider text-[rgba(23,23,23,0.70)]">
+                  <span className="font-black uppercase tracking-wider text-[rgba(10,10,10,0.70)]">
                     Booking & Availability Overview
                   </span>
                   <button
                     type="button"
                     onClick={() => setStep(5)}
-                    className="font-bold text-[#FF9F1C] hover:underline"
+                    className="font-bold text-[#C9281F] hover:underline"
                   >
                     Edit Slots
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1 text-[rgba(23,23,23,0.70)]">
+                <div className="grid grid-cols-2 gap-2 pt-1 text-[rgba(10,10,10,0.70)]">
                   <div>
-                    <span className="text-[rgba(23,23,23,0.70)] block text-[11px] uppercase font-bold">Advance Booking</span>
+                    <span className="text-[rgba(10,10,10,0.70)] block text-[11px] uppercase font-bold">Advance Booking</span>
                     <span className="font-bold">Up to {advanceBookingDays} days</span>
                   </div>
                   <div>
-                    <span className="text-[rgba(23,23,23,0.70)] block text-[11px] uppercase font-bold">Min Notice</span>
+                    <span className="text-[rgba(10,10,10,0.70)] block text-[11px] uppercase font-bold">Min Notice</span>
                     <span className="font-bold">{minNoticeMinutes} minutes</span>
                   </div>
                 </div>
@@ -1059,7 +1136,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="w-full py-4 rounded-2xl bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] font-black text-base flex items-center justify-center gap-2 transition-colors duration-150 shadow-xl"
+              className="w-full py-4 rounded-2xl bg-[#E73229] hover:bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] font-black text-base flex items-center justify-center gap-2 transition-colors duration-150 shadow-xl"
             >
               {saving && (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1070,9 +1147,9 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════
+        {/* ══════════════════════════════════════════════════
             SALON / BARBER FLOW (Steps 4, 5, 6, 7, 8)
-           ══════════════════════════════════════════════════ */}
+           ══════════════════════════════════════════════════ */}
 
         {/* ── SALON STEP 4: SERVICES ── */}
         {!isTurf && step === 4 && (
@@ -1080,17 +1157,17 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             {stepHeader('Your Services', 'Add the services customers can book.')}
 
             {services.length === 0 ? (
-              <div className="py-6 text-center rounded-2xl border-2 border-dashed border-[rgba(23,23,23,0.12)] text-[rgba(23,23,23,0.70)]">
+              <div className="py-6 text-center rounded-2xl border-2 border-dashed border-[rgba(10,10,10,0.12)] text-[rgba(10,10,10,0.70)]">
                 <Scissors className="w-8 h-8 mx-auto mb-2 opacity-40" />
                 <p className="text-xs font-semibold">No services added yet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {services.map((svc) => (
-                  <div key={svc.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)]">
+                  <div key={svc.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)]">
                     <div>
-                      <p className="text-sm font-bold text-[#171717]">{svc.name}</p>
-                      <p className="text-xs text-[rgba(23,23,23,0.70)]">₹{svc.price} · {svc.durationMinutes} min</p>
+                      <p className="text-sm font-bold text-[#0A0A0A]">{svc.name}</p>
+                      <p className="text-xs text-[rgba(10,10,10,0.70)]">₹{svc.price} · {svc.durationMinutes} min</p>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
@@ -1105,13 +1182,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                           setEditingServiceId(svc.id);
                           setShowAddService(true);
                         }}
-                        className="p-1.5 text-[rgba(23,23,23,0.70)] hover:text-[#FF9F1C]"
+                        className="p-1.5 text-[rgba(10,10,10,0.70)] hover:text-[#C9281F]"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setServices((prev) => prev.filter((s) => s.id !== svc.id))}
-                        className="p-1.5 text-[rgba(23,23,23,0.70)] hover:text-[#FF9F1C]"
+                        className="p-1.5 text-[rgba(10,10,10,0.70)] hover:text-[#C9281F]"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1122,20 +1199,20 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             )}
 
             {showAddService ? (
-              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] space-y-3">
-                <h4 className="text-sm font-black text-[#171717]">{editingServiceId ? 'Edit Service' : 'New Service'}</h4>
+              <div className="p-4 rounded-2xl border border-[rgba(10,10,10,0.12)] bg-[rgba(231,50,41,0.08)] space-y-3">
+                <h4 className="text-sm font-black text-[#0A0A0A]">{editingServiceId ? 'Edit Service' : 'New Service'}</h4>
                 <div className="grid grid-cols-2 gap-2">
                   <NumberInput
                     placeholder="Price (₹)"
                     value={newSvc.price || ''}
                     onChange={(val) => setNewSvc((p) => ({ ...p, price: val }))}
-                    className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
+                    className="w-full px-3 py-2 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm bg-[#FFFFFF]"
                   />
                   <NumberInput
                     placeholder="Duration (min)"
                     value={newSvc.durationMinutes}
                     onChange={(val) => setNewSvc((p) => ({ ...p, durationMinutes: val }))}
-                    className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
+                    className="w-full px-3 py-2 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm bg-[#FFFFFF]"
                   />
                 </div>
                 <input
@@ -1143,7 +1220,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                   placeholder="Service name *"
                   value={newSvc.name}
                   onChange={(e) => setNewSvc((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm bg-[#FFFFFF]"
                 />
                 <div className="flex gap-2">
                   <button 
@@ -1168,7 +1245,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
                       setShowAddService(false);
                       setNewSvc({ name: '', price: 0, durationMinutes: 30, category: 'General', description: '' });
                     }} 
-                    className="flex-1 py-2 bg-[#FF9F1C] text-[#171717] rounded-xl text-xs font-black"
+                    className="flex-1 py-2 bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] rounded-xl text-xs font-black"
                   >
                     {editingServiceId ? 'Save' : 'Add'}
                   </button>
@@ -1177,7 +1254,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             ) : (
               <button
                 onClick={() => setShowAddService(true)}
-                className="w-full py-3 rounded-xl border-2 border-dashed border-[rgba(23,23,23,0.12)] text-[#FF9F1C] font-bold text-xs flex items-center justify-center gap-1.5"
+                className="w-full py-3 rounded-xl border-2 border-dashed border-[rgba(10,10,10,0.12)] text-[#C9281F] font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 Add Service
@@ -1195,39 +1272,39 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
 
             <div className="space-y-2">
               {staffList.map((st) => (
-                <div key={st.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(23,23,23,0.12)]">
+                <div key={st.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFFFF] border border-[rgba(10,10,10,0.12)]">
                   <div>
                     <p className="text-sm font-bold">{st.name}</p>
-                    <p className="text-xs text-[rgba(23,23,23,0.70)]">{st.title}</p>
+                    <p className="text-xs text-[rgba(10,10,10,0.70)]">{st.title}</p>
                   </div>
                   <button onClick={() => setStaffList((prev) => prev.filter((s) => s.id !== st.id))}>
-                    <Trash2 className="w-4 h-4 text-[rgba(23,23,23,0.70)]" />
+                    <Trash2 className="w-4 h-4 text-[rgba(10,10,10,0.70)]" />
                   </button>
                 </div>
               ))}
             </div>
 
             {showAddStaff ? (
-              <div className="p-4 rounded-2xl border border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)] space-y-3">
+              <div className="p-4 rounded-2xl border border-[rgba(10,10,10,0.12)] bg-[rgba(231,50,41,0.08)] space-y-3">
                 <input
                   type="text"
                   placeholder="Staff Name *"
                   value={newStaff.name}
                   onChange={(e) => setNewStaff((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm bg-[#FFFFFF]"
                 />
                 <input
                   type="text"
                   placeholder="Role (e.g. Master Stylist)"
                   value={newStaff.title}
                   onChange={(e) => setNewStaff((p) => ({ ...p, title: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-[rgba(23,23,23,0.12)] text-sm bg-[#FFFFFF]"
+                  className="w-full px-3 py-2 rounded-xl border border-[rgba(10,10,10,0.12)] text-sm bg-[#FFFFFF]"
                 />
                 <div className="flex gap-2">
                   <button onClick={() => setShowAddStaff(false)} className="flex-1 py-2 text-xs font-bold">
                     Cancel
                   </button>
-                  <button onClick={handleAddStaff} className="flex-1 py-2 bg-[#FF9F1C] text-[#171717] rounded-xl text-xs font-black">
+                  <button onClick={handleAddStaff} className="flex-1 py-2 bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] rounded-xl text-xs font-black">
                     Add
                   </button>
                 </div>
@@ -1235,7 +1312,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             ) : (
               <button
                 onClick={() => setShowAddStaff(true)}
-                className="w-full py-3 rounded-xl border-2 border-dashed border-[rgba(23,23,23,0.12)] text-[#FF9F1C] font-bold text-xs flex items-center justify-center gap-1.5"
+                className="w-full py-3 rounded-xl border-2 border-dashed border-[rgba(10,10,10,0.12)] text-[#C9281F] font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 Add Team Member
@@ -1265,13 +1342,13 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
           <div className="space-y-4">
             {stepHeader('Booking & Queue Settings', 'Control how appointments and live walk-in queues behave.')}
 
-            <div className="flex items-center justify-between p-4 rounded-xl border-2 border-[rgba(23,23,23,0.12)] bg-[rgba(255,159,28,0.15)]">
+            <div className="flex items-center justify-between p-4 rounded-xl border-2 border-[rgba(10,10,10,0.12)] bg-[rgba(231,50,41,0.08)]">
               <div>
-                <p className="text-sm font-black text-[#FF9F1C]">Enable Live Walk-in Queue</p>
-                <p className="text-[11px] text-[#FF9F1C]">Allow customers to take digital queue tokens from home</p>
+                <p className="text-sm font-black text-[#C9281F]">Enable Live Walk-in Queue</p>
+                <p className="text-[11px] text-[#C9281F]">Allow customers to take digital queue tokens from home</p>
               </div>
               <button type="button" onClick={() => setEnableQueue(!enableQueue)}>
-                {enableQueue ? <ToggleRight className="w-8 h-8 text-[#FF9F1C]" /> : <ToggleLeft className="w-8 h-8 text-[rgba(23,23,23,0.70)]" />}
+                {enableQueue ? <ToggleRight className="w-8 h-8 text-[#C9281F]" /> : <ToggleLeft className="w-8 h-8 text-[rgba(10,10,10,0.70)]" />}
               </button>
             </div>
 
@@ -1287,7 +1364,7 @@ export const BusinessSetupWizard: React.FC<BusinessSetupWizardProps> = ({
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="w-full py-4 rounded-2xl bg-[#FF9F1C] hover:bg-[#FF9F1C] text-[#171717] font-black text-sm flex items-center justify-center gap-2 shadow-xl"
+              className="w-full py-4 rounded-2xl bg-[#E73229] hover:bg-[linear-gradient(180deg,#F0554A_0%,#E73229_50%,#D42B22_100%)] text-[#FFFFFF] font-black text-sm flex items-center justify-center gap-2 shadow-xl"
             >
               
               Submit for Verification

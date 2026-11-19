@@ -2,13 +2,51 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    match /turf-images/{fileName} {
-      allow read: if true;
-      allow write: if request.auth != null
-        && request.resource.size < 5 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
     }
 
+    function isSalonOwner(salonId) {
+      return request.auth != null && (
+        firestore.get(/databases/(default)/documents/salons/$(salonId)).data.ownerId == request.auth.uid
+        || isAdmin()
+      );
+    }
+
+    function isTurfOwner(turfId) {
+      return request.auth != null && (
+        firestore.get(/databases/(default)/documents/salons/$(turfId)).data.ownerId == request.auth.uid
+        || isAdmin()
+      );
+    }
+
+    function isValidImageWrite() {
+      return request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // Public read ONLY for salons/** and turfs/** images (customer-facing)
+    match /salons/{salonId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSalonOwner(salonId) && isValidImageWrite();
+      allow delete: if isSalonOwner(salonId);
+    }
+
+    match /turfs/{turfId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isTurfOwner(turfId) && isValidImageWrite();
+      allow delete: if isTurfOwner(turfId);
+    }
+
+    // User avatars: readable by signed-in users, writable/deletable only by owning user or admin
+    match /users/{uid}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == uid || isAdmin()) && isValidImageWrite();
+      allow delete: if request.auth != null && (request.auth.uid == uid || isAdmin());
+    }
+
+    // Default deny everything else
     match /{allPaths=**} {
       allow read, write: if false;
     }

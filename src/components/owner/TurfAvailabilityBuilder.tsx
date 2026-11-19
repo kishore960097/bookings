@@ -15,7 +15,8 @@ import {
   Trash2,
   Copy,
   Calendar,
-  Zap,
+  Eye,
+  EyeOff,
   Check,
   AlertCircle,
   X,
@@ -62,13 +63,13 @@ const DURATION_PRESETS = [
 
 // ─── Design Tokens: Day / Night Themes ───
 const DAY_THEME = {
-  bg: '#FFF3DD',
-  border: '#F0D3A5',
-  accent: '#F59E0B',
+  bg: '#FDECEA',
+  border: 'rgba(231,50,41,0.08)',
+  accent: '#E73229',
   text: '#251B12',
   badgeBg: 'rgba(245,158,11,0.18)',
   badgeText: '#92400E',
-  iconFill: '#F59E0B',
+  iconFill: '#E73229',
   muted: 'rgba(37,27,18,0.55)',
 };
 const NIGHT_THEME = {
@@ -296,7 +297,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
   const [globalAdvanceAmount, setGlobalAdvanceAmount] = useState<number>(400);
 
   // ─── 3. Generation Range & Days Selection ───
-  const [generationRange, setGenerationRange] = useState<'days' | 'week' | 'month'>('week');
+  const [generationRange, setGenerationRange] = useState<'days' | 'week'>('week');
   const [selectedDays, setSelectedDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]); // Default All 7 Days
 
   // Modals
@@ -396,7 +397,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
   // ─── Automatic Slot Generation Execution ───
   const executeGeneration = () => {
     const targetDayIndices =
-      generationRange === 'week' || generationRange === 'month'
+      generationRange === 'week'
         ? [0, 1, 2, 3, 4, 5, 6]
         : selectedDays;
 
@@ -767,16 +768,16 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
       {/* ── MULTI-TURF SELECTOR ── */}
       {activeTurfList.length > 1 && (
         <div
-          className="p-3 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3"
-          style={{ background: '#FFF3DD', border: '1px solid #F0D3A5' }}
+          className="p-3 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 min-w-0"
+          style={{ background: '#FDECEA', border: '1px solid rgba(231,50,41,0.08)' }}
         >
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4" style={{ color: '#F59E0B' }} />
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider" style={{ color: '#92400E' }}>
+          <div className="flex items-center gap-2 min-w-0">
+            <Layers className="w-4 h-4 shrink-0" style={{ color: '#E73229' }} />
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#92400E' }}>
                 Configuring Turf Schedule
               </p>
-              <p className="text-[11px]" style={{ color: 'rgba(37,27,18,0.65)' }}>
+              <p className="text-[11px] truncate" style={{ color: 'rgba(37,27,18,0.65)' }}>
                 Each turf ground maintains its own independent schedule &amp; pricing.
               </p>
             </div>
@@ -787,11 +788,11 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 key={t.id}
                 type="button"
                 onClick={() => setSelectedTurfId(t.id)}
-                className="px-3 py-1.5 rounded-xl text-xs font-black transition-colors duration-150"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors duration-150"
                 style={
                   selectedTurfId === t.id
-                    ? { background: '#F59E0B', color: '#251B12', border: '1.5px solid #F59E0B' }
-                    : { background: '#FFFFFF', border: '1.5px solid #F0D3A5', color: 'rgba(37,27,18,0.65)' }
+                    ? { background: '#E73229', color: '#FFFFFF', border: '1.5px solid #E73229' }
+                    : { background: '#FFFFFF', border: '1.5px solid rgba(231,50,41,0.08)', color: 'rgba(37,27,18,0.65)' }
                 }
               >
                 {t.name}
@@ -801,15 +802,15 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════
           1. PRICING & SLOT SETTINGS (CLEAN DAY + NIGHT UI)
-         ══════════════════════════════════════════════════════ */}
+         ══════════════════════════════════════════════════════ */}
       <div
-        className="rounded-2xl shadow-sm p-4 sm:p-5 space-y-5"
+        className="rounded-2xl shadow-sm p-3 sm:p-4 space-y-3"
         style={{
           background: '#FFFFFF',
-          border: '1px solid #E8E5E0',
-          boxShadow: '0 2px 12px rgba(23,23,23,0.06)',
+          border: '1px solid rgba(10,10,10,0.08)',
+          boxShadow: '0 2px 12px rgba(10,10,10,0.06)',
         }}
       >
         {/* Section header */}
@@ -817,80 +818,80 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           <div className="flex items-center gap-2 mb-1">
             <span
               className="p-1.5 rounded-lg"
-              style={{ background: 'rgba(255,159,28,0.15)', color: '#FF9F1C' }}
+              style={{ background: 'rgba(231,50,41,0.08)', color: '#E73229' }}
             >
               <DollarSign className="w-3.5 h-3.5" />
             </span>
-            <h3 className="font-black text-sm" style={{ color: '#171717' }}>
+            <h3 className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>
               PRICING &amp; SLOT SETTINGS
             </h3>
           </div>
-          <p className="text-[11px]" style={{ color: 'rgba(23,23,23,0.60)' }}>
+          <p className="text-[11px]" style={{ color: 'rgba(10,10,10,0.60)' }}>
             Configure Day and Night pricing. QGo automatically assigns prices to each slot based on start time.
           </p>
         </div>
 
         {/* ── DAY & NIGHT PRICING CARDS ── */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 min-[340px]:grid-cols-2 gap-2 min-w-0">
 
           {/* DAYTIME PRICING CARD */}
           <div
-            className="p-3 rounded-xl flex flex-col gap-2 relative overflow-hidden"
+            className="p-2.5 rounded-xl flex flex-col gap-2 relative overflow-hidden min-w-0"
             style={{
               background: DAY_THEME.bg,
               border: `1.5px solid ${DAY_THEME.border}`,
               boxShadow: '0 1px 6px rgba(245,158,11,0.10)',
             }}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-1 min-w-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <Sun className="w-3.5 h-3.5 shrink-0" style={{ color: DAY_THEME.accent, fill: DAY_THEME.iconFill }} />
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: DAY_THEME.accent }}>DAY</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: DAY_THEME.accent }}>DAY</span>
               </div>
               <span
-                className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full"
+                className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full shrink truncate"
                 style={{ background: DAY_THEME.badgeBg, color: DAY_THEME.badgeText }}
               >DAYTIME</span>
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5 min-w-0">
               <div
-                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                className="flex flex-col items-center py-1 px-1 rounded-lg min-w-0"
                 style={{ background: '#FFFFFF', border: `1px solid ${DAY_THEME.border}` }}
               >
-                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: DAY_THEME.muted }}>START</span>
+                <span className="text-[10px] font-semibold uppercase mb-0.5" style={{ color: DAY_THEME.muted }}>START</span>
                 <TimeInput
                   value={dayStartTime}
                   onChange={setDayStartTime}
-                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  className="text-[12px] font-bold bg-transparent text-center outline-none w-full p-0"
                   style={{ color: DAY_THEME.text }}
                 />
               </div>
               <div
-                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                className="flex flex-col items-center py-1 px-1 rounded-lg min-w-0"
                 style={{ background: '#FFFFFF', border: `1px solid ${DAY_THEME.border}` }}
               >
-                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: DAY_THEME.muted }}>END</span>
+                <span className="text-[10px] font-semibold uppercase mb-0.5" style={{ color: DAY_THEME.muted }}>END</span>
                 <TimeInput
                   value={dayEndTime}
                   onChange={setDayEndTime}
-                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  className="text-[12px] font-bold bg-transparent text-center outline-none w-full p-0"
                   style={{ color: DAY_THEME.text }}
                 />
               </div>
             </div>
             <div
-              className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+              className="flex items-center justify-between px-2 py-1.5 rounded-lg min-w-0 gap-2"
               style={{ background: '#FFFFFF', border: `1px solid ${DAY_THEME.border}` }}
             >
-              <span className="text-[11px] font-black uppercase" style={{ color: DAY_THEME.muted }}>PRICE</span>
-              <div className="flex items-center gap-0.5">
-                <span className="text-[11px] font-black" style={{ color: DAY_THEME.accent }}>&#8377;</span>
+              <span className="text-[10px] font-semibold uppercase shrink-0" style={{ color: DAY_THEME.muted }}>PRICE</span>
+              <div className="flex items-center justify-end min-w-0 flex-1 gap-0.5">
+                <span className="text-[12px] font-bold shrink-0" style={{ color: DAY_THEME.accent }}>&#8377;</span>
                 <NumberInput
                   min={1}
                   step={50}
                   value={dayPrice}
                   onChange={(val) => setDayPrice(Math.max(1, val))}
-                  className="text-[11px] sm:text-xs font-black bg-transparent text-center outline-none w-14 p-0 border-none"
+                  className="text-[12px] font-bold bg-transparent text-right outline-none w-16 p-0 border-none"
                   style={{ color: DAY_THEME.accent }}
                 />
               </div>
@@ -899,62 +900,62 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
           {/* OVERNIGHT PRICING CARD */}
           <div
-            className="p-3 rounded-xl flex flex-col gap-2 relative overflow-hidden"
+            className="p-2.5 rounded-xl flex flex-col gap-2 relative overflow-hidden min-w-0"
             style={{
               background: NIGHT_THEME.bg,
               border: `1.5px solid ${NIGHT_THEME.border}`,
               boxShadow: '0 1px 6px rgba(101,84,192,0.10)',
             }}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-1 min-w-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <Moon className="w-3.5 h-3.5 shrink-0" style={{ color: NIGHT_THEME.accent, fill: NIGHT_THEME.iconFill }} />
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: NIGHT_THEME.accent }}>NIGHT</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: NIGHT_THEME.accent }}>NIGHT</span>
               </div>
               <span
-                className="text-[11px] font-black uppercase px-2 py-0.5 rounded-full"
+                className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full shrink truncate"
                 style={{ background: NIGHT_THEME.badgeBg, color: NIGHT_THEME.badgeText }}
               >OVERNIGHT</span>
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5 min-w-0">
               <div
-                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                className="flex flex-col items-center py-1 px-1 rounded-lg min-w-0"
                 style={{ background: '#FFFFFF', border: `1px solid ${NIGHT_THEME.border}` }}
               >
-                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: NIGHT_THEME.muted }}>START</span>
+                <span className="text-[10px] font-semibold uppercase mb-0.5" style={{ color: NIGHT_THEME.muted }}>START</span>
                 <TimeInput
                   value={nightStartTime}
                   onChange={setNightStartTime}
-                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  className="text-[12px] font-bold bg-transparent text-center outline-none w-full p-0"
                   style={{ color: NIGHT_THEME.text }}
                 />
               </div>
               <div
-                className="flex flex-col items-center py-1.5 px-1 rounded-lg"
+                className="flex flex-col items-center py-1 px-1 rounded-lg min-w-0"
                 style={{ background: '#FFFFFF', border: `1px solid ${NIGHT_THEME.border}` }}
               >
-                <span className="text-[11px] font-black uppercase mb-0.5" style={{ color: NIGHT_THEME.muted }}>END</span>
+                <span className="text-[10px] font-semibold uppercase mb-0.5" style={{ color: NIGHT_THEME.muted }}>END</span>
                 <TimeInput
                   value={nightEndTime}
                   onChange={setNightEndTime}
-                  className="text-[11px] sm:text-[11px] font-black bg-transparent text-center outline-none w-full"
+                  className="text-[12px] font-bold bg-transparent text-center outline-none w-full p-0"
                   style={{ color: NIGHT_THEME.text }}
                 />
               </div>
             </div>
             <div
-              className="flex items-center justify-between px-2 py-1.5 rounded-lg"
+              className="flex items-center justify-between px-2 py-1.5 rounded-lg min-w-0 gap-2"
               style={{ background: '#FFFFFF', border: `1px solid ${NIGHT_THEME.border}` }}
             >
-              <span className="text-[11px] font-black uppercase" style={{ color: NIGHT_THEME.muted }}>PRICE</span>
-              <div className="flex items-center gap-0.5">
-                <span className="text-[11px] font-black" style={{ color: NIGHT_THEME.accent }}>&#8377;</span>
+              <span className="text-[10px] font-semibold uppercase shrink-0" style={{ color: NIGHT_THEME.muted }}>PRICE</span>
+              <div className="flex items-center justify-end min-w-0 flex-1 gap-0.5">
+                <span className="text-[12px] font-bold shrink-0" style={{ color: NIGHT_THEME.accent }}>&#8377;</span>
                 <NumberInput
                   min={1}
                   step={50}
                   value={nightPrice}
                   onChange={(val) => setNightPrice(Math.max(1, val))}
-                  className="text-[11px] sm:text-xs font-black bg-transparent text-center outline-none w-14 p-0 border-none"
+                  className="text-[12px] font-bold bg-transparent text-right outline-none w-16 p-0 border-none"
                   style={{ color: NIGHT_THEME.accent }}
                 />
               </div>
@@ -964,7 +965,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
         {/* ── SLOT DURATION ── */}
         <div>
-          <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(23,23,23,0.60)' }}>
+          <label className="block text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(10,10,10,0.60)' }}>
             SLOT DURATION
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -975,11 +976,11 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   key={dp.label}
                   type="button"
                   onClick={() => setDurationPreset(dp.value)}
-                  className="px-3 py-2 rounded-xl border text-[11px] font-black transition-colors duration-150"
+                  className="px-3 py-1.5 rounded-xl border text-[12px] font-semibold transition-colors duration-150"
                   style={
                     isSelected
-                      ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C', boxShadow: '0 1px 4px rgba(255,159,28,0.25)' }
-                      : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+                      ? { background: '#E73229', color: '#FFFFFF', border: '1.5px solid #E73229', boxShadow: '0 1px 4px rgba(231,50,41,0.10)' }
+                      : { background: '#FFFFFF', border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)' }
                   }
                 >
                   {dp.label}
@@ -990,17 +991,17 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
           {durationPreset === -1 && (
             <div
-              className="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-3"
-              style={{ background: '#FFFFFF', border: '1.5px solid #E8E5E0' }}
+              className="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-3 min-w-0"
+              style={{ background: '#FFFFFF', border: '1.5px solid rgba(10,10,10,0.08)' }}
             >
-              <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.60)' }}>
+              <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(10,10,10,0.60)' }}>
                 Custom Duration
               </label>
               <DurationInput
                 value={customDurationMinutes}
                 onChange={(val) => setCustomDurationMinutes(Math.max(15, val))}
-                className="px-3 py-1.5 rounded-xl border border-[#E8E5E0] text-xs font-bold bg-[#FFFFFF]"
-                style={{ color: '#FF9F1C' }}
+                className="px-3 py-1.5 rounded-xl border border-[rgba(10,10,10,0.08)] text-xs font-semibold bg-[#FFFFFF]"
+                style={{ color: '#E73229' }}
               />
             </div>
           )}
@@ -1008,10 +1009,10 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
         {/* ── PAYMENT OPTIONS ── */}
         <div>
-          <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(23,23,23,0.60)' }}>
+          <label className="block text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(10,10,10,0.60)' }}>
             PAYMENT OPTIONS
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 w-full">
             {(
               [
                 { value: 'FULL' as const, label: 'Full Payment Only' },
@@ -1023,11 +1024,11 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 key={value}
                 type="button"
                 onClick={() => setGlobalPaymentType(value)}
-                className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+                className="w-full py-2 px-2.5 rounded-xl border text-[13px] font-semibold text-center transition-colors duration-150"
                 style={
                   globalPaymentType === value
-                    ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
-                    : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+                    ? { background: '#E73229', color: '#FFFFFF', border: '1.5px solid #E73229' }
+                    : { background: '#FFFFFF', border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)' }
                 }
               >
                 {label}
@@ -1037,38 +1038,41 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
           {(globalPaymentType === 'ADVANCE' || globalPaymentType === 'BOTH') && (
             <div
-              className="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-3"
-              style={{ background: 'rgba(255,159,28,0.08)', border: '1.5px solid rgba(255,159,28,0.25)' }}
+              className="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-2 min-w-0"
+              style={{ background: 'rgba(231,50,41,0.06)', border: '1.5px solid rgba(231,50,41,0.10)' }}
             >
-              <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: '#FF9F1C' }}>
+              <label className="text-[12px] font-bold uppercase tracking-wide whitespace-nowrap min-w-0" style={{ color: '#E73229' }}>
                 ADVANCE AMOUNT (&#8377;)
               </label>
-              <NumberInput
-                min={0}
-                step={50}
-                value={globalAdvanceAmount}
-                onChange={setGlobalAdvanceAmount}
-                className="w-24 px-3 py-1.5 rounded-xl border text-xs font-bold bg-[#FFFFFF] text-center"
-                style={{ color: '#FF9F1C', border: '1.5px solid #E8E5E0' }}
-              />
+              <div className="flex items-center gap-1 shrink-0 w-28 px-2.5 py-1.5 rounded-xl border bg-white" style={{ borderColor: 'rgba(10,10,10,0.12)' }}>
+                <span className="text-xs font-bold text-[#E73229]">&#8377;</span>
+                <NumberInput
+                  min={0}
+                  step={50}
+                  value={globalAdvanceAmount}
+                  onChange={setGlobalAdvanceAmount}
+                  className="w-full text-xs font-bold text-right bg-transparent outline-none p-0 border-none"
+                  style={{ color: '#E73229' }}
+                />
+              </div>
             </div>
           )}
         </div>
 
-        {/* ── GENERATION RANGE ── */}
+        {/* ── GENERATION RANGE (2 Options: Selected Days & Entire Week) ── */}
         <div>
-          <label className="block text-[11px] font-black uppercase tracking-wider mb-2" style={{ color: 'rgba(23,23,23,0.60)' }}>
+          <label className="block text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(10,10,10,0.60)' }}>
             GENERATION RANGE
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setGenerationRange('days')}
-              className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+              className="py-2 px-3 rounded-xl border text-[13px] font-semibold text-center transition-colors duration-150"
               style={
                 generationRange === 'days'
-                  ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
-                  : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+                  ? { background: '#E73229', color: '#FFFFFF', border: '1.5px solid #E73229' }
+                  : { background: '#FFFFFF', border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)' }
               }
             >
               Selected Days ({selectedDays.length})
@@ -1079,29 +1083,14 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 setGenerationRange('week');
                 setSelectedDays([0, 1, 2, 3, 4, 5, 6]);
               }}
-              className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
+              className="py-2 px-3 rounded-xl border text-[13px] font-semibold text-center transition-colors duration-150"
               style={
                 generationRange === 'week'
-                  ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
-                  : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
+                  ? { background: '#E73229', color: '#FFFFFF', border: '1.5px solid #E73229' }
+                  : { background: '#FFFFFF', border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)' }
               }
             >
               Entire Week (7 Days)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setGenerationRange('month');
-                setSelectedDays([0, 1, 2, 3, 4, 5, 6]);
-              }}
-              className="py-2 px-3 rounded-xl border text-[11px] font-black text-center transition-colors duration-150"
-              style={
-                generationRange === 'month'
-                  ? { background: '#FF9F1C', color: '#171717', border: '1.5px solid #FF9F1C' }
-                  : { background: '#FFFFFF', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)' }
-              }
-            >
-              Full Month (30 Days)
             </button>
           </div>
         </div>
@@ -1109,20 +1098,20 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         {/* ── SELECT DAYS ── */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.60)' }}>
+            <label className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(10,10,10,0.60)' }}>
               SELECT DAYS
             </label>
             <button
               type="button"
               onClick={handleSelectEntireWeek}
-              className="text-[11px] font-black underline"
-              style={{ color: '#FF9F1C' }}
+              className="text-[11px] font-bold underline"
+              style={{ color: '#E73229' }}
             >
               Select All
             </button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+          <div className="grid grid-cols-7 gap-1">
             {DAY_SHORT.map((shortName, idx) => {
               const isSelected = selectedDays.includes(idx);
               return (
@@ -1130,19 +1119,19 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   key={shortName}
                   type="button"
                   onClick={() => toggleDaySelection(idx)}
-                  className="py-2 sm:py-2.5 rounded-xl border text-center font-black text-[11px] sm:text-[11px] transition-colors duration-150"
+                  className="py-2 rounded-xl border text-center font-bold text-[10px] transition-colors duration-150"
                   style={
                     isSelected
                       ? {
-                          background: '#FF9F1C',
-                          color: '#171717',
-                          border: '1.5px solid #FF9F1C',
-                          boxShadow: '0 1px 4px rgba(255,159,28,0.30)',
+                          background: '#E73229',
+                          color: '#FFFFFF',
+                          border: '1.5px solid #E73229',
+                          boxShadow: '0 1px 4px rgba(231,50,41,0.10)',
                         }
                       : {
                           background: '#FFFFFF',
-                          border: '1.5px solid #E8E5E0',
-                          color: 'rgba(23,23,23,0.55)',
+                          border: '1.5px solid rgba(10,10,10,0.08)',
+                          color: 'rgba(10,10,10,0.55)',
                         }
                   }
                 >
@@ -1155,7 +1144,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
         {validationError && (
           <div
-            className="p-3 rounded-xl text-xs font-bold flex items-center gap-2"
+            className="p-3 rounded-xl text-xs font-semibold flex items-center gap-2"
             style={{
               background: 'rgba(232,65,54,0.08)',
               border: '1.5px solid rgba(232,65,54,0.20)',
@@ -1167,75 +1156,69 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           </div>
         )}
 
-        {/* ── GENERATE SLOTS BUTTON ── */}
+        {/* ── GENERATE SLOTS BUTTON (Centered 13px/600, 12px padding, no AI icons) ── */}
         <button
           type="button"
           onClick={handleGenerateClick}
           disabled={Boolean(validationError)}
-          className="w-full py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-colors duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full p-3 rounded-xl font-semibold text-[13px] uppercase tracking-wide flex items-center justify-center text-center transition-colors duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            background: validationError ? 'rgba(255,159,28,0.50)' : '#FF9F1C',
-            color: '#171717',
-            boxShadow: validationError ? 'none' : '0 2px 10px rgba(255,159,28,0.30)',
+            background: validationError ? 'rgba(231,50,41,0.12)' : 'linear-gradient(180deg,#F0554A 0%,#E73229 50%,#D42B22 100%)',
+            color: validationError ? '#C9281F' : '#FFFFFF',
+            boxShadow: validationError ? 'none' : '0 2px 10px rgba(231,50,41,0.28)',
           }}
         >
-          <Zap className="w-3.5 h-3.5" />
-          <span>
-            GENERATE SLOTS &mdash;{' '}
-            {generationRange === 'month'
-              ? 'FULL MONTH (30 DAYS)'
-              : generationRange === 'week'
-              ? 'ENTIRE WEEK (7 DAYS)'
-              : `${selectedDays.length} DAYS`}
+          <span className="text-center">
+            GENERATE SLOTS &mdash; {generationRange === 'week' ? 'ENTIRE WEEK (7 DAYS)' : `${selectedDays.length} DAYS`}
           </span>
         </button>
       </div>
 
-      {/* ══════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════
           2. SCHEDULE & GENERATED SLOTS PREVIEW
-         ══════════════════════════════════════════════════════ */}
+         ══════════════════════════════════════════════════════ */}
       <div
-        className="rounded-2xl shadow-sm p-4 sm:p-5 space-y-4"
+        className="rounded-2xl shadow-sm p-3 sm:p-4 space-y-3"
         style={{
           background: '#FFFFFF',
-          border: '1px solid #E8E5E0',
-          boxShadow: '0 2px 12px rgba(23,23,23,0.06)',
+          border: '1px solid rgba(10,10,10,0.08)',
+          boxShadow: '0 2px 12px rgba(10,10,10,0.06)',
         }}
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-3" style={{ borderBottom: '1px solid #E8E5E0' }}>
-          <div>
-            <h3 className="font-black text-sm" style={{ color: '#171717' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5" style={{ borderBottom: '1px solid rgba(10,10,10,0.08)' }}>
+          <div className="min-w-0">
+            <h3 className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>
               SCHEDULE &amp; GENERATED SLOTS
             </h3>
-            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(23,23,23,0.55)' }}>
-              Day slots and Night slots are visually differentiated with their assigned pricing.
+            <p className="text-[11px] text-[rgba(10,10,10,0.55)] mt-0.5 truncate">
+              Day slots and Night slots with assigned pricing.
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap shrink-0">
+          <div className="grid grid-cols-2 gap-2 shrink-0 sm:flex sm:items-center">
             <button
               type="button"
               onClick={() => setShowAddBreakModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black transition-colors duration-150"
-              style={{ background: '#FAF8F4', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.70)' }}
+              className="h-9 px-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors duration-150 min-w-[105px]"
+              style={{ background: '#F5F5F7', border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.70)' }}
             >
-              <Coffee className="w-3 h-3" />
-              Add Break
+              <Coffee className="w-3.5 h-3.5" />
+              <span>Add Break</span>
             </button>
             <button
               type="button"
               onClick={() => setShowAddCustomSlotModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black transition-colors duration-150"
-              style={{ background: '#FAF8F4', border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.70)' }}
+              className="h-9 px-3 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors duration-150 min-w-[105px]"
+              style={{ background: '#F5F5F7', border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.70)' }}
             >
-              <Plus className="w-3 h-3" />
-              Custom Slot
+              <Plus className="w-3.5 h-3.5" />
+              <span>Custom Slot</span>
             </button>
           </div>
         </div>
 
-        {/* Day Tabs */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+        {/* Day Tabs: 7 equal circles (weekday 10px + date 11px), selected with red ring */}
+        <div className="grid grid-cols-7 gap-1">
           {days.map((d) => {
             const isTabActive = activeDayView === d.dayOfWeek;
             const activeSlotsCount = (d.slots || []).filter((s) => s.status === 'active').length;
@@ -1244,40 +1227,40 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 key={d.dayOfWeek}
                 type="button"
                 onClick={() => setActiveDayView(d.dayOfWeek)}
-                className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-full flex flex-col items-center justify-center transition-colors duration-150"
+                className="w-10 h-10 mx-auto rounded-full flex flex-col items-center justify-center transition-all duration-150 cursor-pointer"
                 style={
                   isTabActive
                     ? {
                         background: '#FFFFFF',
-                        color: '#171717',
-                        boxShadow: '0 2px 10px rgba(255,159,28,0.25)',
-                        outline: '2px solid #FF9F1C',
-                        outlineOffset: '1px',
+                        color: '#0A0A0A',
+                        boxShadow: '0 2px 8px rgba(231,50,41,0.15)',
+                        outline: '2px solid #E73229',
+                        outlineOffset: '2px',
                       }
                     : d.isOpen
                     ? {
                         background: '#FFFFFF',
-                        border: '1.5px solid #E8E5E0',
-                        color: '#171717',
+                        border: '1.5px solid rgba(10,10,10,0.08)',
+                        color: '#0A0A0A',
                       }
                     : {
-                        background: '#FAF8F4',
-                        border: '1.5px solid #E8E5E0',
-                        color: 'rgba(23,23,23,0.45)',
+                        background: '#F5F5F7',
+                        border: '1.5px solid rgba(10,10,10,0.08)',
+                        color: 'rgba(10,10,10,0.45)',
                       }
                 }
               >
-                <span className="block text-[11px] sm:text-[11px] font-black tracking-wider uppercase leading-none mb-0.5">
+                <span className="block text-[10px] font-bold tracking-wider uppercase leading-none mb-0.5">
                   {DAY_SHORT[d.dayOfWeek]}
                 </span>
                 <span
-                  className="inline-block px-1 py-0.5 rounded-full text-[11px] font-black leading-none"
+                  className="inline-block text-[11px] font-bold leading-none"
                   style={
                     !d.isOpen
-                      ? { background: 'rgba(23,23,23,0.08)', color: 'rgba(23,23,23,0.45)' }
+                      ? { color: 'rgba(10,10,10,0.40)' }
                       : isTabActive
-                      ? { background: '#FF9F1C', color: '#171717' }
-                      : { background: 'rgba(255,159,28,0.15)', color: '#FF9F1C' }
+                      ? { color: '#E73229' }
+                      : { color: 'rgba(10,10,10,0.65)' }
                   }
                 >
                   {d.isOpen ? `${activeSlotsCount}` : 'Off'}
@@ -1292,14 +1275,14 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           <div
             className="p-3 rounded-xl text-xs flex items-start gap-2"
             style={{
-              background: 'rgba(255,159,28,0.08)',
-              border: '1.5px solid rgba(255,159,28,0.25)',
+              background: 'rgba(231,50,41,0.06)',
+              border: '1.5px solid rgba(231,50,41,0.10)',
               color: '#A85200',
             }}
           >
-            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#FF9F1C' }} />
+            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#E73229' }} />
             <div>
-              <p className="font-black">{activeDay.dayName} is currently marked as CLOSED.</p>
+              <p className="font-bold">{activeDay.dayName} is currently marked as CLOSED.</p>
               <p className="mt-0.5 text-[11px]" style={{ color: 'rgba(168,82,0,0.75)' }}>
                 All slots on this day are disabled and will not be displayed or bookable by customers.
               </p>
@@ -1310,7 +1293,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         {/* Breaks List */}
         {(activeDay.breaks || []).length > 0 && (
           <div className="space-y-1.5">
-            <p className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.55)' }}>
+            <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(10,10,10,0.55)' }}>
               Scheduled Breaks ({activeDay.breaks?.length})
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -1318,12 +1301,12 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 <div
                   key={idx}
                   className="p-2.5 rounded-xl flex items-center justify-between text-xs"
-                  style={{ background: '#FFF3DD', border: '1px solid #F0D3A5' }}
+                  style={{ background: '#FDECEA', border: '1px solid rgba(231,50,41,0.08)' }}
                 >
                   <div className="flex items-center gap-2">
-                    <Coffee className="w-3.5 h-3.5 shrink-0" style={{ color: '#F59E0B' }} />
+                    <Coffee className="w-3.5 h-3.5 shrink-0" style={{ color: '#E73229' }} />
                     <div>
-                      <p className="font-black text-[11px]" style={{ color: '#251B12' }}>
+                      <p className="font-bold text-[11px]" style={{ color: '#251B12' }}>
                         {format12Hour(brk.startTime)} &ndash; {format12Hour(brk.endTime)}
                       </p>
                       <p className="text-[11px]" style={{ color: 'rgba(37,27,18,0.55)' }}>
@@ -1350,13 +1333,13 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         <div>
           {/* Slot count + legend */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <span className="text-[11px] font-black uppercase tracking-wider" style={{ color: 'rgba(23,23,23,0.55)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(10,10,10,0.55)' }}>
               GENERATED SLOTS&nbsp;
-              <span style={{ color: '#171717' }}>
+              <span style={{ color: '#0A0A0A' }}>
                 ({activeDaySlots.length} total &middot; {activeDaySlots.filter((s) => s.status === 'active').length} active)
               </span>
             </span>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-black">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
               <span
                 className="inline-flex items-center gap-1 px-2 py-1 rounded-lg"
                 style={{ background: DAY_THEME.bg, border: `1px solid ${DAY_THEME.border}`, color: DAY_THEME.text }}
@@ -1377,22 +1360,16 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
           {activeDaySlots.length === 0 ? (
             <div
               className="py-10 text-center rounded-2xl border-2 border-dashed"
-              style={{ borderColor: '#E8E5E0', color: 'rgba(23,23,23,0.40)' }}
+              style={{ borderColor: 'rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.40)' }}
             >
               <Calendar className="w-7 h-7 mx-auto mb-2 opacity-40" />
-              <p className="text-xs font-black">No slots generated for {activeDay.dayName} yet.</p>
-              <p className="text-[11px] mt-0.5" style={{ color: 'rgba(23,23,23,0.40)' }}>
+              <p className="text-xs font-semibold">No slots generated for {activeDay.dayName} yet.</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'rgba(10,10,10,0.40)' }}>
                 Click &ldquo;GENERATE SLOTS&rdquo; above to create the schedule.
               </p>
             </div>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                gap: '8px',
-              }}
-            >
+            <div className="grid grid-cols-1 min-[300px]:grid-cols-2 gap-2">
               {activeDaySlots.map((slot) => {
                 const isActive = slot.status === 'active';
                 const isEditingPrice = editingSlotId === slot.id;
@@ -1405,12 +1382,12 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 return (
                   <div
                     key={slot.id}
-                    className="rounded-xl flex flex-col overflow-hidden transition-colors duration-150"
+                    className="rounded-[14px] min-w-0 p-2.5 flex flex-col justify-between overflow-hidden transition-colors duration-150 relative"
                     style={
                       !isActive
                         ? {
-                            background: 'rgba(23,23,23,0.04)',
-                            border: '1.5px solid #E8E5E0',
+                            background: 'rgba(10,10,10,0.04)',
+                            border: '1.5px solid rgba(10,10,10,0.08)',
                             opacity: 0.70,
                           }
                         : {
@@ -1422,77 +1399,79 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                           }
                     }
                   >
-                    <div className="p-2 flex flex-col gap-1.5 flex-1">
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
 
-                      {/* TOP ROW */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
+                      {/* TOP ROW: DAY/NIGHT badge + ON/OFF chip on one row (10px) */}
+                      <div className="flex items-center justify-between gap-1 min-w-0">
+                        <div className="flex items-center gap-1 min-w-0">
                           {isNightSlot ? (
                             <Moon className="w-3 h-3 shrink-0" style={{ color: theme.accent, fill: theme.iconFill }} />
                           ) : (
                             <Sun className="w-3 h-3 shrink-0" style={{ color: theme.accent, fill: theme.iconFill }} />
                           )}
                           <span
-                            className="text-[11px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                            className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink truncate"
                             style={{ background: theme.badgeBg, color: theme.badgeText }}
                           >
                             {isNightSlot ? 'NIGHT' : 'DAY'}
                           </span>
                         </div>
                         <span
-                          className="text-[11px] font-black uppercase px-1.5 py-0.5 rounded-full"
+                          className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full shrink-0"
                           style={
                             isActive
                               ? { background: 'rgba(22,132,91,0.14)', color: '#16845B' }
-                              : { background: 'rgba(23,23,23,0.08)', color: 'rgba(23,23,23,0.50)' }
+                              : { background: 'rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.50)' }
                           }
                         >
                           {isActive ? 'ON' : 'OFF'}
                         </span>
                       </div>
 
-                      {/* TIME */}
+                      {/* TIME: 11px tabular-nums (wrap to 2 lines if needed) */}
                       {isEditingTime ? (
-                        <div className="space-y-1">
+                        <div className="space-y-1 my-1">
                           <TimeInput
                             value={editStartTimeVal}
                             onChange={setEditStartTimeVal}
-                            className="w-full px-1.5 py-0.5 text-[11px] border rounded-lg bg-white font-mono font-bold"
+                            className="w-full px-1 py-0.5 text-[11px] border rounded-lg bg-white font-mono font-bold"
                             style={{ borderColor: theme.border, color: theme.text }}
                           />
                           <TimeInput
                             value={editEndTimeVal}
                             onChange={setEditEndTimeVal}
-                            className="w-full px-1.5 py-0.5 text-[11px] border rounded-lg bg-white font-mono font-bold"
+                            className="w-full px-1 py-0.5 text-[11px] border rounded-lg bg-white font-mono font-bold"
                             style={{ borderColor: theme.border, color: theme.text }}
                           />
                           <div className="flex gap-1 mt-0.5">
                             <button
+                              type="button"
                               onClick={() => handleSaveSlotTime(slot.id)}
-                              className="flex-1 py-0.5 rounded-lg text-[11px] font-black"
-                              style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#171717' }}
+                              className="flex-1 py-0.5 rounded-lg text-[10px] font-bold"
+                              style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#0A0A0A' }}
                             >Save</button>
                             <button
+                              type="button"
                               onClick={() => setEditingTimeSlotId(null)}
-                              className="flex-1 py-0.5 rounded-lg text-[11px] font-black bg-white"
-                              style={{ color: 'rgba(23,23,23,0.55)', border: `1px solid ${theme.border}` }}
+                              className="flex-1 py-0.5 rounded-lg text-[10px] font-bold bg-white"
+                              style={{ color: 'rgba(10,10,10,0.55)', border: `1px solid ${theme.border}` }}
                             >Cancel</button>
                           </div>
                         </div>
                       ) : (
                         <div
-                          className="text-[11px] font-black font-mono leading-snug"
-                          style={{ color: isActive ? theme.text : 'rgba(23,23,23,0.50)' }}
+                          className="text-[11px] font-bold font-mono tabular-nums leading-snug my-0.5 break-words"
+                          style={{ color: isActive ? theme.text : 'rgba(10,10,10,0.50)' }}
                         >
                           {format12Hour(slot.startTime)} &ndash; {format12Hour(slot.endTime)}
                         </div>
                       )}
 
-                      {/* PRICE */}
+                      {/* PRICE: ₹ 15px bold */}
                       <div>
                         {isEditingPrice ? (
                           <div className="flex items-center gap-0.5">
-                            <span className="text-[11px] font-black" style={{ color: theme.accent }}>&#8377;</span>
+                            <span className="text-[11px] font-bold" style={{ color: theme.accent }}>&#8377;</span>
                             <NumberInput
                               min={1}
                               step={50}
@@ -1503,40 +1482,42 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                               autoFocus
                             />
                             <button
+                              type="button"
                               onClick={() => handleSaveSlotPrice(slot.id)}
                               className="p-0.5 rounded-lg"
-                              style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#171717' }}
+                              style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#0A0A0A' }}
                             ><Check className="w-3 h-3" /></button>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between min-w-0">
                             <span
-                              className="text-[13px] font-black leading-none"
-                              style={{ color: isActive ? theme.accent : 'rgba(23,23,23,0.40)' }}
+                              className="text-[15px] font-bold leading-none shrink-0"
+                              style={{ color: isActive ? theme.accent : 'rgba(10,10,10,0.40)' }}
                             >
                               &#8377;{slot.price}
                             </span>
                             <button
+                              type="button"
                               onClick={() => { setEditingSlotId(slot.id); setEditPriceVal(slot.price); }}
-                              className="p-0.5 rounded-md transition-colors duration-150"
+                              className="p-0.5 rounded-md transition-colors duration-150 hover:bg-black/5"
                               title="Edit price"
-                              style={{ color: 'rgba(23,23,23,0.40)' }}
+                              style={{ color: 'rgba(10,10,10,0.40)' }}
                             ><Pencil className="w-2.5 h-2.5" /></button>
                           </div>
                         )}
                       </div>
 
-                      {/* PAYMENT INFO */}
+                      {/* PAYMENT INFO: 'Adv or Full' / 'Adv: ₹x' 11px */}
                       <div
-                        className="pt-1.5"
-                        style={{ borderTop: `1px solid ${isActive ? theme.border : '#E8E5E0'}` }}
+                        className="pt-1 my-0.5"
+                        style={{ borderTop: `1px solid ${isActive ? theme.border : 'rgba(10,10,10,0.08)'}` }}
                       >
                         {editingPaymentSlotId === slot.id ? (
-                          <div className="space-y-1 bg-white p-1.5 rounded-lg" style={{ border: `1px solid ${theme.border}` }}>
+                          <div className="space-y-1 bg-white p-1 rounded-lg" style={{ border: `1px solid ${theme.border}` }}>
                             <select
                               value={editPaymentTypeVal}
                               onChange={(e) => setEditPaymentTypeVal(e.target.value as any)}
-                              className="w-full text-[11px] px-1 py-0.5 rounded-lg bg-white"
+                              className="w-full text-[10px] px-1 py-0.5 rounded-lg bg-white"
                               style={{ border: `1px solid ${theme.border}`, color: theme.text }}
                             >
                               <option value="FULL">Full Payment</option>
@@ -1545,36 +1526,38 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                             </select>
                             {(editPaymentTypeVal === 'ADVANCE' || editPaymentTypeVal === 'BOTH') && (
                               <div className="flex items-center gap-1">
-                                <span className="text-[11px] font-black uppercase" style={{ color: 'rgba(23,23,23,0.55)' }}>Adv:</span>
+                                <span className="text-[10px] font-bold uppercase" style={{ color: 'rgba(10,10,10,0.55)' }}>Adv:</span>
                                 <NumberInput
                                   min={0}
                                   step={50}
                                   value={editAdvanceAmountVal}
                                   onChange={setEditAdvanceAmountVal}
-                                  className="flex-1 px-1 py-0.5 rounded-lg text-[11px] bg-white"
+                                  className="flex-1 px-1 py-0.5 rounded-lg text-[10px] bg-white"
                                   style={{ border: `1px solid ${theme.border}` }}
                                 />
                               </div>
                             )}
                             <div className="flex gap-1">
                               <button
+                                type="button"
                                 onClick={() => handleSaveSlotPayment(slot.id)}
-                                className="flex-1 py-0.5 rounded-lg text-[11px] font-black"
-                                style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#171717' }}
+                                className="flex-1 py-0.5 rounded-lg text-[10px] font-bold"
+                                style={{ background: theme.accent, color: isNightSlot ? '#FFFFFF' : '#0A0A0A' }}
                               >Save</button>
                               <button
+                                type="button"
                                 onClick={() => setEditingPaymentSlotId(null)}
-                                className="flex-1 py-0.5 rounded-lg text-[11px] font-black bg-white"
-                                style={{ color: 'rgba(23,23,23,0.55)', border: `1px solid ${theme.border}` }}
+                                className="flex-1 py-0.5 rounded-lg text-[10px] font-bold bg-white"
+                                style={{ color: 'rgba(10,10,10,0.55)', border: `1px solid ${theme.border}` }}
                               >Cancel</button>
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between min-w-0">
+                            <div className="flex flex-col gap-0.5 min-w-0">
                               <span
-                                className="text-[11px] font-bold leading-none"
-                                style={{ color: isActive ? theme.muted : 'rgba(23,23,23,0.40)' }}
+                                className="text-[11px] font-semibold leading-tight truncate"
+                                style={{ color: isActive ? theme.muted : 'rgba(10,10,10,0.40)' }}
                               >
                                 {slot.paymentType === 'FULL'
                                   ? 'Full Payment'
@@ -1584,71 +1567,79 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                               </span>
                               {slot.paymentType !== 'FULL' && (
                                 <span
-                                  className="text-[11px] font-black leading-none"
-                                  style={{ color: isActive ? theme.accent : 'rgba(23,23,23,0.35)' }}
+                                  className="text-[11px] font-bold leading-tight"
+                                  style={{ color: isActive ? theme.accent : 'rgba(10,10,10,0.35)' }}
                                 >
                                   Adv: &#8377;{slot.advanceAmount || 0}
                                 </span>
                               )}
                             </div>
                             <button
+                              type="button"
                               onClick={() => {
                                 setEditingPaymentSlotId(slot.id);
                                 setEditPaymentTypeVal(slot.paymentType || 'BOTH');
                                 setEditAdvanceAmountVal(slot.advanceAmount || 400);
                               }}
-                              className="p-0.5 rounded-md transition-colors duration-150"
+                              className="p-0.5 rounded-md transition-colors duration-150 hover:bg-black/5 shrink-0"
                               title="Edit payment"
-                              style={{ color: 'rgba(23,23,23,0.40)' }}
+                              style={{ color: 'rgba(10,10,10,0.40)' }}
                             ><Pencil className="w-2.5 h-2.5" /></button>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* ACTION BAR */}
+                    {/* ACTION ROW: 4 equal 32px icon buttons (eye, clock, copy, delete) */}
                     <div
-                      className="px-2 py-1.5 flex items-center justify-between"
+                      className="grid grid-cols-4 gap-1 pt-1.5 mt-auto"
                       style={{
-                        borderTop: `1px solid ${isActive ? theme.border : '#E8E5E0'}`,
-                        background: isActive ? 'rgba(255,255,255,0.50)' : 'rgba(23,23,23,0.03)',
+                        borderTop: `1px solid ${isActive ? theme.border : 'rgba(10,10,10,0.08)'}`,
+                        background: isActive ? 'rgba(255,255,255,0.40)' : 'rgba(10,10,10,0.02)',
+                        borderRadius: '0 0 12px 12px',
+                        margin: '-2.5px -2.5px -2.5px -2.5px',
+                        padding: '4px 2px 2px 2px',
                       }}
                     >
                       <button
+                        type="button"
                         onClick={() => handleToggleSlotStatus(slot.id)}
-                        className="p-1 rounded-md transition-colors duration-150"
+                        className="w-8 h-8 mx-auto flex items-center justify-center rounded-lg transition-colors hover:bg-black/5"
                         title={isActive ? 'Disable slot' : 'Enable slot'}
-                        style={{ color: isActive ? theme.accent : 'rgba(23,23,23,0.40)' }}
+                        style={{ color: isActive ? theme.accent : 'rgba(10,10,10,0.40)' }}
                       >
-                        <ToggleLeft className={`w-3.5 h-3.5 ${isActive ? 'rotate-180' : ''}`} />
+                        {isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           setEditingTimeSlotId(slot.id);
                           setEditStartTimeVal(slot.startTime);
                           setEditEndTimeVal(slot.endTime);
                         }}
-                        className="p-1 rounded-md transition-colors duration-150"
+                        className="w-8 h-8 mx-auto flex items-center justify-center rounded-lg transition-colors hover:bg-black/5"
                         title="Edit time"
-                        style={{ color: 'rgba(23,23,23,0.45)' }}
+                        style={{ color: 'rgba(10,10,10,0.55)' }}
                       >
-                        <Clock className="w-3 h-3" />
+                        <Clock className="w-3.5 h-3.5" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDuplicateSlot(slot)}
-                        className="p-1 rounded-md transition-colors duration-150"
+                        className="w-8 h-8 mx-auto flex items-center justify-center rounded-lg transition-colors hover:bg-black/5"
                         title="Duplicate slot"
-                        style={{ color: 'rgba(23,23,23,0.45)' }}
+                        style={{ color: 'rgba(10,10,10,0.55)' }}
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDeleteSlot(slot.id)}
-                        className="p-1 rounded-md transition-colors duration-150"
+                        className="w-8 h-8 mx-auto flex items-center justify-center rounded-lg transition-colors hover:bg-black/5"
                         title="Delete slot"
-                        style={{ color: 'rgba(23,23,23,0.45)' }}
+                        style={{ color: 'rgba(10,10,10,0.55)' }}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1659,40 +1650,40 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════════════════
           3. MODALS (CONFIRMATIONS, BREAKS, CUSTOM SLOTS)
-         ══════════════════════════════════════════════════════ */}
+         ══════════════════════════════════════════════════════ */}
 
       {/* REGENERATE CONFIRMATION MODAL */}
       {confirmRegenerateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(10,10,10,0.40)',   }}>
           <div
             className="rounded-2xl p-5 max-w-md w-full space-y-4"
-            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+            style={{ background: '#FFFFFF', border: '1px solid rgba(10,10,10,0.08)', boxShadow: '0 20px 60px rgba(10,10,10,0.20)' }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,159,28,0.15)' }}>
-                <AlertCircle className="w-4 h-4" style={{ color: '#FF9F1C' }} />
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(231,50,41,0.08)' }}>
+                <AlertCircle className="w-4 h-4" style={{ color: '#E73229' }} />
               </div>
-              <h3 className="font-black text-sm" style={{ color: '#171717' }}>Regenerate Schedule?</h3>
+              <h3 className="font-bold text-sm" style={{ color: '#0A0A0A' }}>Regenerate Schedule?</h3>
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'rgba(23,23,23,0.65)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(10,10,10,0.65)' }}>
               Regenerating slots will replace the current generated schedule for the selected days. Do you want to continue?
             </p>
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setConfirmRegenerateOpen(false)}
-                className="flex-1 py-2 rounded-xl border text-xs font-bold transition-colors duration-150"
-                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
+                className="flex-1 py-2 rounded-xl border text-xs font-semibold transition-colors duration-150"
+                style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)', background: '#F5F5F7' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={executeGeneration}
-                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
-                style={{ background: '#FF9F1C', color: '#171717' }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors duration-150"
+                style={{ background: '#E73229', color: '#FFFFFF' }}
               >
                 Regenerate
               </button>
@@ -1703,34 +1694,34 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* BULK ACTION CONFIRMATION MODAL */}
       {confirmBulkAction.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(10,10,10,0.40)' }}>
           <div
             className="rounded-2xl p-5 max-w-md w-full space-y-4"
-            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+            style={{ background: '#FFFFFF', border: '1px solid rgba(10,10,10,0.08)', boxShadow: '0 20px 60px rgba(10,10,10,0.20)' }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,159,28,0.15)' }}>
-                <Copy className="w-4 h-4" style={{ color: '#FF9F1C' }} />
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(231,50,41,0.08)' }}>
+                <Copy className="w-4 h-4" style={{ color: '#E73229' }} />
               </div>
-              <h3 className="font-black text-sm" style={{ color: '#171717' }}>{confirmBulkAction.title}</h3>
+              <h3 className="font-bold text-sm" style={{ color: '#0A0A0A' }}>{confirmBulkAction.title}</h3>
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: 'rgba(23,23,23,0.65)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'rgba(10,10,10,0.65)' }}>
               {confirmBulkAction.description}
             </p>
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setConfirmBulkAction((p) => ({ ...p, open: false }))}
-                className="flex-1 py-2 rounded-xl border text-xs font-bold transition-colors duration-150"
-                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
+                className="flex-1 py-2 rounded-xl border text-xs font-semibold transition-colors duration-150"
+                style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)', background: '#F5F5F7' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmBulkAction.onConfirm}
-                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
-                style={{ background: '#FF9F1C', color: '#171717' }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors duration-150"
+                style={{ background: '#E73229', color: '#FFFFFF' }}
               >
                 Continue &amp; Apply
               </button>
@@ -1741,21 +1732,21 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* ADD BREAK MODAL */}
       {showAddBreakModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(10,10,10,0.40)' }}>
           <div
             className="rounded-2xl p-5 max-w-md w-full space-y-4"
-            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+            style={{ background: '#FFFFFF', border: '1px solid rgba(10,10,10,0.08)', boxShadow: '0 20px 60px rgba(10,10,10,0.20)' }}
           >
-            <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid #E8E5E0' }}>
+            <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid rgba(10,10,10,0.08)' }}>
               <div className="flex items-center gap-2">
-                <Coffee className="w-4 h-4" style={{ color: '#FF9F1C' }} />
-                <h3 className="font-black text-sm" style={{ color: '#171717' }}>Add Break &mdash; {activeDay.dayName}</h3>
+                <Coffee className="w-4 h-4" style={{ color: '#E73229' }} />
+                <h3 className="font-bold text-sm" style={{ color: '#0A0A0A' }}>Add Break &mdash; {activeDay.dayName}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddBreakModal(false)}
                 className="p-1.5 rounded-lg transition-colors duration-150"
-                style={{ color: 'rgba(23,23,23,0.50)', background: '#FAF8F4' }}
+                style={{ color: 'rgba(10,10,10,0.50)', background: '#F5F5F7' }}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -1763,31 +1754,31 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                   START TIME
                 </label>
                 <TimeInput
                   value={breakStart}
                   onChange={setBreakStart}
                   className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
-                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
+                  style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: '#0A0A0A' }}
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                   END TIME
                 </label>
                 <TimeInput
                   value={breakEnd}
                   onChange={setBreakEnd}
                   className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
-                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
+                  style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: '#0A0A0A' }}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+              <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                 REASON / NOTE
               </label>
               <input
@@ -1796,7 +1787,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 onChange={(e) => setBreakReason(e.target.value)}
                 placeholder="e.g. Maintenance, Watering & Cleaning"
                 className="w-full px-3 py-2 rounded-xl text-xs"
-                style={{ border: '1.5px solid #E8E5E0', background: '#FAF8F4', color: '#171717' }}
+                style={{ border: '1.5px solid rgba(10,10,10,0.08)', background: '#F5F5F7', color: '#0A0A0A' }}
               />
             </div>
 
@@ -1804,16 +1795,16 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
               <button
                 type="button"
                 onClick={() => setShowAddBreakModal(false)}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-colors duration-150"
-                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors duration-150"
+                style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)', background: '#F5F5F7' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddBreak}
-                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
-                style={{ background: '#FF9F1C', color: '#171717' }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors duration-150"
+                style={{ background: '#E73229', color: '#FFFFFF' }}
               >
                 Save Break
               </button>
@@ -1824,15 +1815,15 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
       {/* ADD CUSTOM SLOT MODAL */}
       {showAddCustomSlotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(23,23,23,0.40)',   }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(10,10,10,0.40)' }}>
           <div
             className="rounded-2xl p-5 max-w-md w-full space-y-4"
-            style={{ background: '#FFFFFF', border: '1px solid #E8E5E0', boxShadow: '0 20px 60px rgba(23,23,23,0.20)' }}
+            style={{ background: '#FFFFFF', border: '1px solid rgba(10,10,10,0.08)', boxShadow: '0 20px 60px rgba(10,10,10,0.20)' }}
           >
-            <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid #E8E5E0' }}>
+            <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid rgba(10,10,10,0.08)' }}>
               <div className="flex items-center gap-2">
-                <Plus className="w-4 h-4" style={{ color: '#FF9F1C' }} />
-                <h3 className="font-black text-sm" style={{ color: '#171717' }}>
+                <Plus className="w-4 h-4" style={{ color: '#E73229' }} />
+                <h3 className="font-bold text-sm" style={{ color: '#0A0A0A' }}>
                   Add Custom Slot &mdash; {activeDay.dayName}
                 </h3>
               </div>
@@ -1840,7 +1831,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                 type="button"
                 onClick={() => setShowAddCustomSlotModal(false)}
                 className="p-1.5 rounded-lg transition-colors duration-150"
-                style={{ color: 'rgba(23,23,23,0.50)', background: '#FAF8F4' }}
+                style={{ color: 'rgba(10,10,10,0.50)', background: '#F5F5F7' }}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -1848,32 +1839,32 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                   START TIME
                 </label>
                 <TimeInput
                   value={csStartTime}
                   onChange={setCsStartTime}
                   className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
-                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
+                  style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: '#0A0A0A' }}
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                   END TIME
                 </label>
                 <TimeInput
                   value={csEndTime}
                   onChange={setCsEndTime}
                   className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
-                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
+                  style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: '#0A0A0A' }}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                   SLOT PRICE (&#8377;)
                 </label>
                 <NumberInput
@@ -1882,11 +1873,11 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   value={csPrice}
                   onChange={setCsPrice}
                   className="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white"
-                  style={{ border: '1.5px solid #E8E5E0', color: '#171717' }}
+                  style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: '#0A0A0A' }}
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-black uppercase mb-1" style={{ color: 'rgba(23,23,23,0.55)' }}>
+                <label className="block text-[11px] font-semibold uppercase mb-1" style={{ color: 'rgba(10,10,10,0.55)' }}>
                   LABEL (OPTIONAL)
                 </label>
                 <input
@@ -1895,7 +1886,7 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
                   onChange={(e) => setCsLabel(e.target.value)}
                   placeholder="e.g. Early Bird"
                   className="w-full px-3 py-2 rounded-xl text-xs"
-                  style={{ border: '1.5px solid #E8E5E0', background: '#FAF8F4', color: '#171717' }}
+                  style={{ border: '1.5px solid rgba(10,10,10,0.08)', background: '#F5F5F7', color: '#0A0A0A' }}
                 />
               </div>
             </div>
@@ -1904,16 +1895,16 @@ export const TurfAvailabilityBuilder: React.FC<TurfAvailabilityBuilderProps> = (
               <button
                 type="button"
                 onClick={() => setShowAddCustomSlotModal(false)}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-colors duration-150"
-                style={{ border: '1.5px solid #E8E5E0', color: 'rgba(23,23,23,0.65)', background: '#FAF8F4' }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors duration-150"
+                style={{ border: '1.5px solid rgba(10,10,10,0.08)', color: 'rgba(10,10,10,0.65)', background: '#F5F5F7' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddCustomSlot}
-                className="flex-1 py-2 rounded-xl text-xs font-black transition-colors duration-150"
-                style={{ background: '#FF9F1C', color: '#171717' }}
+                className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors duration-150"
+                style={{ background: '#E73229', color: '#FFFFFF' }}
               >
                 Add Custom Slot
               </button>

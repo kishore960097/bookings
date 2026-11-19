@@ -10,6 +10,9 @@ lerna-debug.log*
 # Node
 node_modules
 dist
+dist/
+dist-web/
+dist-server/
 dist-ssr
 *.local
 
@@ -17,6 +20,7 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -30,7 +34,22 @@ dist-ssr
 !.env.example
 *firebase-adminsdk*.json
 *service-account*.json
+serviceAccount*.json
 credentials.json
+local.properties
+*.keystore
+*.jks
+*.bak
+*.pem
+*.zip
+*.tar
+*.gz
+
+# Google Services
+android/app/google-services.json
+android/app/google-services.json.bak
+google-services.json
+google-services.json.bak
 
 # Build tools and outputs
 build/
@@ -43,10 +62,15 @@ coverage/
 .data/
 android/.gradle/
 android/app/build/
+android/app/build
 android/build/
+android/build
 android/local.properties
+local.properties
 android/app/src/main/assets/public/
 *.apk
 *.aab
-.idea/
-dist/
+android.rollback-pre-reconstruction-20261024/
+scratch/
+_cleanup_backup*
+cloudflared.exe
