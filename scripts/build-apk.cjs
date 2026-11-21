@@ -7,8 +7,12 @@ console.log('\n========================================');
 console.log('   QGo Android APK Build System');
 console.log('========================================\n');
 
-// 1. Resolve current app version
+// 1. Resolve current app version and cloud backend
 let appVersion = '1.0.0';
+const cloudUrl = process.env.VITE_API_URL || 'https://qgo-backend.onrender.com';
+process.env.VITE_API_URL = cloudUrl;
+process.env.NODE_ENV = 'production';
+
 try {
   const versionFile = path.resolve(__dirname, '../src/config/appVersion.ts');
   if (fs.existsSync(versionFile)) {
@@ -22,7 +26,8 @@ try {
   // Use fallback
 }
 
-console.log(`[QGo] Target Version: v${appVersion}`);
+console.log(`[QGo] Target Version : v${appVersion}`);
+console.log(`[QGo] Cloud Backend  : ${cloudUrl}`);
 
 // 2. Locate Android directory and Gradle wrapper
 const androidDir = path.resolve(__dirname, '../android');

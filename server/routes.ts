@@ -106,12 +106,18 @@ export function getLocalMinutes(date: Date = new Date(), timeZone: string = 'Asi
 const isPlatformAdmin = (user?: User | null, claims?: Record<string, unknown>) =>
   Boolean(claims?.admin === true || isSuperAdminEmail(user?.email));
 
-function getBearerToken(req: Request) {
+function getBearerToken(req: Request): string | null {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.replace('Bearer ', '').trim();
   }
-  return authHeader.replace('Bearer ', '').trim();
+  if (req.headers.cookie) {
+    const match = req.headers.cookie.match(/(?:^|;\s*)qgo_token=([^;]+)/);
+    if (match) {
+      return decodeURIComponent(match[1].trim());
+    }
+  }
+  return null;
 }
 
 function normalizeRequestedRole(role: unknown): 'consumer' | 'owner' | null {
@@ -244,12 +250,27 @@ async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextF
         code = 'auth/id-token-revoked';
       } else if (msg.includes('auth/argument-error') || msg.toLowerCase().includes('decoding') || msg.toLowerCase().includes('jwt')) {
         code = 'auth/argument-error';
+      } else if (msg.includes('admin-not-configured') || msg.toLowerCase().includes('credentials are not configured')) {
+        code = 'auth/admin-not-configured';
       } else {
         code = 'auth/invalid-token';
       }
     }
-    console.warn(`[Auth 401] token verification failed code: ${code}, message: ${msg}`);
-    return res.status(401).json({ success: false, error: 'Invalid, expired, or revoked Firebase session', code });
+    console.warn(`[Auth 401] Token verification failed - code: ${code}, message: ${msg}`);
+    if (code === 'auth/admin-not-configured') {
+      return res.status(401).json({
+        success: false,
+        error: 'Firebase Admin credentials are not configured on server',
+        code,
+        message: msg,
+      });
+    }
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid, expired, or revoked Firebase session',
+      code,
+      message: msg,
+    });
   }
 
   try {
@@ -827,7 +848,29 @@ apiRouter.post('/auth/firebase/session', requireAuth, (req: AuthenticatedRequest
   user.authorizedRoles = authorizedRoles;
   db.users.set(user.id, user);
 
+  // Set cross-origin session cookie for persistent browser & Capacitor sessions
+  const rawToken = getBearerToken(req);
+  if (rawToken) {
+    res.cookie('qgo_token', rawToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 30 * 24 * 3600 * 1000,
+      path: '/',
+    });
+  }
+
   return res.json({ success: true, user: buildAuthenticatedUser(user, activeRole, req.auth!.claims) });
+});
+
+apiRouter.post('/auth/logout', (_req: Request, res: Response) => {
+  res.clearCookie('qgo_token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    path: '/',
+  });
+  return res.json({ success: true, message: 'Logged out successfully' });
 });
 
 apiRouter.get('/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {

@@ -76,9 +76,14 @@ export function validateServerConfig(): void {
 
   // 4. Production credential safety check
   if (nodeEnv === 'production') {
+    const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
+      ? process.env.GOOGLE_APPLICATION_CREDENTIALS.trim().replace(/^["']|["']$/g, '')
+      : '';
     const hasCreds =
       Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON) ||
-      Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) ||
+      Boolean(credsPath && fs.existsSync(credsPath)) ||
+      fs.existsSync('/etc/secrets/firebase-adminsdk.json') ||
+      fs.existsSync('/etc/secrets/google-credentials.json') ||
       process.env.FIREBASE_USE_APPLICATION_DEFAULT_CREDENTIALS === 'true';
 
     if (!hasCreds) {

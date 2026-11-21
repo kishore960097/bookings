@@ -407,6 +407,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     _picture?: string
   ) => {
     try {
+      // Clear any prior stale tokens before starting fresh session exchange
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+      setUser(null);
+      setSessionError(null);
+
       const tokenToSend = credential || accessToken;
       if (!tokenToSend) {
         return { success: false, error: 'Google did not return a verifiable Firebase session.' };
@@ -444,6 +450,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     requestedRole?: 'consumer' | 'owner'
   ) => {
     try {
+      // Clear any prior stale tokens before starting fresh
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+      setSessionError(null);
+
       if (requestedRole) {
         localStorage.setItem('qgo_preferred_role', requestedRole);
       }
@@ -729,6 +740,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .then(({ FirebaseAuthentication }) => FirebaseAuthentication.signOut())
         .catch((error) => console.warn('[QGo Auth] Native sign-out failed:', error));
     }
+    void api.logout();
   }, []);
 
   const retrySession = useCallback(() => {

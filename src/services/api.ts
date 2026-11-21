@@ -65,20 +65,38 @@ const fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Resp
   });
 };
 
+// Default 24/7 Production Cloud Backend URL (Render)
+export const DEFAULT_CLOUD_API_URL = 'https://qgo-backend.onrender.com';
+
 // In web browsers (PC, mobile browser via DevTunnels or LAN), relative URLs ('') ensure API requests route to the current serving host.
-// In the Capacitor Android APK, VITE_API_URL or custom override is used to connect to the external backend.
-const rawApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || '';
+// In the Capacitor Android APK, VITE_API_URL or DEFAULT_CLOUD_API_URL is used to connect to the external backend.
+const envApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+const rawApiUrl = envApiUrl || DEFAULT_CLOUD_API_URL;
 const isNative = Capacitor.isNativePlatform();
 
 export function getEffectiveApiOrigin(): string {
   if (!isNative) return '';
-  const stored = typeof window !== 'undefined' ? localStorage.getItem('qgo_custom_api_url')?.trim() : null;
-  return (stored || rawApiUrl).replace(/\/+$/, '');
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('qgo_custom_api_url')?.trim();
+    if (stored) {
+      // Auto-purge stale local development IPs (localhost, 192.168.*, 10.*, 172.16-31.*) in production builds
+      // so users and beta testers never get stuck on unreachable local LAN addresses.
+      const isLocalHostOrIp = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/i.test(stored);
+      if (isLocalHostOrIp && !import.meta.env.DEV) {
+        try {
+          localStorage.removeItem('qgo_custom_api_url');
+        } catch {}
+      } else {
+        return stored.replace(/\/+$/, '');
+      }
+    }
+  }
+  return (rawApiUrl || DEFAULT_CLOUD_API_URL).replace(/\/+$/, '');
 }
 
 export let API_ORIGIN = getEffectiveApiOrigin();
 export let API_BASE = `${API_ORIGIN}/api/v1`;
-export let isApiConfigured = !isNative || Boolean(API_ORIGIN);
+export let isApiConfigured = true;
 
 export function setCustomApiUrl(url: string): void {
   if (typeof window !== 'undefined') {
@@ -90,7 +108,7 @@ export function setCustomApiUrl(url: string): void {
   }
   API_ORIGIN = getEffectiveApiOrigin();
   API_BASE = `${API_ORIGIN}/api/v1`;
-  isApiConfigured = !isNative || Boolean(API_ORIGIN);
+  isApiConfigured = true;
 }
 
 type FirebaseSessionResult = {
@@ -220,7 +238,7 @@ export const api = {
   ): Promise<FirebaseSessionResult> {
     if (!isApiConfigured) {
       return networkFailure(
-        'This Android build has no backend API URL. Configure VITE_API_URL with the HTTPS URL of the QGo backend, then rebuild the APK.',
+        'Unable to connect to the QGo Cloud backend. Please check your internet connection.',
         'API_NOT_CONFIGURED'
       );
     }
@@ -228,6 +246,7 @@ export const api = {
       const res = await fetch(`${API_BASE}/auth/firebase/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        credentials: 'include',
         body: JSON.stringify({ requestedRole }),
       });
       const contentType = res.headers.get('content-type') || '';
@@ -294,10 +313,22 @@ export const api = {
       if (!authToken) return { success: false, error: 'No token' };
       const res = await fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${authToken}` },
+        credentials: 'include',
       });
       return await res.json();
     } catch (e: any) {
       return { success: false, error: e?.message || 'Network error' };
+    }
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // Best-effort
     }
   },
 

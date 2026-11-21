@@ -8,7 +8,7 @@ import { Capacitor } from '@capacitor/core';
 import { QGoLogo } from './QGoLogo';
 import { useAuth } from '../../context/AuthContext';
 import { GoogleAuthButton } from '../auth/GoogleAuthButton';
-import { api, getEffectiveApiOrigin, setCustomApiUrl } from '../../services/api';
+import { api, getEffectiveApiOrigin, setCustomApiUrl, DEFAULT_CLOUD_API_URL } from '../../services/api';
 
 /* ─── Google SVG Logo ─── */
 const GoogleIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
@@ -192,10 +192,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
   const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Server settings configuration for mobile APK
+  // Server settings configuration for mobile APK (developer/debug mode only)
   const [showServerModal, setShowServerModal] = useState(false);
-  const [currentApiOrigin, setCurrentApiOrigin] = useState(() => getEffectiveApiOrigin());
-  const [serverUrlInput, setServerUrlInput] = useState(() => getEffectiveApiOrigin() || 'http://192.168.137.1:3000');
+  const [currentApiOrigin, setCurrentApiOrigin] = useState(() => getEffectiveApiOrigin() || DEFAULT_CLOUD_API_URL);
+  const [serverUrlInput, setServerUrlInput] = useState(() => getEffectiveApiOrigin() || DEFAULT_CLOUD_API_URL);
   const [testStatus, setTestStatus] = useState<{ testing: boolean; message: string; ok?: boolean } | null>(null);
 
   const handleTestServer = async (testUrl?: string) => {
@@ -229,10 +229,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
     return () => clearInterval(timer);
   }, [countdown]);
 
+  useEffect(() => {
+    // If navigating to the login page with orphaned/stale tokens, clean them up
+    const token = localStorage.getItem('qgo_token');
+    const userStr = localStorage.getItem('qgo_user');
+    if (token && !userStr) {
+      localStorage.removeItem('qgo_token');
+    }
+  }, []);
+
   const handleGoogleSuccess = async (tokenResponse: any) => {
     setGoogleLoading(true);
     setError(null);
     try {
+      localStorage.removeItem('qgo_token');
+      localStorage.removeItem('qgo_user');
       const token = tokenResponse.access_token || tokenResponse.credential;
       if (!token) {
         setError({ message: 'Google did not return a verifiable credential. Please try again.' });
@@ -308,6 +319,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
     setOtpLoading(true);
     setError(null);
     try {
+      localStorage.removeItem('qgo_token');
+      localStorage.removeItem('qgo_user');
       const res = await loginWithOtp(otpPhone.trim(), codeToUse, otpName.trim() || undefined, role);
       if (res.success) {
         onSuccess?.();
@@ -368,8 +381,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
               </p>
             </div>
 
-            {/* Server connection pill for native mobile app */}
-            {Capacitor.isNativePlatform() && (
+            {/* Server connection pill for native mobile app (developer/debug mode only) */}
+            {Capacitor.isNativePlatform() && (import.meta.env.DEV || import.meta.env.VITE_QGO_DEBUG === 'true') && (
               <div className="flex justify-center mb-5">
                 <button
                   type="button"
@@ -381,7 +394,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                   title="Configure Backend Server Address"
                 >
                   <Settings size={13} className="text-[#E73229]" />
-                  <span>Server: {currentApiOrigin ? currentApiOrigin.replace(/^https?:\/\//, '') : 'Tap to set URL'}</span>
+                  <span>Server: {currentApiOrigin ? currentApiOrigin.replace(/^https?:\/\//, '') : 'qgo-backend.onrender.com'}</span>
                 </button>
               </div>
             )}
@@ -393,7 +406,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
                   <X size={18} className="mt-0.5 shrink-0 text-[var(--q-error)]" />
                   <span className="font-medium text-[var(--q-error)]">{error.message}</span>
                 </div>
-                {Capacitor.isNativePlatform() && (
+                {Capacitor.isNativePlatform() && (import.meta.env.DEV || import.meta.env.VITE_QGO_DEBUG === 'true') && (
                   <div className="pt-2 border-t border-[rgba(179,38,30,0.20)]">
                     <button
                       type="button"
@@ -689,6 +702,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ defaultView = 'login', onC
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Quick Presets:</span>
                 <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServerUrlInput('https://qgo-backend.onrender.com');
+                      handleTestServer('https://qgo-backend.onrender.com');
+                    }}
+                    className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-left transition-colors cursor-pointer col-span-2"
+                  >
+                    <div className="text-xs font-bold text-[#E73229]">Cloud Production (Render)</div>
+                    <div className="text-[10px] text-gray-600 font-mono">https://qgo-backend.onrender.com</div>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {

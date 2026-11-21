@@ -6,6 +6,7 @@
  * production builds via dead-code elimination). Never logs tokens or OTPs.
  */
 import React, { useEffect, useRef, useState } from 'react';
+import { DEFAULT_CLOUD_API_URL } from '../../services/api';
 
 type HealthStatus =
   | { state: 'idle' }
@@ -66,7 +67,7 @@ export const ApiDiagnostics: React.FC = () => {
   const isDebug = Boolean(import.meta.env.DEV || import.meta.env.VITE_QGO_DEBUG === 'true');
   if (!isDebug) return null;
 
-  const apiBase: string = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+  const apiBase: string = (import.meta.env.VITE_API_URL as string | undefined) || DEFAULT_CLOUD_API_URL;
   const [status, setStatus] = useState<HealthStatus>({ state: 'idle' });
   const [expanded, setExpanded] = useState(false);
   const abortRef = useRef<AbortController | null>(null);

@@ -1,40 +1,99 @@
+import 'dotenv/config';
 import { applicationDefault, cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 import fs from 'node:fs';
+import path from 'node:path';
 
-const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
-const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET;
+let projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+let storageBucket = process.env.FIREBASE_STORAGE_BUCKET || process.env.VITE_FIREBASE_STORAGE_BUCKET;
 const isUsingEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST);
 
 // Support inline service account JSON via FIREBASE_SERVICE_ACCOUNT_JSON.
 // Value may be raw JSON or base64-encoded JSON — both are accepted.
-// This is the recommended approach for APK debug testing and CI without a credentials file on disk.
-const inlineServiceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+const inlineServiceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+
+// Clean up GOOGLE_APPLICATION_CREDENTIALS path if provided
+const googleAppCredsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
+  ? process.env.GOOGLE_APPLICATION_CREDENTIALS.trim().replace(/^["']|["']$/g, '')
+  : '';
+
+let resolvedServiceAccountObj: any = null;
+let resolvedSource = '';
+
+if (inlineServiceAccountJson) {
+  try {
+    resolvedServiceAccountObj = JSON.parse(inlineServiceAccountJson);
+    resolvedSource = 'inline FIREBASE_SERVICE_ACCOUNT_JSON';
+  } catch {
+    try {
+      const decoded = Buffer.from(inlineServiceAccountJson, 'base64').toString('utf-8');
+      resolvedServiceAccountObj = JSON.parse(decoded);
+      resolvedSource = 'base64 FIREBASE_SERVICE_ACCOUNT_JSON';
+    } catch (err: any) {
+      console.error('[Firebase Admin] Failed parsing FIREBASE_SERVICE_ACCOUNT_JSON:', err?.message || err);
+    }
+  }
+}
+
+if (!resolvedServiceAccountObj && googleAppCredsPath) {
+  try {
+    if (fs.existsSync(googleAppCredsPath)) {
+      const content = fs.readFileSync(googleAppCredsPath, 'utf-8');
+      resolvedServiceAccountObj = JSON.parse(content);
+      resolvedSource = `GOOGLE_APPLICATION_CREDENTIALS file (${googleAppCredsPath})`;
+    } else {
+      console.warn(`[Firebase Admin] File specified in GOOGLE_APPLICATION_CREDENTIALS does not exist: "${googleAppCredsPath}"`);
+    }
+  } catch (err: any) {
+    console.error(`[Firebase Admin] Failed reading GOOGLE_APPLICATION_CREDENTIALS from "${googleAppCredsPath}":`, err?.message || err);
+  }
+}
+
+// Auto-discover Render secret files or project-relative service account if not yet resolved
+if (!resolvedServiceAccountObj) {
+  const candidatePaths = [
+    '/etc/secrets/firebase-adminsdk.json',
+    '/etc/secrets/firebase-adminsdk',
+    '/etc/secrets/google-application-credentials.json',
+    '/etc/secrets/google-credentials.json',
+    path.resolve(process.cwd(), 'qqoo-b335e-firebase-adminsdk-fbsvc-3cc634a347.json'),
+  ];
+  for (const candidate of candidatePaths) {
+    try {
+      if (fs.existsSync(candidate)) {
+        const content = fs.readFileSync(candidate, 'utf-8');
+        resolvedServiceAccountObj = JSON.parse(content);
+        resolvedSource = `Auto-discovered secret file (${candidate})`;
+        break;
+      }
+    } catch {
+      // Continue searching
+    }
+  }
+}
+
+if (resolvedServiceAccountObj) {
+  if (!projectId && resolvedServiceAccountObj.project_id) {
+    projectId = resolvedServiceAccountObj.project_id;
+  }
+  if (!storageBucket && resolvedServiceAccountObj.project_id) {
+    storageBucket = `${resolvedServiceAccountObj.project_id}.firebasestorage.app`;
+  }
+}
 
 const hasExplicitCredentials =
   isUsingEmulator ||
-  Boolean(inlineServiceAccountJson) ||
-  Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) ||
-  process.env.FIREBASE_USE_APPLICATION_DEFAULT_CREDENTIALS === 'true';
+  Boolean(resolvedServiceAccountObj) ||
+  (process.env.FIREBASE_USE_APPLICATION_DEFAULT_CREDENTIALS === 'true' && !process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
 if (!getApps().length) {
   try {
     let credential;
-    if (inlineServiceAccountJson) {
-      let serviceAccountObj: object;
-      try {
-        serviceAccountObj = JSON.parse(inlineServiceAccountJson);
-      } catch {
-        const decoded = Buffer.from(inlineServiceAccountJson, 'base64').toString('utf-8');
-        serviceAccountObj = JSON.parse(decoded);
-      }
-      credential = cert(serviceAccountObj as Parameters<typeof cert>[0]);
-      console.log('[Firebase Admin] Initialized with inline FIREBASE_SERVICE_ACCOUNT_JSON credential.');
-    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
-      credential = cert(process.env.GOOGLE_APPLICATION_CREDENTIALS);
-      console.log('[Firebase Admin] Initialized with GOOGLE_APPLICATION_CREDENTIALS file.');
+    if (resolvedServiceAccountObj) {
+      credential = cert(resolvedServiceAccountObj as Parameters<typeof cert>[0]);
+      console.log(`[Firebase Admin] Initialized with cert() from ${resolvedSource}. Project: ${projectId || resolvedServiceAccountObj.project_id}`);
     } else if (hasExplicitCredentials && !isUsingEmulator) {
       credential = applicationDefault();
       console.log('[Firebase Admin] Initialized with Application Default Credentials.');
@@ -47,7 +106,7 @@ if (!getApps().length) {
     });
     console.log('[Firebase Admin] App initialized for project:', projectId);
   } catch (error) {
-    console.warn('\x1b[33m[Warning] Could not initialize Firebase Admin SDK:\x1b[0m', error);
+    console.error('\x1b[31m[Firebase Admin Error] Could not initialize Firebase Admin SDK:\x1b[0m', error);
   }
 
   // ── Emit a clear named warning if no credentials were resolved ──────────────
@@ -55,12 +114,12 @@ if (!getApps().length) {
     console.warn(
       '\x1b[33m[Firebase Admin] WARNING: No credentials configured.\x1b[0m\n' +
       '  Auth token verification will use a MOCK (all tokens will be rejected).\n' +
-      '  To fix, set one of the following in your .env:\n' +
-      '    GOOGLE_APPLICATION_CREDENTIALS=<path-to-service-account.json>\n' +
+      '  To fix, set one of the following in your .env or Render dashboard:\n' +
+      '    GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/firebase-adminsdk.json\n' +
       '    FIREBASE_SERVICE_ACCOUNT_JSON=<inline-JSON-or-base64>\n' +
-      '    FIREBASE_USE_APPLICATION_DEFAULT_CREDENTIALS=true  (requires gcloud/firebase login)\n' +
+      '    Mount secret file at /etc/secrets/firebase-adminsdk.json\n' +
       '  Get a service account key: Firebase Console → Project Settings → Service accounts\n' +
-      '    → Generate new private key → save as .json → set GOOGLE_APPLICATION_CREDENTIALS'
+      '    → Generate new private key → upload to Render Secret Files'
     );
   }
 
@@ -130,10 +189,15 @@ function createMockAuth(): any {
         throw new Error('No token provided');
       }
 
+      console.error(
+        '[Firebase Admin Auth Error] Rejecting verifyIdToken: Firebase Admin credentials are not configured on the server.\n' +
+        '  Ensure GOOGLE_APPLICATION_CREDENTIALS points to a valid service account file on Render (e.g. /etc/secrets/firebase-adminsdk.json),\n' +
+        '  or define FIREBASE_SERVICE_ACCOUNT_JSON in environment variables.'
+      );
+
       const error = new Error(
-        'Firebase Admin credentials are not configured. ' +
-        'Set FIREBASE_SERVICE_ACCOUNT_JSON in your .env file with the contents of your Firebase service account JSON ' +
-        '(from Firebase Console → Project Settings → Service accounts → Generate new private key).'
+        'Firebase Admin credentials are not configured on server. ' +
+        'Configure GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT_JSON.'
       );
       Object.assign(error, { code: 'auth/admin-not-configured' });
       throw error;
